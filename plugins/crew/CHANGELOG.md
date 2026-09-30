@@ -5,6 +5,20 @@ All notable changes to the `crew` plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.4.0] - 2026-09-30
+
+### Added
+
+- `scripts/gate.sh` caches a green log by working-tree hash, directory and command, so a gate
+  on an unchanged tree is answered at once instead of building the same tree twice (#267).
+- `backend-node` has a Parallel gates recipe: `tsc --noEmit`, `vitest run`/`jest` and
+  `eslint`/`prettier --check` run together under a tree check every run (#267).
+
+### Changed
+
+- `/crew:review` no longer records `HEAD` and a clean status to skip a repeated gate; the runner
+  decides from the tree hash (#267).
+
 ## [5.3.1] - 2026-09-26
 
 ### Changed

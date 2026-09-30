@@ -104,6 +104,8 @@ by its installed absolute path, quoted as the recipe quotes it — a `*` inside 
 match: `Bash(bash "/abs/path/to/crew/scripts/gate.sh":*)`. Without it, the worker reports the refusal and
 stops; it does not improvise another form. **This rule is as wide as allowing all Bash:** `start`
 runs whatever command string it is given, so grant it only to a headless run you trust with that.
+A gate that passed on the same working tree is answered from `/tmp/crew-gate-cache` instead of
+running again; after a toolchain change outside the tree, clear it with `rm -r /tmp/crew-gate-cache`.
 
 </details>
 

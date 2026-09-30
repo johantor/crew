@@ -32,3 +32,37 @@ these paths from your directory-based deny for this reason.
 
 Watch/dev forms that never terminate: `nodemon`, a framework's dev server. The lock signature is
 `EBUSY`/`EPERM`/`EACCES`, or a locked `dist`/build output.
+
+### Parallel gates
+
+Build, test and lint may run at once when no gate writes what another reads: `tsc --noEmit`
+emits nothing, `eslint` and `prettier --check` only read, and the test runner's cache
+(`node_modules/.vite`, or the OS temp dir for Jest) has no other writer. No per-gate path is
+needed; each handoff carries the command as configured.
+
+Use the recipe only when **all** of these hold; otherwise run the gates one at a time. Every
+run under it passes `nocache` to the gate runner: a result the tree check may still discard is
+never cached, and never answered from the cache.
+
+- Each configured command is one of these, or a package script (`npm run <name>`, `npm test`;
+  `pnpm`/`yarn` likewise) whose `package.json` entry — in the package the config names, e.g.
+  `(from apps/api)` — is exactly one of these, optionally behind `npx`:
+  - Build: `tsc --noEmit`, optionally with `-p`/`--project <path>`.
+  - Test: `vitest run` or `jest`, optionally followed by paths.
+  - Lint: `eslint` (optionally with `--max-warnings <n>`) or `prettier --check`, optionally
+    followed by paths.
+
+  Any other flag (`--cache`, `--coverage`, `--incremental`, `--build`, a reporter, …), a second
+  command (`&&`, `;`, `|`), a script that calls another script, or a `pre<name>`/`post<name>`
+  script beside it (npm runs those too) means serial. The list is closed on purpose: a flag it
+  does not name is never judged safe.
+- The `tsconfig` the build resolves sets neither `incremental` nor `composite`: with either,
+  `--noEmit` still writes `.tsbuildinfo` into the tree.
+- The **tree check** has passed this session and not failed since. A config file can send a
+  cache or a report into the tree (Jest's `cacheDirectory`, Vitest's `cache.dir`, a coverage
+  reporter), and no list of such settings is complete, so check the result on **every** run:
+  touch a marker file first, and afterwards confirm that no file in the repo outside `.git` and
+  `node_modules` is newer than it. The session's first run is serial. A parallel run that fails
+  the check proves nothing: discard its results, rerun the gates one at a time, stay serial for
+  the rest of the session, and report the new files without deleting them (they may be the
+  developer's).
