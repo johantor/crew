@@ -80,7 +80,9 @@ with that absolute path written out: each call is one simple command, so a headl
 worker can run it under one allow rule, where an inline compound recipe needs a prompt it cannot
 answer (#245). You mint `<id>` for each handoff: the lane plus 8 random lowercase hex characters
 (`backend-3f9a61c2`). Start the command detached (the runner gives it its own process group and
-refuses a reused `<id>`; a `'` inside `<command>` is written `'\''`):
+refuses a reused `<id>`; a `'` inside `<command>` is written `'\''`). A gate dispatched under a
+stack's **Parallel gates** recipe adds `nocache` as the fourth argument: its result stands only
+once the recipe's tree check passes, so it must neither seed the cache nor be answered from it.
 
 ```sh
 bash "${CLAUDE_PLUGIN_ROOT}/scripts/gate.sh" start <id> '<command>'

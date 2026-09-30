@@ -17,8 +17,8 @@ description: "How the crew runs a build, test or lint gate: one build location w
    the tree check and the flags — and stay serial if it cannot be loaded or has no recipe (today
    `backend-dotnet` and `backend-node` have one). When its conditions hold, dispatch the gates
    together, each with what its recipe needs in its handoff (a `<location>/<lane>/<gate>` path,
-   the exact flags), `oracle`'s included — a worker that did not load the stack skill cannot
-   derive them. Record the recipe's tree-check result with the gate's outcome. Require the location **isolated from any running
+   the exact flags, `nocache` on the runner), `oracle`'s included — a worker that did not load
+   the stack skill cannot derive them. Record the tree-check result with the gate's outcome. Require the location **isolated from any running
    app/dev process** so builds can't contend on locked `bin`/`obj`, `dist`, bundler caches; an
    e2e suite's command owns its own server lifecycle instead.
 2. **One-shot, bounded.** Use the project's **build** command, never a watch/dev/serve command

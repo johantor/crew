@@ -40,7 +40,9 @@ emits nothing, `eslint` and `prettier --check` only read, and the test runner's 
 (`node_modules/.vite`, or the OS temp dir for Jest) has no other writer. No per-gate path is
 needed; each handoff carries the command as configured.
 
-Use the recipe only when **all** of these hold; otherwise run the gates one at a time:
+Use the recipe only when **all** of these hold; otherwise run the gates one at a time. Every
+run under it passes `nocache` to the gate runner: a result the tree check may still discard is
+never cached, and never answered from the cache.
 
 - Each configured command is one of these, or a package script (`npm run <name>`, `npm test`;
   `pnpm`/`yarn` likewise) whose `package.json` entry — in the package the config names, e.g.

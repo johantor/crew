@@ -4,7 +4,7 @@
 # (#245): each call is a single simple command, where the inline recipe it
 # replaces was a compound one that Claude's permission check refuses.
 #
-#   gate.sh start <id> <command>   launch; fails if <id> was used before
+#   gate.sh start <id> <command> [nocache]   launch; fails if <id> was used before
 #   gate.sh poll  <id>             wait up to ~9 min; print the exit code or `running`
 #   gate.sh stop  <id>             kill the process group; print `stopped` or `still-running`
 #
@@ -15,9 +15,11 @@
 # /tmp/crew-gate-cache), keyed by the working tree's git hash, the physical
 # directory and the command; a repeat on an unchanged tree is answered from it,
 # with `crew-gate: cached` as the log's first line (AGENTS.md, gate command).
+# `nocache` runs without reading or writing it: for a run whose result a later
+# check may still discard, such as a Parallel gates recipe's.
 set -u
 
-usage() { echo "usage: gate.sh start <id> <command> | poll <id> | stop <id>" >&2; exit 2; }
+usage() { echo "usage: gate.sh start <id> <command> [nocache] | poll <id> | stop <id>" >&2; exit 2; }
 
 [ $# -ge 2 ] || usage
 op="$1" id="$2"
@@ -26,17 +28,20 @@ case "$id" in
 esac
 d="/tmp/crew-gate-$id"
 cache="${CREW_GATE_CACHE_DIR-/tmp/crew-gate-cache}"
+# An override is an absolute path or nothing: a relative one reads as an option.
+case "$cache" in /*|'') ;; *) cache='' ;; esac
 
 # Prints the cache key for <command>, or nothing outside a git repo and in a
-# repo with submodules (their dirty content is invisible to the superproject's
-# hash). The tree hash covers tracked and untracked files as git sees them
-# (ignored files, so build outputs, excluded), taken through a copy of the
-# index so it never touches the real one. The physical directory is part of
-# the key: two checkouts with one tree can differ in ignored dependencies.
+# repo whose index holds a gitlink (a submodule's dirty content is invisible
+# to the superproject's hash). The tree hash covers tracked and untracked
+# files as git sees them (ignored files, so build outputs, excluded), taken
+# through a copy of the index so it never touches the real one. The physical
+# directory is part of the key: two checkouts with one tree can differ in
+# ignored dependencies.
 cache_key() {
-  local top tree
-  top="$(git rev-parse --show-toplevel 2>/dev/null)" || return 0
-  [ -e "$top/.gitmodules" ] && return 0
+  local tree
+  git rev-parse --git-dir >/dev/null 2>&1 || return 0
+  git ls-files -s 2>/dev/null | grep -q '^160000 ' && return 0
   cp "$(git rev-parse --git-path index)" "$d/index" 2>/dev/null
   tree="$(GIT_INDEX_FILE="$d/index" git add -A >/dev/null 2>&1 && GIT_INDEX_FILE="$d/index" git write-tree 2>/dev/null)"
   rm -f "$d/index"
@@ -44,17 +49,20 @@ cache_key() {
 }
 
 # The cache is trusted only as a private directory of this user: /tmp is
-# shared, and an override may name a directory others can write.
+# shared, and an override may name a directory others can write. A permission
+# query that fails counts as writable.
 cache_ok() {
-  [ -n "$cache" ] && [ -d "$cache" ] && [ ! -L "$cache" ] && [ -O "$cache" ] \
-    && [ -z "$(find "$cache" -maxdepth 0 \( -perm -020 -o -perm -002 \) 2>/dev/null)" ]
+  local w
+  [ -n "$cache" ] && [ -d "$cache" ] && [ ! -L "$cache" ] && [ -O "$cache" ] || return 1
+  w="$(find "$cache" -maxdepth 0 \( -perm -020 -o -perm -002 \) 2>&1)" && [ -z "$w" ]
 }
 
 case "$op" in
   start)
-    [ $# -eq 3 ] || usage
+    case "$#:${4-}" in 3:|4:nocache) ;; *) usage ;; esac
     mkdir -m 700 "$d" 2>/dev/null || { echo "gate.sh: $d already exists; mint a new <id>" >&2; exit 3; }
-    key="$(cache_key "$3")"
+    # An empty key is a run outside the cache, on both the read and the write.
+    key=''; [ "${4-}" = nocache ] || key="$(cache_key "$3")"
     if [ -n "$key" ] && cache_ok && [ -f "$cache/$key" ]; then
       { echo "crew-gate: cached; this command ran green on this tree before"; cat "$cache/$key"; } >"$d/log"
       echo 0 >"$d/exit"

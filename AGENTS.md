@@ -184,9 +184,12 @@ motivation measurably helps compliance. Compression is not a quota.
   status was prose, and a run that forgot it built the same tree twice. Red is never cached
   (it may be contention); a run that changed the tree is not cached either (the key is taken
   again at exit); the key ignores ignored files and the toolchain (an accepted gap; the user
-  clears the cache) and skips a repo with submodules (their dirty content is invisible to the
-  superproject's hash); a hit is trusted only from a cache directory this user owns and others
-  cannot write, since `/tmp` is shared and `CREW_GATE_CACHE_DIR` can name anything.
+  clears the cache) and skips a repo whose index holds a gitlink (a submodule's dirty content is
+  invisible to the superproject's hash); a hit is trusted only from an absolute cache directory
+  this user owns and others cannot write, with a failed permission query counting as writable,
+  since `/tmp` is shared and `CREW_GATE_CACHE_DIR` can name anything. A Parallel gates run
+  passes `nocache`: the key excludes ignored files, so a run the recipe's tree check later
+  rejects would otherwise seed a green entry that the serial rerun then hits.
 - **Isolation or a path, decided at dispatch.** An isolated worktree auto-cleans a gitignored
   deliverable (#241), and a relocation steer is refused inconsistently (#242).
 - **Address review feedback** with the same lane routing, git ownership and gate that built the

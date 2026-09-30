@@ -83,12 +83,29 @@ chmod g+w "$CREW_GATE_CACHE_DIR"
 gate "$repo" start "$id-c16" 'echo one' >/dev/null; gate "$repo" poll "$id-c16" >/dev/null
 check "a group-writable cache directory is not read" "0" "$(cached "$id-c16")"
 chmod g-w "$CREW_GATE_CACHE_DIR"
-# A submodule's dirty content is invisible to the superproject's tree hash.
-touch "$repo/.gitmodules"
+# nocache: a run whose result a later check may discard neither reads nor writes.
+gate "$repo" start "$id-c22" 'echo four' nocache >/dev/null; gate "$repo" poll "$id-c22" >/dev/null
+gate "$repo" start "$id-c23" 'echo four' >/dev/null; gate "$repo" poll "$id-c23" >/dev/null
+check "a nocache run writes no entry" "0" "$(cached "$id-c23")"
+gate "$repo" start "$id-c24" 'echo four' nocache >/dev/null; gate "$repo" poll "$id-c24" >/dev/null
+check "a nocache run reads no entry" "0" "$(cached "$id-c24")"
+bash "$GATE" start "$id-c25" 'true' other >/dev/null 2>&1
+check "an unknown fourth argument is refused" "2" "$?"
+# A failing permission query is not an empty one: the cache is then untrusted.
+fakebin="$(new_tmpdir)"; printf '#!/bin/sh\nexit 1\n' >"$fakebin/find"; chmod +x "$fakebin/find"
+PATH="$fakebin:$PATH" gate "$repo" start "$id-c20" 'echo one' >/dev/null; gate "$repo" poll "$id-c20" >/dev/null
+check "a failed permission query is not a hit" "0" "$(cached "$id-c20")"
+# A relative override would read as an option to the query; it disables the cache.
+(cd "$repo" && CREW_GATE_CACHE_DIR=-cache bash "$GATE" start "$id-c21" 'echo one' >/dev/null; bash "$GATE" poll "$id-c21" >/dev/null)
+check "a relative cache directory is never a hit" "0" "$(cached "$id-c21")"
+check "a relative cache directory is never created" "absent" "$([ -e "$repo/-cache" ] && echo present || echo absent)"
+# A submodule's dirty content is invisible to the superproject's tree hash: a
+# gitlink in the index, with or without .gitmodules, disables the cache.
+git -C "$repo" update-index --add --cacheinfo "160000,$(git -C "$repo" rev-parse HEAD),sub"
 gate "$repo" start "$id-c17" 'echo one' >/dev/null; gate "$repo" poll "$id-c17" >/dev/null
 gate "$repo" start "$id-c18" 'echo one' >/dev/null; gate "$repo" poll "$id-c18" >/dev/null
-check "a repo with submodules is never a hit" "0" "$(cached "$id-c18")"
-rm -f "$repo/.gitmodules"
+check "a repo with a gitlink in its index is never a hit" "0" "$(cached "$id-c18")"
+git -C "$repo" update-index --force-remove sub
 gate "$repo" start "$id-c5" 'exit 4' >/dev/null; gate "$repo" poll "$id-c5" >/dev/null
 gate "$repo" start "$id-c6" 'exit 4' >/dev/null
 check "a red run is never cached" "4" "$(gate "$repo" poll "$id-c6")"

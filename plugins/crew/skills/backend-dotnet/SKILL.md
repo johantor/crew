@@ -56,7 +56,9 @@ session and the second run is incremental.
 - Lint: `UseArtifactsOutput=true ArtifactsPath=<path> dotnet format <sln> --verify-no-changes`
   (`dotnet format` has no `--artifacts-path`; MSBuild reads the environment instead)
 
-Use the recipe only when **all** of these hold; otherwise run the gates one at a time:
+Use the recipe only when **all** of these hold; otherwise run the gates one at a time. Every
+run under it passes `nocache` to the gate runner: a result the tree check may still discard is
+never cached, and never answered from the cache.
 
 - The SDK is 8.0 or newer.
 - The **tree check** has passed this session and not failed since. A repo property
