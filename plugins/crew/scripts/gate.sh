@@ -31,21 +31,23 @@ cache="${CREW_GATE_CACHE_DIR-/tmp/crew-gate-cache}"
 # An override is an absolute path or nothing: a relative one reads as an option.
 case "$cache" in /*|'') ;; *) cache='' ;; esac
 
-# Prints the cache key for <command>, or nothing outside a git repo and in a
-# repo whose index holds a gitlink (a submodule's dirty content is invisible
-# to the superproject's hash). The tree hash covers tracked and untracked
-# files as git sees them (ignored files, so build outputs, excluded), taken
-# through a copy of the index so it never touches the real one. The physical
-# directory is part of the key: two checkouts with one tree can differ in
-# ignored dependencies.
+# Prints the cache key for <command>, or nothing outside a git repo and when
+# the hashed tree holds a gitlink (a submodule's or an embedded repo's dirty
+# content is invisible to the outer hash). The tree hash covers tracked and
+# untracked files as git sees them (ignored files, so build outputs,
+# excluded), taken through a copy of the index so it never touches the real
+# one. The physical directory is part of the key: two checkouts with one tree
+# can differ in ignored dependencies. Fields are NUL-delimited, since a path
+# or a command may contain a newline.
 cache_key() {
   local tree
   git rev-parse --git-dir >/dev/null 2>&1 || return 0
-  git ls-files -s 2>/dev/null | grep -q '^160000 ' && return 0
   cp "$(git rev-parse --git-path index)" "$d/index" 2>/dev/null
-  tree="$(GIT_INDEX_FILE="$d/index" git add -A >/dev/null 2>&1 && GIT_INDEX_FILE="$d/index" git write-tree 2>/dev/null)"
+  tree="$(GIT_INDEX_FILE="$d/index" git add -A >/dev/null 2>&1 \
+    && ! GIT_INDEX_FILE="$d/index" git ls-files -s 2>/dev/null | grep -q '^160000 ' \
+    && GIT_INDEX_FILE="$d/index" git write-tree 2>/dev/null)"
   rm -f "$d/index"
-  [ -n "$tree" ] && printf '%s\n%s\n%s\n' "$tree" "$(pwd -P)" "$1" | git hash-object --stdin
+  [ -n "$tree" ] && printf '%s\0%s\0%s\0' "$tree" "$(pwd -P)" "$1" | git hash-object --stdin
 }
 
 # The cache is trusted only as a private directory of this user: /tmp is
@@ -63,8 +65,9 @@ case "$op" in
     mkdir -m 700 "$d" 2>/dev/null || { echo "gate.sh: $d already exists; mint a new <id>" >&2; exit 3; }
     # An empty key is a run outside the cache, on both the read and the write.
     key=''; [ "${4-}" = nocache ] || key="$(cache_key "$3")"
-    if [ -n "$key" ] && cache_ok && [ -f "$cache/$key" ]; then
-      { echo "crew-gate: cached; this command ran green on this tree before"; cat "$cache/$key"; } >"$d/log"
+    # A hit needs the whole cached log; a copy that fails runs the gate instead.
+    if [ -n "$key" ] && cache_ok \
+      && { echo "crew-gate: cached; this command ran green on this tree before"; cat "$cache/$key"; } >"$d/log" 2>/dev/null; then
       echo 0 >"$d/exit"
       echo "$d"
       exit 0

@@ -100,12 +100,33 @@ check "a failed permission query is not a hit" "0" "$(cached "$id-c20")"
 check "a relative cache directory is never a hit" "0" "$(cached "$id-c21")"
 check "a relative cache directory is never created" "absent" "$([ -e "$repo/-cache" ] && echo present || echo absent)"
 # A submodule's dirty content is invisible to the superproject's tree hash: a
-# gitlink in the index, with or without .gitmodules, disables the cache.
+# checked-out gitlink, with or without .gitmodules, disables the cache.
+git init -q "$repo/sub" && printf 's\n' >"$repo/sub/s.txt"
 git -C "$repo" update-index --add --cacheinfo "160000,$(git -C "$repo" rev-parse HEAD),sub"
 gate "$repo" start "$id-c17" 'echo one' >/dev/null; gate "$repo" poll "$id-c17" >/dev/null
 gate "$repo" start "$id-c18" 'echo one' >/dev/null; gate "$repo" poll "$id-c18" >/dev/null
-check "a repo with a gitlink in its index is never a hit" "0" "$(cached "$id-c18")"
-git -C "$repo" update-index --force-remove sub
+check "a repo with a checked-out gitlink is never a hit" "0" "$(cached "$id-c18")"
+git -C "$repo" update-index --force-remove sub; rm -rf "$repo/sub"
+# An untracked embedded repo is staged as a gitlink by the hashing add: same rule.
+git init -q "$repo/embedded" && printf 'e\n' >"$repo/embedded/e.txt"
+gate "$repo" start "$id-c26" 'echo one' >/dev/null; gate "$repo" poll "$id-c26" >/dev/null
+gate "$repo" start "$id-c27" 'echo one' >/dev/null; gate "$repo" poll "$id-c27" >/dev/null
+check "an untracked embedded repo is never a hit" "0" "$(cached "$id-c27")"
+rm -rf "$repo/embedded"
+# Key fields are NUL-delimited: `true` from a directory named "a<newline>exit 1"
+# and "exit 1<newline>true" from "a" would otherwise share a key.
+mkdir -p "$repo/a"$'\n'"exit 1" "$repo/a"
+gate "$repo/a"$'\n'"exit 1" start "$id-c28" 'true' >/dev/null
+check "the newline-collision setup ran green" "0" "$(gate "$repo/a"$'\n'"exit 1" poll "$id-c28")"
+gate "$repo/a" start "$id-c29" $'exit 1\ntrue' >/dev/null
+check "a newline-shifted key is not a hit" "1" "$(gate "$repo/a" poll "$id-c29")"
+# A hit needs the whole cached log: an entry that cannot be read runs the gate.
+gate "$repo" start "$id-c30" 'echo five' >/dev/null; gate "$repo" poll "$id-c30" >/dev/null
+for f in "$CREW_GATE_CACHE_DIR"/*; do grep -q five "$f" 2>/dev/null && rm -f "$f" && mkdir "$f"; done
+gate "$repo" start "$id-c31" 'echo five' >/dev/null
+check "an unreadable entry runs the gate" "0" "$(gate "$repo" poll "$id-c31")"
+check "an unreadable entry is not reported as a hit" "0" "$(cached "$id-c31")"
+check "the gate that ran holds its own output" "five" "$(grep -o five "/tmp/crew-gate-$id-c31/log")"
 gate "$repo" start "$id-c5" 'exit 4' >/dev/null; gate "$repo" poll "$id-c5" >/dev/null
 gate "$repo" start "$id-c6" 'exit 4' >/dev/null
 check "a red run is never cached" "4" "$(gate "$repo" poll "$id-c6")"
