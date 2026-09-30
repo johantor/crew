@@ -73,8 +73,17 @@ cannot show that `morpheus` resolved a stack or that a worker loaded a skill.
   path. A repo whose `Directory.Build.props` sets `UseArtifactsOutput=false` fails the check and
   stays serial; adding that file after a passing first run makes the next parallel run fail the
   check, get discarded and rerun serially.
-- [ ] **One build writer at a time elsewhere** — a Node or Java diff that triggers build, tests
-  and lint → the three run one after another (no Parallel gates recipe for that stack).
+- [ ] **Node gates in parallel as configured** — a Node diff whose `build`, `test` and `lint`
+  scripts are exactly `tsc --noEmit`, `vitest run` and `eslint .` → the session's first run is
+  serial and passes the tree check; the next run dispatches the three together, each command as
+  configured, no per-gate path. A `test` script of `vitest run --coverage`, or a `jest.config`
+  whose `cacheDirectory` points into the tree, keeps or sends the lane serial.
+- [ ] **One build writer at a time elsewhere** — a Java diff that triggers build, tests and
+  lint → the three run one after another (no Parallel gates recipe for that stack).
+- [ ] **An unchanged tree is not rebuilt** — `/crew:review` run twice with no edit between →
+  the second run's build gate hands back at once, its log opening with `crew-gate: cached`,
+  reported as passed (*already verified, tree unchanged*) with the first run's warnings. Any
+  edit, or a first run that failed, makes the next run build again.
 - [ ] **A collision is not the operator's environment** — a lock/corrupt-`obj/` failure while two
   crew runs shared the build location → `morpheus` names its own overlapping dispatch and
   re-runs serialized, instead of asking the user to stop their dev server.

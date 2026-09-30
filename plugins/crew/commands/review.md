@@ -59,12 +59,13 @@ A diff can touch both lanes; `.cshtml` counts toward both.
 
 Lane-scoped and **independent** — a gate whose lane has no changes is **skipped**, not run.
 
-Also skip a gate that **already ran green earlier this session on the same tree**, to avoid
-re-running a build/suite that just ran (e.g. as the final step a moment ago). The rule must
-be explicit, not a guess: when a gate passes, record `git rev-parse HEAD` for it and that the
-working tree is clean (`git status --porcelain` empty). On a later run, skip that gate **only
-if** the current `HEAD` matches the recorded SHA **and** the tree is still clean — report it
-as passed (*already verified, tree unchanged*). If `HEAD` moved or the tree is dirty, run it.
+A gate that **already ran green on the same tree** is not re-run, and no bookkeeping of yours
+decides it: the runner keys every green log by the working tree's git hash (tracked and
+untracked files; ignored ones, so build outputs, excluded) plus the command, and answers a
+repeat from `/tmp/crew-gate-cache` at once, with a log that opens with `crew-gate: cached`.
+Dispatch the gate as usual; the worker reports such a hit as passed (*already verified, tree
+unchanged*) with the cached log's warnings. The key ignores the toolchain, so after an SDK or
+runtime change the user clears the cache (`rm -r /tmp/crew-gate-cache`).
 
 These are run-and-report steps (a known command, failures surfaced) — delegate each with
 `model: haiku`, per `morpheus`'s model right-sizing, and each with its own freshly minted

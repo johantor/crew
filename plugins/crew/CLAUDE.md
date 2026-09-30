@@ -97,7 +97,9 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
   - `lib/guard-lib.sh`: payload plumbing, `guard_normalize`, `GUARD_RE_*`, the `guard_block_*`
     helpers, quote masking, protected branches, read-guard limits, state files.
 - `scripts/gate.sh` — the review-gate runner: `start <id> '<cmd>'`, `poll <id>`, `stop <id>`,
-  state in `/tmp/crew-gate-<id>/`. `/crew:review` and `morpheus` name it by
+  state in `/tmp/crew-gate-<id>/`. A green log is cached under `/tmp/crew-gate-cache`
+  (`CREW_GATE_CACHE_DIR`; the tests point it at a fixture) by tree hash plus command; a hit
+  writes `log` and `exit` 0 and no `pid`. `/crew:review` and `morpheus` name it by
   `${CLAUDE_PLUGIN_ROOT}`, which Claude Code substitutes in command and agent bodies.
 - `tests/` — a guard is `stdin JSON → exit 0/2`: assert allow/block plus a stderr substring.
   Exceptions: `format` asserts its stderr

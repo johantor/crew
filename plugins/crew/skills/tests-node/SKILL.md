@@ -13,7 +13,9 @@ Detect the test framework from its config file:
   (`describe`/`it`/`expect`, `jest.fn()` mocks).
 
 Run tests using the repository's backend test command from crew config, whichever framework
-it resolves to.
+it resolves to. When the dispatch says the build and lint gates run beside you (`backend-node`,
+"Parallel gates"), run that command exactly as given: a flag that writes into the tree
+(`--coverage`, a file reporter) fails the recipe's tree check.
 
 - **Targeted rerun:** the test file path as the path filter, plus `-t`/`--testNamePattern` to
   match by test name — both frameworks take both. Jest's `--testPathPattern` filters paths,
