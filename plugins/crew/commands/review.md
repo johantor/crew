@@ -61,12 +61,12 @@ Lane-scoped and **independent** — a gate whose lane has no changes is **skippe
 
 A gate that **already ran green on the same tree** is not re-run, and no bookkeeping of yours
 decides it: the runner keys every green log by the working tree's git hash (tracked and
-untracked files; ignored ones, so build outputs, excluded), the directory it ran from and the
+untracked files; ignored ones, so build outputs, excluded), the checkout it ran from and the
 command, and answers a repeat from `/tmp/crew-gate-cache` at once, with a log that opens with
 `crew-gate: cached`. Dispatch the gate as usual; the worker reports such a hit as passed
 (*already verified, tree unchanged*) with the cached log's warnings. The key ignores ignored
 files and the toolchain, so after an SDK, runtime or `.env` change the user clears the cache
-(`rm -r /tmp/crew-gate-cache`).
+(`rm -r /tmp/crew-gate-cache`); a repo with submodules is never cached.
 
 These are run-and-report steps (a known command, failures surfaced) — delegate each with
 `model: haiku`, per `morpheus`'s model right-sizing, and each with its own freshly minted

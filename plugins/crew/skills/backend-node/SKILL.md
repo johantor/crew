@@ -51,8 +51,9 @@ Use the recipe only when **all** of these hold; otherwise run the gates one at a
     followed by paths.
 
   Any other flag (`--cache`, `--coverage`, `--incremental`, `--build`, a reporter, …), a second
-  command (`&&`, `;`, `|`) or a script that calls another script means serial. The list is
-  closed on purpose: a flag it does not name is never judged safe.
+  command (`&&`, `;`, `|`), a script that calls another script, or a `pre<name>`/`post<name>`
+  script beside it (npm runs those too) means serial. The list is closed on purpose: a flag it
+  does not name is never judged safe.
 - The `tsconfig` the build resolves sets neither `incremental` nor `composite`: with either,
   `--noEmit` still writes `.tsbuildinfo` into the tree.
 - The **tree check** has passed this session and not failed since. A config file can send a

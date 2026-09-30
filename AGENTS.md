@@ -179,12 +179,14 @@ motivation measurably helps compliance. Compression is not a quota.
   instead was declined, because a narrowed gate (named failing tests) could not use it. A worker
   that still
   backgrounds its own command is messaged for its report, and never reported on from a result
-  that has not arrived. The runner caches a green log by the tree's git hash, the directory
-  and the command: the skip rule that had `morpheus` record `HEAD` and a clean status was
-  prose, and a run that forgot it built the same tree twice. Red is never cached (it may be
-  contention); the key ignores ignored files and the toolchain (an accepted gap; the user
-  clears the cache); a hit is trusted only from a cache directory this user owns, since `/tmp`
-  is shared.
+  that has not arrived. The runner caches a green log by the tree's git hash, the physical
+  directory and the command: the skip rule that had `morpheus` record `HEAD` and a clean
+  status was prose, and a run that forgot it built the same tree twice. Red is never cached
+  (it may be contention); a run that changed the tree is not cached either (the key is taken
+  again at exit); the key ignores ignored files and the toolchain (an accepted gap; the user
+  clears the cache) and skips a repo with submodules (their dirty content is invisible to the
+  superproject's hash); a hit is trusted only from a cache directory this user owns and others
+  cannot write, since `/tmp` is shared and `CREW_GATE_CACHE_DIR` can name anything.
 - **Isolation or a path, decided at dispatch.** An isolated worktree auto-cleans a gitignored
   deliverable (#241), and a relocation steer is refused inconsistently (#242).
 - **Address review feedback** with the same lane routing, git ownership and gate that built the

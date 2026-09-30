@@ -63,6 +63,32 @@ check "the same command from the same subdirectory is a hit" "1" "$(cached "$id-
 printf 'b\n' >"$repo/a.txt"
 gate "$repo" start "$id-c4" 'echo one' >/dev/null; gate "$repo" poll "$id-c4" >/dev/null
 check "an edited tree is not a hit" "0" "$(cached "$id-c4")"
+entries() { local n=0 f; for f in "$CREW_GATE_CACHE_DIR"/*; do [ -e "$f" ] && n=$((n + 1)); done; echo "$n"; }
+before="$(entries)"
+gate "$repo" start "$id-c19" 'echo three' >/dev/null; gate "$repo" poll "$id-c19" >/dev/null
+check "the cached log is published before the exit code" "$((before + 1))" "$(entries)"
+check "no per-run temp file is left in the cache" "absent" "$(for f in "$CREW_GATE_CACHE_DIR"/*.*; do [ -e "$f" ] && echo present; done; echo absent)"
+# Another checkout of the very same tree can differ in ignored dependencies.
+git -C "$repo" add -A && git -C "$repo" -c user.name=t -c user.email=t@t commit -qm base
+git -C "$repo" worktree add -q "$repo-wt" -b wt 2>/dev/null
+gate "$repo" start "$id-c12" 'echo one' >/dev/null; gate "$repo" poll "$id-c12" >/dev/null
+gate "$repo-wt" start "$id-c13" 'echo one' >/dev/null; gate "$repo-wt" poll "$id-c13" >/dev/null
+check "another checkout of the same tree is not a hit" "0" "$(cached "$id-c13")"
+# A command that writes into the tree changes the key it would be cached under.
+gate "$repo" start "$id-c14" 'echo out >built.txt' >/dev/null; gate "$repo" poll "$id-c14" >/dev/null
+gate "$repo" start "$id-c15" 'echo out >built.txt' >/dev/null; gate "$repo" poll "$id-c15" >/dev/null
+check "a run that changed the tree is not cached" "0" "$(cached "$id-c15")"
+# A cache directory others can write is not trusted, for a hit or a write.
+chmod g+w "$CREW_GATE_CACHE_DIR"
+gate "$repo" start "$id-c16" 'echo one' >/dev/null; gate "$repo" poll "$id-c16" >/dev/null
+check "a group-writable cache directory is not read" "0" "$(cached "$id-c16")"
+chmod g-w "$CREW_GATE_CACHE_DIR"
+# A submodule's dirty content is invisible to the superproject's tree hash.
+touch "$repo/.gitmodules"
+gate "$repo" start "$id-c17" 'echo one' >/dev/null; gate "$repo" poll "$id-c17" >/dev/null
+gate "$repo" start "$id-c18" 'echo one' >/dev/null; gate "$repo" poll "$id-c18" >/dev/null
+check "a repo with submodules is never a hit" "0" "$(cached "$id-c18")"
+rm -f "$repo/.gitmodules"
 gate "$repo" start "$id-c5" 'exit 4' >/dev/null; gate "$repo" poll "$id-c5" >/dev/null
 gate "$repo" start "$id-c6" 'exit 4' >/dev/null
 check "a red run is never cached" "4" "$(gate "$repo" poll "$id-c6")"

@@ -12,9 +12,9 @@
 # State lives in /tmp/crew-gate-<id>/{log,exit,pid}; grep the log for findings.
 #
 # A green run's log is kept under $CREW_GATE_CACHE_DIR (default
-# /tmp/crew-gate-cache), keyed by the working tree's git hash, the directory
-# and the command; a repeat on an unchanged tree is answered from it, with
-# `crew-gate: cached` as the log's first line (AGENTS.md, gate command).
+# /tmp/crew-gate-cache), keyed by the working tree's git hash, the physical
+# directory and the command; a repeat on an unchanged tree is answered from it,
+# with `crew-gate: cached` as the log's first line (AGENTS.md, gate command).
 set -u
 
 usage() { echo "usage: gate.sh start <id> <command> | poll <id> | stop <id>" >&2; exit 2; }
@@ -27,18 +27,27 @@ esac
 d="/tmp/crew-gate-$id"
 cache="${CREW_GATE_CACHE_DIR-/tmp/crew-gate-cache}"
 
-# Prints the cache key for <command>, or nothing outside a git repo. The tree
-# hash covers tracked and untracked files as git sees them (ignored files, so
-# build outputs, excluded), taken through a copy of the index so it never
-# touches the real one. The directory is part of the key: one repo can hold
-# several packages whose scripts share a name.
+# Prints the cache key for <command>, or nothing outside a git repo and in a
+# repo with submodules (their dirty content is invisible to the superproject's
+# hash). The tree hash covers tracked and untracked files as git sees them
+# (ignored files, so build outputs, excluded), taken through a copy of the
+# index so it never touches the real one. The physical directory is part of
+# the key: two checkouts with one tree can differ in ignored dependencies.
 cache_key() {
-  local tree
-  git rev-parse --git-dir >/dev/null 2>&1 || return 0
+  local top tree
+  top="$(git rev-parse --show-toplevel 2>/dev/null)" || return 0
+  [ -e "$top/.gitmodules" ] && return 0
   cp "$(git rev-parse --git-path index)" "$d/index" 2>/dev/null
   tree="$(GIT_INDEX_FILE="$d/index" git add -A >/dev/null 2>&1 && GIT_INDEX_FILE="$d/index" git write-tree 2>/dev/null)"
   rm -f "$d/index"
-  [ -n "$tree" ] && printf '%s\n%s\n%s\n' "$tree" "$(git rev-parse --show-prefix)" "$1" | git hash-object --stdin
+  [ -n "$tree" ] && printf '%s\n%s\n%s\n' "$tree" "$(pwd -P)" "$1" | git hash-object --stdin
+}
+
+# The cache is trusted only as a private directory of this user: /tmp is
+# shared, and an override may name a directory others can write.
+cache_ok() {
+  [ -n "$cache" ] && [ -d "$cache" ] && [ ! -L "$cache" ] && [ -O "$cache" ] \
+    && [ -z "$(find "$cache" -maxdepth 0 \( -perm -020 -o -perm -002 \) 2>/dev/null)" ]
 }
 
 case "$op" in
@@ -46,8 +55,7 @@ case "$op" in
     [ $# -eq 3 ] || usage
     mkdir -m 700 "$d" 2>/dev/null || { echo "gate.sh: $d already exists; mint a new <id>" >&2; exit 3; }
     key="$(cache_key "$3")"
-    # Trusted only when this user owns the directory: /tmp is shared.
-    if [ -n "$cache" ] && [ -n "$key" ] && [ -O "$cache" ] && [ -f "$cache/$key" ]; then
+    if [ -n "$key" ] && cache_ok && [ -f "$cache/$key" ]; then
       { echo "crew-gate: cached; this command ran green on this tree before"; cat "$cache/$key"; } >"$d/log"
       echo 0 >"$d/exit"
       echo "$d"
@@ -56,15 +64,16 @@ case "$op" in
     # Job control gives the background job its own process group, so stop can
     # kill the whole tree the command starts.
     set -m
-    # The code lands via a rename, so poll never reads a half-written file; so
-    # does the cached log, which is written only for exit 0.
+    # Each file lands via a rename, so poll never reads a half-written one. The
+    # log is cached only for exit 0 and only if the tree is what it was at
+    # start, and before the exit code is published, so a repeat after poll hits.
     (
       bash -c "$3" >"$d/log" 2>&1; rc=$?
-      echo "$rc" >"$d/exit.tmp"; mv "$d/exit.tmp" "$d/exit"
-      if [ "$rc" -eq 0 ] && [ -n "$cache" ] && [ -n "$key" ]; then
-        mkdir -m 700 "$cache" 2>/dev/null
-        [ -O "$cache" ] && cp "$d/log" "$cache/$key.tmp" && mv "$cache/$key.tmp" "$cache/$key"
+      if [ "$rc" -eq 0 ] && [ -n "$key" ] && [ "$(cache_key "$3")" = "$key" ]; then
+        [ -n "$cache" ] && mkdir -m 700 "$cache" 2>/dev/null
+        cache_ok && cp "$d/log" "$cache/$key.$id" && mv "$cache/$key.$id" "$cache/$key"
       fi
+      echo "$rc" >"$d/exit.tmp"; mv "$d/exit.tmp" "$d/exit"
     ) >/dev/null 2>&1 &
     echo $! >"$d/pid"
     echo "$d"
