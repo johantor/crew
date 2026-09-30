@@ -54,6 +54,12 @@ check "stop on a cached gate reports stopped" "stopped" "$(gate "$repo" stop "$i
 check "hashing leaves the real index alone" "" "$(git -C "$repo" diff --cached --name-only)"
 gate "$repo" start "$id-c3" 'echo two' >/dev/null; gate "$repo" poll "$id-c3" >/dev/null
 check "a different command on the same tree is not a hit" "0" "$(cached "$id-c3")"
+mkdir -p "$repo/apps/api" "$repo/apps/web"
+gate "$repo/apps/api" start "$id-c9" 'echo one' >/dev/null; gate "$repo/apps/api" poll "$id-c9" >/dev/null
+gate "$repo/apps/web" start "$id-c10" 'echo one' >/dev/null; gate "$repo/apps/web" poll "$id-c10" >/dev/null
+check "the same command from another package directory is not a hit" "0" "$(cached "$id-c10")"
+gate "$repo/apps/api" start "$id-c11" 'echo one' >/dev/null; gate "$repo/apps/api" poll "$id-c11" >/dev/null
+check "the same command from the same subdirectory is a hit" "1" "$(cached "$id-c11")"
 printf 'b\n' >"$repo/a.txt"
 gate "$repo" start "$id-c4" 'echo one' >/dev/null; gate "$repo" poll "$id-c4" >/dev/null
 check "an edited tree is not a hit" "0" "$(cached "$id-c4")"

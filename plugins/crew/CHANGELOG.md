@@ -9,8 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- `scripts/gate.sh` caches a green log by working-tree hash plus command, so a gate on an
-  unchanged tree is answered at once instead of building the same tree twice.
+- `scripts/gate.sh` caches a green log by working-tree hash, directory and command, so a gate
+  on an unchanged tree is answered at once instead of building the same tree twice.
 - `backend-node` has a Parallel gates recipe: `tsc --noEmit`, `vitest run`/`jest` and
   `eslint`/`prettier --check` run together under a tree check every run.
 

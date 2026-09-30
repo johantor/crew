@@ -12,10 +12,9 @@
 # State lives in /tmp/crew-gate-<id>/{log,exit,pid}; grep the log for findings.
 #
 # A green run's log is kept under $CREW_GATE_CACHE_DIR (default
-# /tmp/crew-gate-cache), keyed by the working tree's git hash plus the command,
-# so the same command on an unchanged tree is answered from that log at once
-# instead of building the tree twice; such a log opens with `crew-gate: cached`.
-# Only a green exit is cached: a red one may be contention or the environment.
+# /tmp/crew-gate-cache), keyed by the working tree's git hash, the directory
+# and the command; a repeat on an unchanged tree is answered from it, with
+# `crew-gate: cached` as the log's first line (AGENTS.md, gate command).
 set -u
 
 usage() { echo "usage: gate.sh start <id> <command> | poll <id> | stop <id>" >&2; exit 2; }
@@ -31,14 +30,15 @@ cache="${CREW_GATE_CACHE_DIR-/tmp/crew-gate-cache}"
 # Prints the cache key for <command>, or nothing outside a git repo. The tree
 # hash covers tracked and untracked files as git sees them (ignored files, so
 # build outputs, excluded), taken through a copy of the index so it never
-# touches the real one.
+# touches the real one. The directory is part of the key: one repo can hold
+# several packages whose scripts share a name.
 cache_key() {
   local tree
   git rev-parse --git-dir >/dev/null 2>&1 || return 0
   cp "$(git rev-parse --git-path index)" "$d/index" 2>/dev/null
   tree="$(GIT_INDEX_FILE="$d/index" git add -A >/dev/null 2>&1 && GIT_INDEX_FILE="$d/index" git write-tree 2>/dev/null)"
   rm -f "$d/index"
-  [ -n "$tree" ] && printf '%s\n%s\n' "$tree" "$1" | git hash-object --stdin
+  [ -n "$tree" ] && printf '%s\n%s\n%s\n' "$tree" "$(git rev-parse --show-prefix)" "$1" | git hash-object --stdin
 }
 
 case "$op" in
@@ -46,7 +46,7 @@ case "$op" in
     [ $# -eq 3 ] || usage
     mkdir -m 700 "$d" 2>/dev/null || { echo "gate.sh: $d already exists; mint a new <id>" >&2; exit 3; }
     key="$(cache_key "$3")"
-    # The cache is trusted only when this user owns it: /tmp is shared.
+    # Trusted only when this user owns the directory: /tmp is shared.
     if [ -n "$cache" ] && [ -n "$key" ] && [ -O "$cache" ] && [ -f "$cache/$key" ]; then
       { echo "crew-gate: cached; this command ran green on this tree before"; cat "$cache/$key"; } >"$d/log"
       echo 0 >"$d/exit"

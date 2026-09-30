@@ -47,7 +47,8 @@ Use the recipe only when **all** of these hold; otherwise run the gates one at a
   `(from apps/api)` — is exactly one of these, optionally behind `npx`:
   - Build: `tsc --noEmit`, optionally with `-p`/`--project <path>`.
   - Test: `vitest run` or `jest`, optionally followed by paths.
-  - Lint: `eslint` or `prettier --check`, optionally followed by paths.
+  - Lint: `eslint` (optionally with `--max-warnings <n>`) or `prettier --check`, optionally
+    followed by paths.
 
   Any other flag (`--cache`, `--coverage`, `--incremental`, `--build`, a reporter, …), a second
   command (`&&`, `;`, `|`) or a script that calls another script means serial. The list is
