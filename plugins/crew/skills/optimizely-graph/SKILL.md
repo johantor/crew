@@ -12,14 +12,14 @@ CMS 12. The content model that feeds it belongs to `optimizely-cms12` or `optimi
 ## Detect
 
 - **CMS 13:** `Optimizely.Graph.Cms` (sync) and `Optimizely.Graph.Cms.Query` (the C# query SDK).
-- **CMS 12:** `Optimizely.ContentGraph.Cms` (sync) and `Optimizely.Graph.Client` (the C# query
-  client).
+- **CMS 12:** `Optimizely.ContentGraph.Cms` (sync, with `EPiServer.ContentDeliveryApi.Cms`) and
+  `Optimizely.Graph.Client` (the C# query client, now deprecated).
 - These packages are on the Optimizely NuGet feed (`nuget.optimizely.com`), not nuget.org; a
   restore without that source fails.
 - **Front end:** `@optimizely/cms-sdk` (official), `@remkoj/optimizely-graph-client`
   (community), or a GraphQL client pointed at `https://cg.optimizely.com/content/v2`.
-- Config: an `Optimizely:ContentGraph` section (`GatewayAddress`, `AppKey`, `Secret`,
-  `SingleKey`). On DXP the platform sets it; the section is for local runs.
+- Config: `Optimizely:ContentGraph` on CMS 12, `Optimizely:Graph` on CMS 13 (`GatewayAddress`,
+  `AppKey`, `Secret`, `SingleKey`). On DXP the platform sets it; the section is for local runs.
 
 ## Startup and sync
 
@@ -67,12 +67,16 @@ CMS 12. The content model that feeds it belongs to `optimizely-cms12` or `optimi
 - **CMS 13:** `services.AddGraphContentClient()`, then inject `IGraphContentClient`. Build with
   `QueryContent<T>()`, `.SearchFor(...)`, `.Where(x => ...)`, `.OrderBy(...)`, `.Skip()`/
   `.Limit()`, `.Facet(...)`, `.IncludeTotal()`, and run with `.GetAsync()` or
-  `.GetAsContentAsync()`. `.ToGraphQL()` returns the query text.
-- **CMS 12:** inject `GraphQueryBuilder` from `Optimizely.Graph.Client`:
-  `.ForType<T>().Fields(...).Where(...).Search(...).GetResultAsync<T>()`.
-- Search & Navigation (`EPiServer.Find*`) code moves to the SDK by mapping: `Search<T>` →
-  `QueryContent<T>`, `For` → `SearchFor`, `Filter` → `Where`, `Take` → `Limit`, `GetResult` →
-  `GetAsync`. Inside the site, `IContentLoader` is still the way to read a known item.
+  `.GetAsContentAsync()`. `.ToGraphQL()` returns the query text. Search tracking (`.Track()`,
+  with `.SearchFor()` only) needs `Optimizely.Graph.AspNetCore` and `app.UseGraphTrackingScripts()`.
+- **CMS 12:** the CMS 13 SDK does not support 12. Existing code may use the deprecated
+  `GraphQueryBuilder` (`Optimizely.Graph.Client`: `.ForType<T>().Fields(...).Where(...)
+  .GetResultAsync<T>()`); keep it working, but do not add new uses. A query that must survive
+  the upgrade to 13 is plain GraphQL, rewritten for the unified schema at that point.
+- Search & Navigation (`EPiServer.Find*`) code maps to the CMS 13 SDK: `Search<T>` →
+  `QueryContent<T>`, `For` → `SearchFor`, `Filter` → `Where`, `Take` → `Limit`, `GetResult()` →
+  `await GetAsContentAsync()`, `TotalMatching` → `Total`. Inside the site, `IContentLoader` is
+  still the way to read a known item.
 
 ## Headless front ends
 
