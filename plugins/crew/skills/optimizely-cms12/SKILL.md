@@ -16,8 +16,8 @@ that blocks the upgrade (`optimizely-cms-upgrade` lists them).
 - `services.AddCms()` in `Startup.cs`/`Program.cs`, an `"EPiServer"` section in
   `appsettings.json`, an `EPiServerDB` connection string.
 - `EPiServer.CloudPlatform.Cms` means the site deploys to DXP.
-- Neighbours: `EPiServer.Commerce` → `optimizely-commerce-customized`; `EPiServer.Find*` →
-  `optimizely-search-navigation`; `Optimizely.ContentGraph.Cms` → `optimizely-graph`.
+- Neighbours with no crew skill yet: `EPiServer.Commerce` (Customized Commerce), `EPiServer.Find*`
+  (Search & Navigation), `Optimizely.ContentGraph.Cms` (Graph). Work from their docs.
 
 ## Content model
 
