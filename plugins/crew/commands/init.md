@@ -3,8 +3,8 @@ description: Detect the project's crew configuration and write it to .claude/cre
 ---
 
 Set up (or reconcile) the **crew configuration** the orchestrator reads. This command
-detects the project's build/test/lint commands, base branch, frontend mode, and backend/
-frontend stack, shows you what it found, and writes the agreed values to **`.claude/crew.md`**.
+detects the project's build/test/lint commands, per-edit formatters, base branch, frontend mode,
+and backend/frontend stack, shows you what it found, and writes the agreed values to **`.claude/crew.md`**.
 It is **idempotent**: the first run bootstraps the file; a re-run reconciles it, adding any
 slots introduced by a newer plugin version **without overwriting values you've already set**.
 
@@ -54,6 +54,13 @@ with this repo's own `.claude/crew.md`. Every slot marked *pin-only* is optional
 - **Backend lint command** (`backendLintCommand`) — verify mode, e.g. `dotnet format
   --verify-no-changes`.
 - **Frontend lint command** (`frontendLintCommand`) — the lint script in report/verify mode.
+- **Format matrix** (`formatMatrix`) — the per-edit formatters, as a block scalar (`formatMatrix: |`)
+  with one row per line: `<dir> <extensions> <command>`. `format.sh` runs every row whose
+  directory prefix (`.` for the whole project) and comma-separated extension list match the
+  edited file, in order, from that directory, with `{file}` replaced by the file's path relative
+  to it. A file no row covers is left alone. `none` when the project has no single-file
+  formatter; whole-project formatters (`cargo fmt`, Spotless, shfmt via `.editorconfig`) stay
+  at the lint gate and get no row.
 - **Base branch** (`baseBranch`) — the branch `morpheus` branches off (`main` / `develop` / trunk).
 - **Branch naming** (`branchNaming`) — e.g. `feature/<ticket>-<slug>`.
 - **Run/dev URL** (`runUrl`) — the local dev URL, if the project serves one.
@@ -81,6 +88,10 @@ backendBuildCommand: dotnet build
 frontendBuildCommand: npm run build
 backendLintCommand: dotnet format --verify-no-changes
 frontendLintCommand: npm run format:check
+formatMatrix: |
+  src/Site  ts,tsx,scss  node_modules/.bin/prettier --write {file}
+  src/Site  ts,tsx       node_modules/.bin/eslint --fix --cache {file}
+  .         cs           dotnet csharpier format {file}
 baseBranch: develop
 branchNaming: feature/<ticket>-<slug>
 runUrl: https://localhost:5001/
@@ -101,6 +112,7 @@ trust or correct it; never invent a command you can't see configured.
 | Backend build, test, lint | Load the detected stack's `backend-<stack>` skill and propose what its **Crew config** section says; it names the static gate for a stack with no compile step and the runner prefix a command needs. |
 | Frontend stack | `next.config.*` → `nextjs`; a React/Vite SPA build without it → `react`; no client-facing surface → propose `none` and say why. A TUI or designed CLI output → stop, unsupported. |
 | Frontend build, test, lint | `package.json` `scripts`: `build`/`typecheck` → build, `test`/`e2e`/a Playwright config → test, `lint` → lint. Use the scripts that exist; don't assume an `npx` download. A script that only runs from a subdirectory says so in the value: `npm run build (from src/Site)`. |
+| Format matrix | One row per package that configures a single-file formatter, from the package's own directory (in a monorepo that is not the root). Backend rows come from the `backend-<stack>` skill's **Crew config** section. Web rows from the configs in the package: `biome.json*` → `node_modules/.bin/biome check --write {file}`; `.prettierrc*`/`prettier.config.*`/a `prettier` key → `node_modules/.bin/prettier --write {file}`; `.eslintrc*`/`eslint.config.*`/an `eslintConfig` key → `node_modules/.bin/eslint --fix --cache {file}` (script extensions only); `.stylelintrc*`/`stylelint.config.*` → `node_modules/.bin/stylelint --fix {file}` (style extensions only). Always the locally installed binary, never `npx`. A tool merely on `PATH` with no config is not the project's choice: no row. No single-file formatter anywhere → `none`. |
 | Frontend mode | React/Vite/Next SPA build → `headless`; Razor `.cshtml` views without an SPA bundle → `server-rendered`. Mixed or unclear → `unset` with the split described in the body notes. |
 | Frontend e2e tool | `cypress.config.*` or a `cypress/` directory → `cypress`; `playwright.config.*` → `playwright`. |
 | Frontend unit test tool | `vitest.config.*` → `vitest`; `jest.config.*` or a `jest` key with no vitest → `jest`; a `cypress.config.*` `component` key with neither → `cypress`. Absent → `unset`; `morpheus` will not assume one exists. |
@@ -112,8 +124,8 @@ trust or correct it; never invent a command you can't see configured.
 When detection comes up empty, pick the placeholder by slot type — never a value that makes the
 config unusable:
 
-- **Tooling slots** (test, build and lint commands; run/dev URL): `none` when the project
-  genuinely has no such tooling. Gates that need it then skip with that note.
+- **Tooling slots** (test, build and lint commands; format matrix; run/dev URL): `none` when the
+  project genuinely has no such tooling. Gates that need it then skip with that note.
 - **Project-identity slots** (base branch, branch naming, frontend mode, backend stack): `unset`,
   never `none` — a base branch always exists. `morpheus` resolves or asks.
 - **Frontend stack is the exception.** `none` is a real answer: write it when confirmed, since
@@ -189,7 +201,8 @@ Say plainly where the slots go: `.claude/crew.md` is committed and shared with t
 - **`.claude/crew.md` exists (reconcile)** → for each slot in §1: add its key if missing; fill it
   if present but still a placeholder (`unset` / `none`) and a value was detected and confirmed.
   **Never overwrite a key the user has set to a real value** — show those as "kept" rather than
-  changing them. Preserve the body notes verbatim.
+  changing them; a `formatMatrix` block with rows is such a value, so propose new rows as a
+  diff rather than rewriting the block. Preserve the body notes verbatim.
 
 Before writing, show the exact set of additions and removals — a short diff of slots, plus the
 `CLAUDE.md` lines kept, reworded, and dropped — and apply only after the user confirms.

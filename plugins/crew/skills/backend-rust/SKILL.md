@@ -19,7 +19,11 @@ convenience.
 `/crew:init` proposes: build `cargo check --all-targets` or `cargo build` — read which the repo's
 CI runs rather than picking — with `cargo clippy --all-targets -- -D warnings` where clippy is
 configured; test `cargo test` (`cargo nextest run` when nextest is configured); lint
-`cargo fmt --check`.
+`cargo fmt --check`. Format matrix: one row per crate, extension `rs`, `rustfmt --skip-children
+--edition <edition> {file}` with the edition from the crate's own `Cargo.toml` (or the
+workspace's when it inherits with `edition.workspace = true`; omitted means 2015, not
+inheritance). Bare `rustfmt` reads no manifest, and `cargo fmt` formats the whole package, so
+it stays at the gate.
 
 ## Idiom
 

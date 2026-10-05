@@ -17,7 +17,9 @@ thin backend is a valid shape, not a gap to fill.
 
 `/crew:init` proposes from `package.json` `scripts`: `build`/`typecheck` → build, `test` → test,
 `lint` → lint — the scripts that exist, never an assumed `npx` download. A script that only runs
-from a subdirectory carries it in the value: `npm run build (from apps/api)`.
+from a subdirectory carries it in the value: `npm run build (from apps/api)`. Format matrix
+rows are the web tooling rows `/crew:init` §2 describes (Biome, Prettier, ESLint, Stylelint from
+the package's own config), one set per package.
 
 ## Route-handler ownership (Next.js frontend)
 

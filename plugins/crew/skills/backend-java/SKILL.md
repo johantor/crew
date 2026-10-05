@@ -29,7 +29,10 @@ lint `./mvnw -B checkstyle:check` where the plugin is configured, test `./mvnw -
 so every `*IT` class would be skipped by both gates. Gradle build `./gradlew build -x test`, lint
 `./gradlew check -x test`, test `./gradlew test` plus any separate integration-test task the build
 script declares — Gradle has no Failsafe equivalent by default, so read the source sets. Read the
-actual plugin/task set rather than assuming these exist.
+actual plugin/task set rather than assuming these exist. Format matrix row, extension `java`,
+per module whose build file names a standalone formatter: `google-java-format --replace {file}`
+or `palantir-java-format --replace {file}`. A Spotless project gets no row: it formats through
+the build, at the gate, and its config naming a formatter is not permission to run the binary.
 
 ## Layout
 

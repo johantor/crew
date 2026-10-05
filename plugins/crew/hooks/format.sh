@@ -2,10 +2,14 @@
 # PostToolUse(Edit|Write) formatter, gated to the agents that write source
 # (tank/trinity/neo/oracle; other agents and the main session are no-ops). oracle
 # is included because a test file is source too: unformatted, it fails the same
-# lint gate at the end of the run. The formatter set is chosen by the edited file's
-# extension, not a fixed agent->lane table: a backend stack can be dotnet or node,
-# so lane != language. A Node-backend file tank edits still gets web tooling, and
-# a .cs/.csproj file gets dotnet/CSharpier whichever agent produced it.
+# lint gate at the end of the run.
+#
+# A runner, not a detector. The `formatMatrix` slot in `.claude/crew.md` holds
+# one row per `<dir> <extensions> <command>`, written by /crew:init from what the
+# project configures; every row whose directory and extension list match the
+# edited file runs, in order, from that directory, with `{file}` replaced by the
+# file's path relative to it. A file no row covers is left alone. See AGENTS.md,
+# "Why format.sh runs a matrix and detects nothing".
 set -e
 
 # Fail open: formatting is best-effort, so a missing library or jq is a no-op,
@@ -19,8 +23,8 @@ command -v jq >/dev/null 2>&1 || exit 0
 guard_read_payload
 # Both fields in one jq pass, and the path is only computed for an agent this
 # hook formats for, so the far more common no-op call doesn't pay to look it up.
-# neo is the cross-lane express-lane generalist, so it gets the same
-# extension-based routing as tank/trinity rather than a fixed lane.
+# neo is the cross-lane express-lane generalist, so it gets the same routing as
+# tank/trinity rather than a fixed lane.
 guard_jq2 \
   '(if ((.agent_type // "") | test("^(tank|trinity|neo|oracle)$")) then ((.tool_input.file_path // .tool_input.path) // "") else "" end)' \
   '.agent_type // ""' || exit 0
@@ -31,86 +35,22 @@ case "$agent_type" in
   tank|trinity|neo|oracle) : ;;
   *)                       exit 0 ;;
 esac
-# Extension-based routing needs a path to route on.
 [ -n "$path" ] || exit 0
 
-ext="${path##*.}"
-case "$ext" in
-  cs|csproj) lane="dotnet" ;;
-  js|jsx|ts|tsx|mjs|cjs|vue|svelte|css|scss|sass|less|json|jsonc|html|md|yaml|yml) lane="web" ;;
-  py|pyi) lane="python" ;;
-  go) lane="go" ;;
-  rs) lane="rust" ;;
-  java) lane="java" ;;
-  # .sh/.bash/.bats are deliberately unowned. shfmt's configuration mechanism is
-  # .editorconfig, and deciding whether one of its sections applies to a given
-  # file is its glob semantics (brace lists, **, ranges, nearest-section
-  # precedence). Approximating that in bash was wrong both ways, and gating on a
-  # `.shfmt` marker instead gated on a file shfmt never reads. Shell formatting
-  # belongs to the review gate, where shfmt reads .editorconfig itself.
-  *) exit 0 ;;  # not a formatter-owned extension (e.g. .cshtml, .sh) -- nothing to do
+# No matrix (file or slot missing, `none`, `unset`) means per-edit formatting is
+# off. Silent: morpheus nudges once per run to run /crew:init; a line here would
+# repeat on every edit.
+guard_config_load
+rows="$(config_block formatMatrix)"
+[ -n "$rows" ] || exit 0
+
+# Rows name project-relative directories; the payload may carry an absolute path.
+case "$path" in
+  "$PWD"/*) path="${path#"$PWD"/}" ;;
+  ./*)      path="${path#./}" ;;
 esac
-
-# True if any given path exists (config-file detection; unmatched globs pass
-# through literally and simply fail the -e test).
-cfg() { for _p in "$@"; do [ -e "$_p" ] && return 0; done; return 1; }
-
-# find_up <name...> — echo the nearest ancestor of the edited file holding any of
-# them. Configuration belongs to the project that owns the file, and in a
-# monorepo that is not the repo root; checking only the root reports "no
-# formatter" and leaves the edit to fail the lint gate.
-find_up() {
-  _fu_d="${path%/*}"; [ "$_fu_d" = "$path" ] && _fu_d="."
-  _fu_n=0
-  while [ "$_fu_n" -lt 32 ]; do
-    for _fu_f in "$@"; do
-      [ -e "$_fu_d/$_fu_f" ] && { printf '%s' "$_fu_d"; return 0; }
-    done
-    # Stop at the project root. The hook runs there, and configuration above it
-    # belongs to another project or the user's home -- honoring it would select a
-    # formatter for a project that configured none.
-    [ "$_fu_d" = "$PWD" ] && return 1
-    case "$_fu_d" in .|/|"") return 1 ;; esac
-    _fu_p="${_fu_d%/*}"; [ "$_fu_p" = "$_fu_d" ] && _fu_p="."
-    _fu_d="$_fu_p"; _fu_n=$((_fu_n + 1))
-  done
-  return 1
-}
-
-# find_up_pyproject_section <name> — nearest ancestor whose pyproject.toml has
-# [tool.<name>]. Some tools read only a section in pyproject; stopping on a
-# different tool's nearest config would hide the right one.
-find_up_pyproject_section() {
-  _fps_want="$1"
-  _fps_d="${path%/*}"; [ "$_fps_d" = "$path" ] && _fps_d="."
-  _fps_n=0
-  while [ "$_fps_n" -lt 32 ]; do
-    if [ -f "$_fps_d/pyproject.toml" ] && grep -Eq "^\[tool\.${_fps_want}([.]|\\])" "$_fps_d/pyproject.toml"; then
-      printf '%s' "$_fps_d"; return 0
-    fi
-    [ "$_fps_d" = "$PWD" ] && return 1
-    case "$_fps_d" in .|/|"") return 1 ;; esac
-    _fps_p="${_fps_d%/*}"; [ "$_fps_p" = "$_fps_d" ] && _fps_p="."
-    _fps_d="$_fps_p"; _fps_n=$((_fps_n + 1))
-  done
-  return 1
-}
-
-# rel_from_root <root> <file> — file path relative to the selected project root.
-rel_from_root() {
-  _rfr_root="$1"; _rfr_file="$2"
-  case "$_rfr_file" in
-    "$_rfr_root"/*) printf '%s' "${_rfr_file#"$_rfr_root"/}" ;;
-    "$PWD"/*)       printf '%s' "${_rfr_file#"$PWD"/}" ;;
-    ./*)            printf '%s' "${_rfr_file#./}" ;;
-    *)              printf '%s' "$_rfr_file" ;;
-  esac
-}
-
-# regex_escape <text> — quote regex metacharacters for exact matching.
-regex_escape() {
-  printf '%s' "$1" | awk '{ gsub(/[][(){}.^$*+?|\\]/, "\\\\&"); print }'
-}
+ext="${path##*.}"
+[ "$ext" = "$path" ] && ext=""
 
 # Every formatter runs under a wall-clock bound. This fires after *every* edit, so
 # a hang would stall the agent each time, and the harness's kill can land mid
@@ -136,265 +76,51 @@ run_bounded() {
   return "$_st"
 }
 
-# hung <status> — true when the bound killed the tool, so a hang reads
-# differently from a tool that ran and rejected the file. 124 is `timeout`'s
-# convention, no formatter here exits it of its own accord, and without a timeout
-# binary nothing can have been killed.
-hung() { [ -n "$timeout_bin" ] && [ "$1" = 124 ]; }
-
-case "$lane" in
-  dotnet)
-    command -v dotnet >/dev/null 2>&1 || exit 0  # fail open if dotnet isn't available
-    # Per-edit formatting favors speed over full coverage: full `dotnet format`
-    # evaluates analyzers against the containing project and can take 10-60s on
-    # real solutions, so it stays at the review gate
-    # (`dotnet format --verify-no-changes`). When the solution configures
-    # CSharpier (.csharpierrc) use it here instead — it formats a single file
-    # without evaluating the project — else `dotnet format whitespace`, which
-    # skips analyzer evaluation.
-    if cfg .csharpierrc .csharpierrc.* ; then
-      st=0; run_bounded dotnet csharpier format "$path" || st=$?
-      if [ "$st" = 0 ]; then
-        echo "format hook: ran csharpier on $path" >&2
-      elif hung "$st"; then
-        echo "format hook: csharpier timed out after ${FORMAT_TIMEOUT}s on $path" >&2
-      else
-        echo "format hook: csharpier configured but failed (is it restored? 'dotnet tool restore')" >&2
-      fi
-    else
-      st=0; run_bounded dotnet format whitespace --include "$path" || st=$?
-      if hung "$st"; then
-        echo "format hook: dotnet format whitespace timed out after ${FORMAT_TIMEOUT}s on $path" >&2
-      elif [ "$st" != 0 ]; then
-        echo "format hook: dotnet format whitespace failed" >&2
-      fi
-    fi
-    ;;
-  web)
-    [ -f package.json ] || exit 0
-    # Apply every formatter/linter the solution configures, not just the first
-    # match. Each is detected by its config, run in fix mode scoped to the changed
-    # file, and only invoked when installed locally — so a missing tool is a
-    # no-op, never an npx download.
-    bin="node_modules/.bin"
-    ran=""
-    # Run a locally-installed tool in fix mode; record it, report failures.
-    runfix() {
-      _tool="$1"; shift
-      [ -x "$bin/$_tool" ] || return 0
-      st=0; run_bounded "$bin/$_tool" "$@" || st=$?
-      if [ "$st" = 0 ]; then ran="$ran $_tool"
-      elif hung "$st"; then echo "format hook: $_tool timed out after ${FORMAT_TIMEOUT}s on $path" >&2
-      else echo "format hook: $_tool failed on $path" >&2; fi
-    }
-
-    # Biome formats + lints JS/TS/JSON/CSS in one pass when configured.
-    cfg biome.json biome.jsonc && runfix biome check --write "$path"
-
-    # Prettier — formatter for most file types.
-    { cfg .prettierrc .prettierrc.* prettier.config.* \
-      || jq -e '.prettier' package.json >/dev/null 2>&1; } \
-      && runfix prettier --write "$path"
-
-    # ESLint — JS/TS autofix.
-    case "$ext" in
-      js|jsx|ts|tsx|mjs|cjs|vue|svelte)
-        { cfg .eslintrc .eslintrc.* eslint.config.* \
-          || jq -e '.eslintConfig' package.json >/dev/null 2>&1; } \
-          && runfix eslint --fix --cache "$path" ;;
+ran=""
+sq="'"
+while IFS= read -r row; do
+  [ -n "$row" ] || continue
+  # Two controlled fields first, the command (which may hold spaces) last.
+  read -r dir exts cmd <<<"$row"
+  if [ -z "$cmd" ]; then
+    echo "format hook: formatMatrix row '$row' is not '<dir> <extensions> <command>'; run /crew:init" >&2
+    continue
+  fi
+  dir="${dir%/}"
+  if [ "$dir" = "." ]; then
+    rel="$path"
+  else
+    case "$path" in
+      "$dir"/*) rel="${path#"$dir"/}" ;;
+      *)        continue ;;
     esac
+  fi
+  case ",$exts," in
+    *",$ext,"*) ;;
+    *)          continue ;;
+  esac
+  tool="${cmd%% *}"; tool="${tool##*/}"
+  if [ ! -d "$dir" ]; then
+    echo "format hook: formatMatrix row directory '$dir' is missing; run /crew:init" >&2
+    continue
+  fi
+  # {file} is single-quoted so a space or a quote in the path stays one argument.
+  q="${rel//\'/\'\\\'\'}"
+  cmd="${cmd//\{file\}/$sq$q$sq}"
+  st=0
+  ( cd "$dir" && run_bounded bash -c "$cmd" ) || st=$?
+  if [ "$st" = 0 ]; then
+    ran="$ran $tool"
+  elif [ -n "$timeout_bin" ] && [ "$st" = 124 ]; then
+    # 124 is `timeout`'s convention; no formatter here exits it of its own accord.
+    echo "format hook: $tool timed out after ${FORMAT_TIMEOUT}s on $path" >&2
+  elif [ "$st" = 127 ]; then
+    # The tool the row names is gone: the matrix is stale, not the file.
+    echo "format hook: $tool not found for formatMatrix row '$dir $exts'; run /crew:init" >&2
+  else
+    echo "format hook: $tool failed on $path" >&2
+  fi
+done <<<"$rows"
 
-    # Stylelint — CSS/SCSS/LESS autofix.
-    case "$ext" in
-      css|scss|sass|less)
-        { cfg .stylelintrc .stylelintrc.* stylelint.config.* \
-          || jq -e '.stylelint' package.json >/dev/null 2>&1; } \
-          && runfix stylelint --fix "$path" ;;
-    esac
-
-    if [ -n "$ran" ]; then echo "format hook: applied$ran on $path" >&2
-    else echo "format hook: no configured formatter/linter for $path; skipped" >&2; fi
-    ;;
-  python)
-    # Config-gated like the web lane: a tool merely present on the developer's
-    # PATH is not the project's choice, and running it would make the file's
-    # contents depend on the machine. Run directly rather than through
-    # poetry/uv/pdm, which resolve the environment on every call.
-    ran=""
-    # runpy <label> <cmd...> — run a tool, record it, report failure or a hang.
-    runpy() {
-      _label="$1"; shift
-      st=0; run_bounded "$@" || st=$?
-      if [ "$st" = 0 ]; then ran="$ran $_label"
-      elif hung "$st"; then echo "format hook: $_label timed out after ${FORMAT_TIMEOUT}s on $path" >&2
-      else echo "format hook: $_label failed on $path" >&2; fi
-    }
-    # `tool_cfg <tool>` — true when the owning project configures that tool.
-    # Resolve each tool independently: a nearby ruff config must not hide a
-    # parent [tool.black], and vice versa.
-    ruff_root="$(find_up ruff.toml .ruff.toml)" || ruff_root=""
-    [ -n "$ruff_root" ] || ruff_root="$(find_up_pyproject_section ruff)" || ruff_root=""
-    black_root="$(find_up_pyproject_section black)" || black_root=""
-    tool_cfg() {
-      case "$1" in
-        ruff) [ -n "$ruff_root" ] && return 0 ;;
-        black) [ -n "$black_root" ] && return 0 ;;
-      esac
-      return 1
-    }
-    if tool_cfg ruff && command -v ruff >/dev/null 2>&1; then
-      # --fix applies only ruff's safe fixes; the rest stay for the gate.
-      # --force-exclude: with an explicit path both ruff commands ignore the
-      # project's exclude/extend-exclude, so vendored or generated code would be
-      # rewritten by this hook. The project's configuration stays authoritative.
-      runpy ruff-check ruff check --force-exclude --fix "$path"
-      # Formatting is a separate, explicit choice. `[tool.ruff]` alone may be
-      # lint-only, and a project may lint with ruff and format with something else
-      # or not at all -- inferring "ruff formats here" from black's absence would
-      # rewrite a project that never asked. The lint fixes above still apply.
-      if grep -q '^\[tool\.ruff\.format' "$ruff_root/pyproject.toml" 2>/dev/null \
-         || grep -q '^\[format\]' "$ruff_root/ruff.toml" "$ruff_root/.ruff.toml" 2>/dev/null; then
-        runpy ruff-format ruff format --force-exclude "$path"
-      fi
-    fi
-    if tool_cfg black && command -v black >/dev/null 2>&1; then
-      # Black ignores exclude/extend-exclude for an explicit file argument. Run on
-      # the owning project root with an exact include pattern so discovery and
-      # configured exclusions still apply.
-      black_rel="$(rel_from_root "$black_root" "$path")"
-      black_pat="$(regex_escape "$black_rel")"
-      runpy black black -q --include "^${black_pat}$" "$black_root"
-    fi
-    if [ -n "$ran" ]; then echo "format hook: applied$ran on $path" >&2
-    else echo "format hook: no configured Python formatter for $path; skipped" >&2; fi
-    ;;
-  go)
-    # gofmt ships with the toolchain and needs no configuration. gofumpt applies
-    # rewrites gofmt does not, so it is used only where the project asks for it --
-    # otherwise the same edit produces different source on different machines.
-    gofumpt_enabled() {
-      _gf_cfg="$1"
-      [ -f "$_gf_cfg" ] || return 1
-      awk '
-        {
-          line=$0
-          sub(/[[:space:]]*#.*/, "", line)
-          if (line ~ /^[[:space:]]*$/) next
-          if (line ~ /^[[:space:]]*enable:[[:space:]]*\[[^]]*gofumpt/) { ok=1; next }
-          if (line ~ /^[[:space:]]*disable:[[:space:]]*\[[^]]*gofumpt/) next
-          if (line ~ /^[[:space:]]*enable:[[:space:]]*$/) { sec="enable"; next }
-          if (line ~ /^[[:space:]]*disable:[[:space:]]*$/) { sec="disable"; next }
-          if (line ~ /^[[:space:]]*[A-Za-z0-9_.-]+:[[:space:]]*$/) { sec=""; next }
-          if (sec == "enable" && line ~ /^[[:space:]]*-[[:space:]]*gofumpt([[:space:]]|$)/) { ok=1; next }
-        }
-        END { exit(ok ? 0 : 1) }
-      ' "$_gf_cfg" 2>/dev/null
-    }
-    tool=""
-    command -v gofmt >/dev/null 2>&1 && tool="gofmt"
-    goroot="$(find_up go.mod .golangci.yml .golangci.yaml)" || goroot="."
-    if { gofumpt_enabled "$goroot/.golangci.yml" || gofumpt_enabled "$goroot/.golangci.yaml"; } \
-       && command -v gofumpt >/dev/null 2>&1; then
-      tool="gofumpt"
-    elif grep -qrE -- '(^|[[:space:]])gofumpt([[:space:]]|$)' "$goroot/Makefile" Makefile .github/workflows 2>/dev/null \
-       && command -v gofumpt >/dev/null 2>&1; then
-      tool="gofumpt"
-    fi
-    [ -n "$tool" ] || { echo "format hook: no Go formatter on PATH for $path; skipped" >&2; exit 0; }
-    st=0; run_bounded "$tool" -w "$path" || st=$?
-    if [ "$st" = 0 ]; then echo "format hook: applied $tool on $path" >&2
-    elif hung "$st"; then echo "format hook: $tool timed out after ${FORMAT_TIMEOUT}s on $path" >&2
-    else echo "format hook: $tool failed on $path" >&2; fi
-    ;;
-  rust)
-    # rustfmt, not `cargo fmt`, which formats the whole package. Bare rustfmt does
-    # not read Cargo.toml, so pass the edition when it is declared.
-    command -v rustfmt >/dev/null 2>&1 || { echo "format hook: rustfmt not on PATH for $path; skipped" >&2; exit 0; }
-    # The edition comes from the manifest that OWNS the file, not the one in the
-    # working directory: in a workspace those differ, and the wrong edition makes
-    # rustfmt reject or misformat valid source.
-    # Section-aware: a mixed root has both [package] and [workspace.package], and
-    # reading the wrong one hands rustfmt the wrong edition.
-    _edition_in() {
-      awk -v want="$2" '
-        /^[[:space:]]*\[/ { s=$0; sub(/#.*/, "", s); gsub(/[][[:space:]]/, "", s); next }
-        s == want && /^[[:space:]]*edition[[:space:]]*=/ {
-          if (match($0, /["\047][0-9]+["\047]/)) { print substr($0, RSTART + 1, RLENGTH - 2); exit }
-        }' "$1" 2>/dev/null
-    }
-    # True only for an EXPLICIT `edition.workspace = true` / `= { workspace = true }`.
-    # A member that simply omits edition does not inherit — Cargo defaults it to 2015.
-    _inherits_edition() {
-      awk '
-        /^[[:space:]]*\[/ { s=$0; sub(/#.*/, "", s); gsub(/[][[:space:]]/, "", s); next }
-        s == "package" && /^[[:space:]]*edition[[:space:]]*(\.[[:space:]]*workspace|=[[:space:]]*\{)/ { f = 1; exit }
-        END { exit(f ? 0 : 1) }' "$1" 2>/dev/null
-    }
-    # Nearest owning manifest, then the workspace root only when it inherits.
-    edition=""; _m=""
-    _d="${path%/*}"; [ "$_d" = "$path" ] && _d="."
-    _n=0
-    while [ "$_n" -lt 32 ]; do
-      [ -f "$_d/Cargo.toml" ] && { _m="$_d/Cargo.toml"; break; }
-      [ "$_d" = "$PWD" ] && break
-      case "$_d" in .|/|"") break ;; esac
-      _p="${_d%/*}"; [ "$_p" = "$_d" ] && _p="."
-      _d="$_p"; _n=$((_n + 1))
-    done
-    if [ -n "$_m" ]; then
-      edition="$(_edition_in "$_m" package)"
-      if [ -z "$edition" ] && _inherits_edition "$_m"; then
-        # A root package is often its own workspace root, so look in this manifest
-        # before walking past it.
-        edition="$(_edition_in "$_m" workspace.package)"
-        _n=0
-        while [ -z "$edition" ] && [ "$_n" -lt 32 ]; do
-          [ "$_d" = "$PWD" ] && break
-          case "$_d" in .|/|"") break ;; esac
-          _p="${_d%/*}"; [ "$_p" = "$_d" ] && _p="."
-          _d="$_p"; _n=$((_n + 1))
-          if [ -f "$_d/Cargo.toml" ]; then
-            edition="$(_edition_in "$_d/Cargo.toml" workspace.package)"
-            [ -n "$edition" ] && break
-          fi
-        done
-      fi
-    fi
-    st=0
-    if [ -n "$edition" ]; then
-      run_bounded rustfmt --skip-children --edition "$edition" "$path" || st=$?
-    else
-      run_bounded rustfmt --skip-children "$path" || st=$?
-    fi
-    if [ "$st" = 0 ]; then echo "format hook: applied rustfmt on $path" >&2
-    elif hung "$st"; then echo "format hook: rustfmt timed out after ${FORMAT_TIMEOUT}s on $path" >&2
-    else echo "format hook: rustfmt failed on $path" >&2; fi
-    ;;
-  java)
-    # Standalone formatters only: Spotless and the Maven plugins format through the
-    # build, so they stay at the review gate.
-    # Which formatter is the project's choice is stated in its build file, not by
-    # what happens to be installed: running the other one reformats the whole file
-    # to a different style.
-    jvmroot="$(find_up pom.xml build.gradle build.gradle.kts)" || jvmroot="."
-    _builds=("$jvmroot/pom.xml" "$jvmroot/build.gradle" "$jvmroot/build.gradle.kts" \
-             pom.xml build.gradle build.gradle.kts)
-    # A Spotless project formats through the build, so per-edit formatting is the
-    # gate's job. Its config NAMES these formatters (`googleJavaFormat()`), so
-    # matching the name alone would read Spotless as permission to run a
-    # standalone binary -- the opposite of what the project configured. Skip.
-    if grep -qriE -- 'spotless' "${_builds[@]}" 2>/dev/null; then
-      echo "format hook: Spotless formats through the build; left to the review gate for $path" >&2; exit 0
-    fi
-    tool=""
-    for _t in google-java-format palantir-java-format; do
-      grep -qrF -- "$_t" "${_builds[@]}" 2>/dev/null || continue
-      command -v "$_t" >/dev/null 2>&1 && { tool="$_t"; break; }
-    done
-    [ -n "$tool" ] || { echo "format hook: no configured standalone Java formatter for $path; skipped" >&2; exit 0; }
-    st=0; run_bounded "$tool" --replace "$path" || st=$?
-    if [ "$st" = 0 ]; then echo "format hook: applied $tool on $path" >&2
-    elif hung "$st"; then echo "format hook: $tool timed out after ${FORMAT_TIMEOUT}s on $path" >&2
-    else echo "format hook: $tool failed on $path" >&2; fi
-    ;;
-esac
+[ -n "$ran" ] && echo "format hook: applied$ran on $path" >&2
+exit 0

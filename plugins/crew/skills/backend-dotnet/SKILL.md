@@ -13,6 +13,9 @@ package reference), also load `cms-optimizely` for its content-modeling conventi
 
 `/crew:init` proposes from a `*.sln`/`*.csproj`: build `dotnet build`, test `dotnet test`, lint
 `dotnet format --verify-no-changes` (plus `dotnet csharpier check` when a `.csharpierrc` exists).
+Format matrix row, extensions `cs,csproj`: `dotnet csharpier format {file}` when a `.csharpierrc`
+exists, else `dotnet format whitespace --include {file}` — full `dotnet format` evaluates
+analyzers against the project and takes 10-60s, so it stays at the lint gate.
 
 ## Razor ownership (server-rendered mode)
 

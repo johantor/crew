@@ -5,6 +5,19 @@ All notable changes to the `crew` plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.0.0] - 2026-10-05
+
+### Changed
+
+- **Breaking:** `format.sh` runs the `formatMatrix` slot `/crew:init` writes (one row per
+  `<dir> <extensions> <command>`, run from `<dir>` with `{file}` substituted) and detects
+  nothing; without the slot per-edit formatting is off. Re-run `/crew:init` to get it back.
+- Crew config reading (`guard_config_load`, `config_slot`, `config_block`) lives in
+  `hooks/lib/guard-lib.sh`, shared by `lane-guard.sh` and `format.sh`.
+- Each `backend-<stack>` skill's *Crew config* names its format matrix row; `review-gate`
+  reports a formatting-only lint NO-GO as a stale matrix; `worker-contract` hands back a
+  `format hook:` line that names `/crew:init`.
+
 ## [5.4.0] - 2026-09-30
 
 ### Added
