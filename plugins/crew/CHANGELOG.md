@@ -5,6 +5,15 @@ All notable changes to the `crew` plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.0.0] - 2026-10-05
+
+### Changed
+
+- **Breaking:** `/crew:init` is the only detector. `morpheus` reads `.claude/crew.md` and stops
+  on an `unset` slot a step needs, naming `/crew:init`; memory no longer holds config (#269).
+- **Breaking:** `lane-guard.sh` probes no repo markers; `tank`/`trinity` are refused while
+  `backendStack` is `unset`. The framework allowlists and the per-session cache are gone (#269).
+
 ## [6.0.0] - 2026-10-05
 
 ### Fixed

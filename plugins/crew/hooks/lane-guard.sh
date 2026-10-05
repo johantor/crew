@@ -5,9 +5,10 @@
 #
 # Directory lanes (the crew-configuration path slots) win when set, else extension globs. A
 # same-language pair (node backend + JS frontend) with no lane paths fails CLOSED
-# -- extensions can't separate tank's files from trinity's. Caught whether the
-# stacks are pinned or unset; when unset the guard probes repo markers. A
-# backend-only Node repo has no such conflict, so enforcement is skipped.
+# -- extensions can't separate tank's files from trinity's. The guard detects
+# nothing: an unset backend stack is a refusal naming /crew:init, the only
+# detector (AGENTS.md, "Init is the only detector"). A backend-only Node repo has
+# no such conflict, so enforcement is skipped.
 
 # Fail closed: a guard that can't read its input must block, not allow.
 _lib="${BASH_SOURCE[0]%/*}/lib/guard-lib.sh"
@@ -79,70 +80,6 @@ lane_globs() {
   set +f
 }
 
-# Marker detection — used only when the stack slots are *unset* and no lane paths
-# are configured, since extensions alone can't separate tank's `.ts`/`.js` from
-# trinity's when the backend is also Node. Non-source directories are pruned and
-# every marker is collected in a single traversal: a walk per marker is latency
-# the agent pays before its edit lands. The framework allowlists are not
-# exhaustive and need periodic review; a miss fails silently (the same-language
-# guard just doesn't fire). See plugins/crew/CLAUDE.md.
-node_backend_deps='"(@nestjs/core|@nestjs/common|express|fastify|koa|@hapi/hapi|hapi|@feathersjs/feathers|restify|@adonisjs/core|hono|elysia|@trpc/server)"[[:space:]]*:'
-frontend_deps='"(react|react-dom|next|nuxt|vue|svelte|@sveltejs/kit|@angular/core|solid-js|preact|astro|gatsby|@remix-run/react|react-router|@builder\.io/qwik)"[[:space:]]*:'
-prune_args=(-type d \( -name node_modules -o -name .git -o -name dist -o -name bin -o -name obj -o -name coverage -o -name .next \) -prune -o)
-
-# Sets _det_dotnet / _det_node / _det_frontend from one walk of the tree.
-# package.json is scanned wherever it lives, so a monorepo backend under
-# apps/api/ is still detected; a frontend is a framework dep in any package.json,
-# or any JSX/TSX file.
-scan_markers() {
-  _det_dotnet=0 _det_node=0 _det_frontend=0
-  local f
-  while IFS= read -r f; do
-    case "$f" in
-      *.csproj|*.sln) _det_dotnet=1 ;;
-      *.tsx|*.jsx)    _det_frontend=1 ;;
-      *package.json)
-        # grep's stderr is dropped so an unreadable package.json can't prepend a
-        # stray error to a block message; grep already reports it as "no match".
-        if [ "$_det_node" = 0 ] && grep -Eq "$node_backend_deps" "$f" 2>/dev/null; then _det_node=1; fi
-        if [ "$_det_frontend" = 0 ] && grep -Eq "$frontend_deps" "$f" 2>/dev/null; then _det_frontend=1; fi
-        ;;
-    esac
-  done < <(find . "${prune_args[@]}" \
-    \( -name '*.csproj' -o -name '*.sln' -o -name 'package.json' -o -name '*.tsx' -o -name '*.jsx' \) \
-    -print 2>/dev/null)
-}
-
-# Cache detection for the session so the walk above runs at most once, not on
-# every Edit/Write — its markers don't change mid-feature. Keyed by session_id and
-# only persisted when one is present: a cache keyed on cwd alone would outlive
-# its session and be reused with stale results by an unrelated later session in
-# the same directory. Without a session_id, detection is recomputed every call.
-detect_regime() {
-  local cache="" session_id tmp
-  session_id="$(jq -r '.session_id // empty' <<<"$guard_payload" 2>/dev/null)"
-  if [ -n "$session_id" ] && guard_state_path "${TMPDIR:-/tmp}" "crew-lane-detect" "$session_id" "markers"; then
-    cache="$guard_state_path"
-    if [ -f "$cache" ]; then
-      { IFS= read -r _det_dotnet; IFS= read -r _det_node; IFS= read -r _det_frontend; } < "$cache"
-      if [ -n "$_det_dotnet" ] && [ -n "$_det_node" ] && [ -n "$_det_frontend" ]; then
-        return 0
-      fi
-    fi
-  fi
-  scan_markers
-  # Publish the cache by rename, not by writing in place: crew dispatches workers
-  # in parallel, so several Edit/Write hooks can share one session_id and race
-  # here. A reader sees either the previous file or the complete new one.
-  if [ -n "$cache" ] && tmp="$(mktemp "$cache.XXXXXX" 2>/dev/null)"; then
-    if printf '%s\n' "$_det_dotnet" "$_det_node" "$_det_frontend" > "$tmp" 2>/dev/null; then
-      mv -f "$tmp" "$cache" 2>/dev/null || rm -f "$tmp"
-    else
-      rm -f "$tmp"
-    fi
-  fi
-}
-
 # agent_type -> mode + space-separated glob patterns (+ optional exempt patterns
 # that bypass a deny before it's evaluated, confine patterns an --allow path must
 # also be inside, and exclude patterns that deny an --allow path even if it matches).
@@ -212,6 +149,11 @@ case "$agent_type" in
       # same-language stacks.
       echo "Blocked: only one of Backend lane path(s) / Frontend lane path(s) is configured. Set both in .claude/crew.md (see /crew:init) before delegating." >&2
       exit 2
+    elif [ -z "$backend_stack" ]; then
+      # Which regime applies is a property of the project, pinned once by
+      # /crew:init; the guard does not probe the tree for it.
+      echo "Blocked: Backend stack is not configured, so ${agent_type} has no lane. Run /crew:init before delegating." >&2
+      exit 2
     elif [ "$backend_stack" = "node" ] && [ -n "$frontend_stack" ]; then
       echo "Blocked: backend stack is node — tank and trinity can both touch .ts/.js files, so extension-based lanes can't tell them apart. Set Backend lane path(s) / Frontend lane path(s) in .claude/crew.md (see /crew:init) before delegating." >&2
       exit 2
@@ -221,19 +163,6 @@ case "$agent_type" in
       # to here, so it fails closed rather than getting unrestricted access.
       [ "$agent_type" = "tank" ] && exit 0
       echo "Blocked: backend stack is node with no frontend configured — trinity has no frontend lane here. Set a Frontend stack / Frontend lane path(s) in .claude/crew.md (see /crew:init) before delegating frontend work." >&2
-      exit 2
-    elif [ -z "$backend_stack" ] && { detect_regime; [ "$_det_node" = 1 ] && [ "$_det_dotnet" = 0 ]; }; then
-      # Stacks unset, but the repo's markers show a Node backend and no .NET
-      # project. The extension regime can't separate tank's `.ts`/`.js` from
-      # trinity's, so mirror the pinned `Backend stack: node` behavior.
-      if [ "$_det_frontend" = 1 ]; then
-        # Node backend + a frontend, no lane paths: genuinely ambiguous — fail closed.
-        echo "Blocked: detected a Node backend (server framework in package.json) alongside a frontend, with no lane paths configured — extension-based lanes can't tell tank's and trinity's .ts/.js apart. Set Backend lane path(s) / Frontend lane path(s) in .claude/crew.md (see /crew:init), or pin Backend stack / Frontend stack, before delegating." >&2
-        exit 2
-      fi
-      # Backend-only Node repo: tank owns it, trinity has no frontend lane here.
-      [ "$agent_type" = "tank" ] && exit 0
-      echo "Blocked: detected a backend-only Node repo — trinity has no frontend lane here. Set a Frontend stack / Frontend lane path(s) in .claude/crew.md (see /crew:init) before delegating frontend work." >&2
       exit 2
     else
       # Extension-based regime (default). .cshtml is intentionally NOT denied to

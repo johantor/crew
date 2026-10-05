@@ -67,7 +67,7 @@ entry.
   post-merge triage (read-only, returns a pointer), `keymaker` debt scout (read-only, no Bash,
   returns `/crew:debt` pointers). `lane-guard.sh` enforces the write lane by extension where the
   stacks' languages differ, or by the configured lane paths when they are the same (Node +
-  Next.js is the one such pair).
+  Next.js is the one such pair); with `backendStack` unset it refuses `tank`/`trinity`.
 - A **regression** enters through `sentinel`: `morpheus` delegates the report to it and plans
   against the pointer, so the finding arrives in its own context. `/crew:triage` is the same
   agent standalone.
@@ -88,9 +88,10 @@ entry.
 - All workers apply `context-discipline`: process bulk output with code, return concise findings.
 
 Runtime configuration (commands, base branch, mode, stacks) lives in `.claude/crew.md` — YAML
-frontmatter, one key per slot, plus a prose body. `/crew:init` writes and reconciles it. A slot
-reads `unset` when unresolved (the orchestrator asks once) and `none` when the project has no such
-tooling (the gate skips). Configuration does **not** live in a project's `CLAUDE.md`; what stays
+frontmatter, one key per slot, plus a prose body. `/crew:init` writes and reconciles it, and it
+is the only detector: a slot reads `unset` when unresolved (the orchestrator stops and names
+`/crew:init`; the lane guard refuses a worker) and `none` when the project has no such tooling
+(the gate skips). Configuration does **not** live in a project's `CLAUDE.md`; what stays
 there is the `## Crew orchestration` prose, whose reader — auto mode's permission classifier —
 sees only `CLAUDE.md`. It is the one location: the `--local` file and the legacy `CLAUDE.md`
 block went in 5.0.0 (#248), each stated in seven places and read by one hook.
@@ -380,6 +381,19 @@ was widened once and reverted, and the hooks point here so it is not tried a thi
   `..`), so the rename stays in the tree it was dispatched to (#249, #263). Open gaps: no lane
   guard sees a `git mv`, so `morpheus` checks renames in the staged diff; a cwd a worker moved
   with an earlier `cd` call is not checked.
+
+### Init is the only detector
+
+A value that is a property of the project and that a human can confirm once (the stack, the
+tools, the paths, the commands) is a slot in `.claude/crew.md`, proposed by `/crew:init` from the
+stack skills' *Crew config* sections and confirmed by the user. Hooks and `morpheus` read slots;
+none of them detects, and a missing slot is a stop naming `/crew:init`, never a guess. Until
+7.0.0 there were four detectors: this command, `morpheus`'s resolution table (every marker
+duplicated from `init.md`, plus a memory tier that made agent memory a second config store),
+`lane-guard.sh`'s marker scan (two framework allowlists whose miss failed open, a per-session
+cache file), and `format.sh`'s per-edit detection below. A rule of behavior (who owns git, what
+a lane may touch, which commands hang) stays in the crew; the Bash guards' command lists are
+floors, not project knowledge.
 
 ### Why `format.sh` runs a matrix and detects nothing
 

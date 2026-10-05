@@ -33,10 +33,10 @@ Part of the [Zion](../../README.md) marketplace.
 - **The checkpoint is a real stop.** `morpheus` waits for your go-ahead before it branches or
   delegates. Background workers can't prompt, so a step that still needs a decision has to get one
   from you first.
-- **The lane guards will refuse things.** They fail closed: a same-language backend and
-  client-facing layer with no lane paths configured gets a refusal rather than a guess. That's
-  deliberate, and it means `/crew:init` is not optional on those stacks — in practice Node with a
-  JS frontend, since every other supported backend has extensions the guard can tell apart.
+- **The lane guards will refuse things.** They fail closed and detect nothing: an unset backend
+  stack, or a same-language backend and client-facing layer with no lane paths, gets a refusal
+  naming `/crew:init` rather than a guess. `/crew:init` is not optional; it is the only place the
+  crew learns what the project is.
 - **Nothing ships on its own.** No push, no PR, not even in loop mode. If you wanted
   fire-and-forget, this is the wrong tool.
 
@@ -202,7 +202,9 @@ intercepted**.
   directory-based paths (the `backendLanePaths` / `frontendLanePaths` slots) when both resolved
   stacks are the same language (e.g. node+nextjs) and an extension alone can't tell the lanes
   apart. Node is the only supported backend that shares its extensions with a frontend, so it is
-  the only one that needs the paths; without them it fails closed rather than guessing.
+  the only one that needs the paths; without them it fails closed rather than guessing. The
+  regime comes from the `backendStack` slot alone: while it is `unset`, `tank` and `trinity`
+  are refused with a line naming `/crew:init`. The guard never probes the tree.
 - **read-guard** blocks raw reads of files over 64 KiB (65536 bytes); an explicit `limit` of
   ≤ 2000 lines passes. See the `context-discipline` skill.
 - **bash-safety** blocks destructive commands (recursive+force `rm` of `/`/`~`/`*` in any flag
