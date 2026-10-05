@@ -55,10 +55,15 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
     signature, filter and discovery syntax, the skip mechanism),
     `mid-run-direction` (all eight workers, not `morpheus`) and `design-tokens` (`seraph`).
   - Loaded once resolved: frontend mode, stack and test-tool skills. Backends `backend-dotnet`
-    (+ the `optimizely` plugin's product skills), `-node`, `-shell`, each paired with a `tests-*` skill. Other languages
+    (+ the `optimizely-<product>` skills), `-node`, `-shell`, each paired with a `tests-*` skill. Other languages
     are unsupported; the hooks keep their Python/Go/Rust/JVM patterns for mixed repos. Only node needs lane paths (its extensions collide with a frontend's).
     `frontendStack: none` is a stated absence: `morpheus` skips frontend, e2e and unit-tool
     resolution and dispatches only `tank`/`oracle`. That gate sits above the resolution table.
+  - Optimizely: one `optimizely-<product>` skill per product, sections in order **Detect**
+    (markers and neighbour skills), the product's own patterns, **Security**, **Testing**,
+    **Deploy and verify**, **Sources** (the docs URL). Each states only what differs for its
+    product; `optimizely-cms13` lists changes from 12 and loads with `optimizely-cms12`. Facts
+    come from docs.optimizely.com: re-check a skill's sources when you touch it.
 - `hooks/` — wired in `hooks/hooks.json`, the one copy; in this repo they load through
   `claude --plugin-dir plugins/crew`. `bash-safety` and `lane-guard` fail closed; `read-guard`, `format`,
   `dispatch-denied` and `plan-guard` fail open.

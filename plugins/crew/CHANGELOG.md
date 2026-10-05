@@ -9,8 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- `cms-optimizely` moved to the new `optimizely` plugin as `optimizely-cms12`/`-cms13`;
-  `backend-dotnet` and `tank` point at the `optimizely:` product skills.
+- `cms-optimizely` is replaced by full `optimizely-cms12` and `optimizely-cms13` skills, the
+  first of one skill per Optimizely product.
 
 ## [7.0.0] - 2026-10-05
 
