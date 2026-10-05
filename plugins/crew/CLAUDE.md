@@ -104,8 +104,9 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
   - `plan-guard.sh` (`PreToolUse`, `Agent|Task`): in plan mode, refuses a `crew:<worker>` whose
     frontmatter grants `Edit`/`Write`/`NotebookEdit`; `owns-git: true` passes. Reads both
     `tools:` shapes; `CREW_AGENTS_DIR` is the test override.
-  - `lib/guard-lib.sh`: payload plumbing, `guard_agent_type` (drops the `crew:` prefix the
-    harness puts on an installed plugin's worker, so the bare rosters match), `guard_normalize`,
+  - `lib/guard-lib.sh`: payload plumbing, `guard_agent_type` (only a `crew:<name>` agent
+    reaches the bare rosters; any other agent, a project's own bare `backend` included, becomes
+    `ext:<name>`, still an agent session), `guard_normalize`,
     `GUARD_RE_*`, the `guard_block_*` helpers, quote masking, protected branches, read-guard
     limits, crew config (`guard_config_load`, `config_slot`, `config_block`), state files.
 - `scripts/gate.sh` — the review-gate runner: `start <id> '<cmd>' [nocache]`, `poll <id>`, `stop <id>`,

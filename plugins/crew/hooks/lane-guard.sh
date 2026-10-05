@@ -22,7 +22,7 @@ guard_read_payload
 # One jq pass; the path is only computed for a lane agent (see guard_jq2).
 # shellcheck disable=SC2016  # $at is a jq variable, not a shell one
 if ! guard_jq2 \
-  '((.agent_type // "") | sub("^crew:"; "")) as $at | (if (["unit-tests","e2e","backend","frontend","lead"] | index($at)) then ((.tool_input.file_path // .tool_input.path) // "") else "" end)' \
+  '((.agent_type // "") | if startswith("crew:") then .[5:] else "" end) as $at | (if (["unit-tests","e2e","backend","frontend","lead"] | index($at)) then ((.tool_input.file_path // .tool_input.path) // "") else "" end)' \
   '.agent_type // ""'; then
   echo "Blocked: lane-guard could not parse the hook payload." >&2
   exit 2

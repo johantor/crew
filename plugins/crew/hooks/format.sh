@@ -16,7 +16,7 @@ command -v jq >/dev/null 2>&1 || exit 0
 guard_read_payload
 # One jq pass; the path is only computed for an agent this hook formats for.
 guard_jq2 \
-  '(if ((.agent_type // "") | sub("^crew:"; "") | test("^(backend|frontend|generalist|unit-tests)$")) then ((.tool_input.file_path // .tool_input.path) // "") else "" end)' \
+  '(if ((.agent_type // "") | test("^crew:(backend|frontend|generalist|unit-tests)$")) then ((.tool_input.file_path // .tool_input.path) // "") else "" end)' \
   '.agent_type // ""' || exit 0
 guard_agent_type
 path="$guard_untrusted"
