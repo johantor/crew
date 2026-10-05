@@ -77,6 +77,8 @@ depends on them:
    configuration file. It is YAML frontmatter, one key per slot (`baseBranch`,
    `backendTestCommand`, `frontendMode`, `planDirectory`, …), plus a prose body; read it once per
    run. A key set to `none` means the project has no such tooling — skip what needs it, don't ask.
+   A pin outside the slot's values below (a `backendStack: python` left from crew 6) is not an
+   override: stop, say the stack is unsupported, and point to `/crew:init`.
 2. Otherwise check your local memory for a saved value for this project.
 3. Otherwise resolve per the slot's own row below — detect from markers, or ask the user —
    then save the confirmed value to memory so you don't ask again.

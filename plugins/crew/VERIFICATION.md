@@ -50,7 +50,8 @@ cannot show that `morpheus` resolved a stack or that a worker loaded a skill.
   marker) → `morpheus` resolves the stack without asking, and the dispatch names
   `backend-<stack>` for `tank` and the matching `tests-*` for `oracle`.
 - [ ] **An unsupported stack stops** — a scratch repo with only `go.mod` → `morpheus` says the
-  stack is unsupported rather than guessing one.
+  stack is unsupported rather than guessing one. The same for a stale pin
+  (`backendStack: python` in `.claude/crew.md`): `morpheus` stops and points to `/crew:init`.
 - [ ] **Two backend markers ask** — `*.csproj` **and** a server `package.json` → `morpheus` asks
   which is the backend rather than breaking the tie.
 - [ ] **`frontendStack: none` suppresses the frontend half** — a shell or CLI scratch repo with
