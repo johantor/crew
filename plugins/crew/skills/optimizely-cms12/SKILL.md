@@ -1,13 +1,13 @@
 ---
 name: optimizely-cms12
-description: Optimizely CMS 12 (PaaS, ASP.NET Core) conventions — content types, blocks, IContentLoader/IContentRepository, rendering, scheduled jobs, init modules, caching, DXP deploys. Load when a project references `EPiServer.CMS*` 12.x or 13.x; on 13.x also load `optimizely-cms13`, which lists what changed.
+description: Optimizely CMS 12 (PaaS, ASP.NET Core) conventions — content types, blocks, IContentLoader/IContentRepository, rendering, scheduled jobs, init modules, caching, DXP deploys. Load when a project references `EPiServer.CMS*` 12.x. For 13.x load `optimizely-cms13`; for an upgrade from 12 to 13 load `optimizely-cms-upgrade`.
 ---
 
 # Optimizely CMS 12
 
 CMS 12 is the ASP.NET Core release of Optimizely (formerly Episerver) CMS. It runs self-hosted
 or on DXP (Optimizely's PaaS). It is in maintenance: new work targets CMS 13, so flag a pattern
-that blocks the upgrade (see `optimizely-cms13`, *Upgrade from 12*).
+that blocks the upgrade (`optimizely-cms-upgrade` lists them).
 
 ## Detect
 

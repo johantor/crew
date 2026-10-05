@@ -9,8 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- `cms-optimizely` is replaced by full `optimizely-cms12` and `optimizely-cms13` skills, the
-  first of one skill per Optimizely product (#271).
+- `cms-optimizely` is replaced by full `optimizely-cms12` and `optimizely-cms13` skills and an
+  `optimizely-cms-upgrade` skill for 12 → 13, the first of one skill per product (#271).
 
 ## [8.0.0] - 2026-10-05
 
