@@ -267,7 +267,7 @@ What the lockstep sections protect, one line each:
 - **§9** — a name missing from a guard's roster **fails open**: unrestricted git, no lane. Each
   agent declares `owns-git` and `lane-guarded`; each roster carries a `# crew-roster:` marker in
   the load-bearing `a|b|c)` arm shape; exactly one git owner.
-- **§10** — a `crew:` reference in prose that resolves to no agent, command or skill fails late.
+- **§10** — a `crew:` reference in prose that resolves to no agent or command fails late.
 - **§11** — `init.md` §1's `- **Slot** (`key`) —` bullets and `.claude/crew.md`'s keys agree both
   ways, paired on the key.
 - **§12** — the always-loaded footprint (agent + preloaded skills) is reported; an agent may set

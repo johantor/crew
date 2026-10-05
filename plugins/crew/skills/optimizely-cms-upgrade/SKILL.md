@@ -54,8 +54,12 @@ described in `optimizely-cms13`.
 2. **Search** for the removed features above and plan a replacement for each. Search &
    Navigation moves to Optimizely Graph (Optimizely's *Migrate from Search & Navigation to
    Graph* guide).
-3. **Bump.** Set `net10.0`, update every `EPiServer.*`/`Optimizely.*` package to `13.*`
-   together, then `dotnet restore`.
+3. **Bump.** Set `net10.0` and move the CMS package family (`EPiServer.CMS*`,
+   `EPiServer.Framework*`, the extracted packages above, and `Optimizely.Graph.Cms` /
+   `EPiServer.Cms.UI.ContentManager`, which ship as `13.*`) to 13 together. Add-on packages
+   (`EPiServer.CloudPlatform.Cms`, Commerce, third-party) have their own version lines: move
+   each to its release that supports CMS 13, never to a guessed `13.*`.
+   Then `dotnet restore`.
 4. **Startup.** Fix the registrations (`AddCms()`, identity, visitor groups), then add
    `AddContentGraph()` before `AddContentManager()`. On SQL Server set
    `DataAccessOptions.UpdateDatabaseCompatibilityLevel = true`.
