@@ -31,7 +31,8 @@ entry.
     `engineering-principles` (the implementers), `worker-contract` (the five workers with a
     shell: the rules every dispatch follows), `mid-run-direction` (every worker),
     `design-tokens` (`seraph`). On demand: `debt-lane` with `debt-taxonomy` and its per-stack
-    skills; the stack skills `backend-*`, `frontend-*`, `cms-optimizely`, `tests-*`, loaded once
+    skills; the stack skills `backend-*`, `frontend-*`, `tests-*`, and one `optimizely-<product>` skill
+    per Optimizely product, loaded once
     `morpheus` resolves the project's stack and tools.
   - `hooks/` — `bash-safety.sh`, `read-guard.sh`, `lane-guard.sh`, `format.sh`,
     `dispatch-denied.sh`, `plan-guard.sh`, wired in `hooks/hooks.json`. The

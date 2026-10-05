@@ -28,7 +28,6 @@ claude plugin install crew@zion
 | Plugin | Status | What it does | Adds to your session |
 |---|---|---|---|
 | **[crew](plugins/crew/README.md)** | Stable | Orchestrated, multi-agent feature delivery: a captain (`morpheus`) plans the work and delegates to backend, client-facing, test, and visual-review specialists across .NET, Node and shell, with a consolidated review gate before anything ships. | `/crew:*` commands, agents, safety hooks, skills |
-
 ## Requirements
 
 - [Claude Code](https://code.claude.com/docs/en/overview) with plugin support
