@@ -17,9 +17,10 @@ the default editing experience.
 - `Optimizely.Graph.Cms` and `EPiServer.Cms.UI.ContentManager` with `AddContentGraph()` /
   `AddContentManager()` in startup.
 - Admin URL: `/ui/CMS` on DXP with Opti ID, `/Optimizely/CMS` when self-hosted.
-- Neighbours with no crew skill yet: `EPiServer.Commerce` (Customized Commerce) and Graph query
-  work; use their docs. `EPiServer.Find*` here is a leftover from 12: Search & Navigation is not
-  supported on 13 (`optimizely-cms-upgrade`).
+- Graph queries, sync and keys: load `optimizely-graph`.
+- Neighbour with no crew skill yet: `EPiServer.Commerce` (Customized Commerce); use its docs.
+  `EPiServer.Find*` here is a leftover from 12: Search & Navigation is not supported on 13
+  (`optimizely-cms-upgrade`).
 
 ## Startup
 

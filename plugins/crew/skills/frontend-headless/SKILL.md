@@ -4,7 +4,7 @@ description: Conventions for decoupled/headless frontends — a React SPA (or Ne
 ---
 
 # Headless frontend conventions
-Confirm the actual setup from the repo first (framework, data source, fetch client); follow its patterns over these defaults.
+Confirm the actual setup from the repo first (framework, data source, fetch client); follow its patterns over these defaults. If the data source is Optimizely Graph, also load `optimizely-graph`.
 
 - **Data layer:** fetch content from the content API via a typed, centralized client; never hardcode CMS-owned content.
 - **Server vs UI state:** fetched/server state in a data-fetching layer (RTK Query/React Query) with caching + loading/error handling; only genuine UI state in Redux.
