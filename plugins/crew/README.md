@@ -1,6 +1,6 @@
 # crew
 
-[![crew](https://img.shields.io/github/v/release/johantor/zion?filter=crew/v*&label=)](https://github.com/johantor/zion/releases)
+[![crew](https://img.shields.io/github/v/release/johantor/crew?filter=crew/v*&label=)](https://github.com/johantor/crew/releases)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](../../LICENSE)
 
 **Ship a feature like a team, not a single agent.** `crew` turns a Claude Code session into a
@@ -11,7 +11,7 @@ project with no view layer says so with `frontendStack: none`, and the frontend 
 stays out of the way. You approve the plan, every step is verified and committed as it
 lands, and nothing reaches a pull request until a consolidated review gate returns **GO**.
 
-Part of the [Zion](../../README.md) marketplace.
+Part of the [`johantor`](../../README.md) marketplace.
 
 ## Why a crew
 
@@ -43,8 +43,8 @@ Part of the [Zion](../../README.md) marketplace.
 ## Install
 
 ```bash
-claude plugin marketplace add johantor/zion
-claude plugin install crew@zion
+claude plugin marketplace add johantor/crew
+claude plugin install crew@johantor
 ```
 
 …or in the UI, from `/plugin > Discover` in Claude Code.

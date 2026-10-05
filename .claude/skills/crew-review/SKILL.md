@@ -1,9 +1,9 @@
 ---
-name: zion-review
-description: Review a PR, branch or working diff in this repo against its own rubric, run the repo's checks, and reproduce each finding before reporting it. Use when asked to review code or a PR in Zion.
+name: crew-review
+description: Review a PR, branch or working diff in this repo against its own rubric, run the repo's checks, and reproduce each finding before reporting it. Use when asked to review code or a PR in this repo.
 ---
 
-# Zion review
+# crew review
 
 The rubric is `.github/skills/code-review/SKILL.md`. Read it first and apply all of it. This
 skill adds only what a session with a shell can do.

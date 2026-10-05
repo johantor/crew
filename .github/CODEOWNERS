@@ -1,4 +1,4 @@
-# Code owners for zion. GitHub auto-requests review from the owner of any file a
+# Code owners for crew. GitHub auto-requests review from the owner of any file a
 # PR touches (and, with "require review from Code Owners" branch protection, can
 # require it). The last matching pattern wins.
 #

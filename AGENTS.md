@@ -1,6 +1,6 @@
-# Contributing to Zion
+# Contributing to crew
 
-Zion is a Claude Code plugin marketplace: `crew` (orchestrated feature delivery, plus a debt lane
+This repository is the `johantor` Claude Code plugin marketplace: `crew` (orchestrated feature delivery, plus a debt lane
 for tech-debt and upgrade fixes). **This repository *is* the plugins** — there is no application
 code to build or ship. Work here means editing agent/command/skill definitions, hooks, and docs.
 
@@ -49,7 +49,7 @@ entry.
 - `.claude/crew.md` — this repo's own crew configuration. The repo carries no hook wiring of its
   own: work here with `claude --plugin-dir plugins/crew`.
 - `.github/` — `copilot-instructions.md` points Copilot at `skills/code-review/SKILL.md`, the one
-  review rubric (`.claude/skills/zion-review/` wraps it for Claude Code); `workflows/validate.yml`
+  review rubric (`.claude/skills/crew-review/` wraps it for Claude Code); `workflows/validate.yml`
   runs shellcheck, the validator, the release gate and the hook tests; `auto-release.yml` tags.
 
 ## How the crew works
@@ -99,7 +99,7 @@ block went in 5.0.0 (#248), each stated in seven places and read by one hook.
 
 ## How we review code (the crew reviewer)
 
-Reviews of **this repo** — by Copilot, the `zion-review` skill, or `/crew:review` run here — judge
+Reviews of **this repo** — by Copilot, the `crew-review` skill, or `/crew:review` run here — judge
 code against `engineering-principles` (the code rules) and the `code-review` skill (this repo's
 rubric: what to check, severity, the **Blocking** / **Warnings** / **Passed** output). In a user's
 project, `/crew:review` applies `engineering-principles` only. Each is written once; everything

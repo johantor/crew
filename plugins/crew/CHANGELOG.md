@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `frontend`, `oracle` → `unit-tests`, `dozer` → `e2e`, `seraph` → `visual-review`, `neo` →
   `generalist`, `sentinel` → `incident-triage`, `keymaker` → `debt-scout`. Start the crew with
   `claude --agent crew:lead`; agent memory saved under an old name is not carried over (#272).
+- **Breaking:** the marketplace is `johantor` and the repository `johantor/crew`: install with
+  `claude plugin marketplace add johantor/crew` and `crew@johantor` (#272).
 
 ## [8.1.0] - 2026-10-05
 

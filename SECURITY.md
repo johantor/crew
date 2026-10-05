@@ -1,6 +1,6 @@
 # Security Policy
 
-Zion is a [Claude Code](https://code.claude.com/docs/en/overview) plugin
+crew is a [Claude Code](https://code.claude.com/docs/en/overview) plugin
 marketplace (`crew`). Much of its value is
 in *guardrails* — the Bash hooks that block unsafe commands and enforce write
 lanes — so a way to bypass a guard is a security bug, and we want to hear about
@@ -47,4 +47,4 @@ example:
 
 Fixes ship on the latest release (`crew/vX.Y.Z`); there are no
 long-term-support branches.
-Update with `claude plugin update <name>@zion`.
+Update with `claude plugin update <name>@johantor`.

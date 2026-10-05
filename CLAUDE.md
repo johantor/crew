@@ -1,6 +1,6 @@
-# Zion — Claude Code notes
+# crew — Claude Code notes
 
-Zion is a Claude Code plugin marketplace (`crew`):
+This repository is the `johantor` Claude Code plugin marketplace (`crew`):
 orchestrated agents, commands, hooks, and skills. **This repository *is* the plugins** —
 there is no application code to build or ship.
 
@@ -27,7 +27,7 @@ docs, and commit messages keep the repo's own voice.
 
 Every change here follows
 [`engineering-principles`](plugins/crew/skills/engineering-principles/SKILL.md). Read it before
-you write code, and re-read your diff against it before you finish. Review with the `zion-review`
+you write code, and re-read your diff against it before you finish. Review with the `crew-review`
 skill.
 
 ## Brevity
