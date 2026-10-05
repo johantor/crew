@@ -70,39 +70,26 @@ express lane is faster, not sloppier.
 
 ## Resolving crew configuration
 
-Several project-scoped settings are resolved once, the same way, before any delegation that
-depends on them:
+**`.claude/crew.md`** is the only configuration: YAML frontmatter, one key per slot, plus a
+prose body, written and reconciled by `/crew:init`. Read it once per run. You never detect,
+remember or guess a slot. A slot a step needs that is absent or `unset` **stops the run with
+one line — run `/crew:init` — before any branch or delegation**; the lane guard refuses a
+worker without it anyway. Two exceptions: `branchNaming` unset → ask once per run;
+`planDirectory` unset → `.claude/`. A value the table does not list (`backendStack: python`
+from crew 6) stops the run the same way. A key set to `none` means the project has no such
+tooling — skip what needs it, don't ask. Never rewrite crew config yourself; that is `/crew:init`'s
+job. Pass each value in every delegation the *Consumed by* column names.
 
-1. If **`.claude/crew.md`** pins a value, use that (explicit override); it is the only
-   configuration file. It is YAML frontmatter, one key per slot (`baseBranch`,
-   `backendTestCommand`, `frontendMode`, `planDirectory`, …), plus a prose body; read it once per
-   run. A key set to `none` means the project has no such tooling — skip what needs it, don't ask.
-   A pin outside the slot's values below (a `backendStack: python` left from crew 6) is not an
-   override: stop, say the stack is unsupported, and point to `/crew:init`.
-2. Otherwise check your local memory for a saved value for this project.
-3. Otherwise resolve per the slot's own row below — detect from markers, or ask the user —
-   then save the confirmed value to memory so you don't ask again.
-
-**Never guess or default silently** — pass each resolved value in every delegation the *Consumed
-by* column names. If a slot is missing (key absent, or still the `unset` placeholder), resolve it
-as usual and **nudge once** (a single line, don't nag): the user can run `/crew:init` to detect and
-persist crew config and reconcile slots a newer plugin version added. Never rewrite crew config
-yourself mid-feature — that's `/crew:init`'s job.
-
-| Slot | Values | Detect (then confirm), or ask | Consumed by |
-|---|---|---|---|
-| **Frontend mode** | `headless` \| `server-rendered` | Ask (no reliable marker) | Frontend delegations; scopes `trinity`'s shared-template access |
-| **Backend stack**¹ | `dotnet` \| `node` \| `shell` | `.csproj`/`.sln` → `dotnet`; `package.json` w/ server framework (NestJS/Express/Fastify), no SPA-only bundle → `node`; `*.sh`/`*.bats` as the repo's **deliverable** and no other backend marker → `shell` (a helper or build script in a repo of another language is not a shell stack — ask); only another language's markers (`pyproject.toml`, `go.mod`, `Cargo.toml`, `pom.xml`, …) → unsupported, stop and say so; markers for two backends → ask, don't break the tie | Backend delegations — `backend-<stack>` + `tests-xunit`/`tests-node`/`tests-shell` |
-| **Frontend stack** | `react` \| `nextjs` \| `none` | `next.config.*` → `nextjs`; React/Vite SPA, no `next.config.*` → `react`; no client-facing surface at all (a library, a headless service, a script pack) → `none`; a TUI or a designed CLI output is a view, so leave it `unset` and ask | Frontend delegations — `frontend-react`/`frontend-nextjs`. **`none` means there is no view**: skip frontend mode, e2e and unit-tool resolution entirely, never ask about them, and never dispatch `trinity`/`dozer`/`seraph` |
-| **Frontend e2e tool** | `cypress` \| `playwright` | `cypress.config.*`/`cypress/` → `cypress`; `playwright.config.*` → `playwright` | `dozer` — `tests-cypress`/`tests-playwright` |
-| **Frontend unit test tool**² | `vitest` \| `jest` \| `cypress`, optional | `vitest.config.*` → `vitest`; `jest.config.*`/`jest` key, no vitest → `jest`; `cypress.config.*` w/ `component` key, no vitest/jest → `cypress`; none → leave unset | `oracle` (component tests) — `tests-vitest`/`tests-jest-frontend`/`tests-cypress`; omit from delegation when unset |
-| **Format matrix** | rows, or `none` | Never detect or ask: only `/crew:init` writes rows. `unset` or absent → per-edit formatting is off; nudge once and carry on | `format.sh` only; never passed in a delegation |
-| **Base branch & naming** | e.g. `main`/`develop`/trunk; `feature/<ticket>-<slug>` | Ask — never assume | Branch creation, below |
-| **Plan directory** (`<plan-dir>`) | a path, default `.claude/` | Propose only with an obvious existing convention, else default | Where plans are read/written |
-
-¹ Orthogonal to frontend mode: Next.js is `headless` even though it server-renders — a separate
-concern from any shared server template.
-² When unset, `oracle` scopes to backend tests only.
+| Slot | Values | Consumed by |
+|---|---|---|
+| `frontendMode` | `headless` \| `server-rendered` | Frontend delegations; scopes `trinity`'s shared-template access |
+| `backendStack` | `dotnet` \| `node` \| `shell` | Backend delegations — `backend-<stack>` + `tests-xunit`/`tests-node`/`tests-shell` |
+| `frontendStack` | `react` \| `nextjs` \| `none` | Frontend delegations — `frontend-react`/`frontend-nextjs`. **`none` means there is no view**: skip frontend mode, e2e and unit-tool slots entirely, never ask about them, and never dispatch `trinity`/`dozer`/`seraph` |
+| `frontendE2eTool` | `cypress` \| `playwright` \| `none` | `dozer` — `tests-cypress`/`tests-playwright`; `none` → never dispatch `dozer`, the e2e gate skips |
+| `frontendUnitTestTool` | `vitest` \| `jest` \| `cypress`, optional | `oracle` (component tests) — `tests-vitest`/`tests-jest-frontend`/`tests-cypress`; `unset` → `oracle` scopes to backend tests only |
+| `formatMatrix` | rows, or `none` | `format.sh` only; never passed in a delegation; `unset` nudges once and does not stop the run |
+| `baseBranch`, `branchNaming` | e.g. `main`; `feature/<ticket>-<slug>` | Branch creation, below |
+| `planDirectory` (`<plan-dir>`) | a path, default `.claude/` | Where plans are read/written |
 
 ## Branching and commits
 
@@ -127,8 +114,8 @@ feedback and CI failures is a further loop you own — see *Address review feedb
 and write all plans there.
 
 Standard flow (each phase detailed below):
-1. **Explore and plan.** Resolve backend stack, base branch/naming, and **frontend stack**; then
-   frontend mode and the test-tool slots **only if** that stack is not `none`
+1. **Explore and plan.** Read crew config: backend stack, base branch/naming, and **frontend
+   stack**; then frontend mode and the test-tool slots **only if** that stack is not `none`
    (*Resolving crew configuration*). When the task names a tracked ticket and an issue-tracker
    MCP (Jira/Atlassian, Linear) is present, pull it for the source brief; for a bug tied to a
    monitored error, pull context from a Sentry MCP. Apply `context-discipline` (fetch the
