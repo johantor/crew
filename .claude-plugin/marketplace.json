@@ -1,6 +1,6 @@
 {
   "name": "zion",
-  "description": "Team-style software delivery for Claude Code: an orchestrated multi-agent crew for building features and paying down tech debt, and the shared review rubric behind it.",
+  "description": "Team-style software delivery for Claude Code: an orchestrated multi-agent crew for building features and paying down tech debt, plus Optimizely product knowledge.",
   "owner": {
     "name": "johantor"
   },
@@ -9,6 +9,11 @@
       "name": "crew",
       "source": "./plugins/crew",
       "description": "Team-style feature delivery for Claude Code: a captain agent plans the work and delegates each step to backend, frontend, test, and design specialists behind hook-enforced guardrails, with a consolidated review gate before anything ships. Also pays down tech debt one verified, gated batch at a time."
+    },
+    {
+      "name": "optimizely",
+      "source": "./plugins/optimizely",
+      "description": "Optimizely product knowledge for Claude Code: one skill per product (CMS 12, CMS 13, SaaS CMS, Graph, Search & Navigation, Commerce, ODP, OCP, Opal, Experimentation), each with detection markers, patterns, security, testing and deploy checks. Works alone or under the crew."
     }
   ]
 }

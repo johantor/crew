@@ -31,7 +31,7 @@ entry.
     `engineering-principles` (the implementers), `worker-contract` (the five workers with a
     shell: the rules every dispatch follows), `mid-run-direction` (every worker),
     `design-tokens` (`seraph`). On demand: `debt-lane` with `debt-taxonomy` and its per-stack
-    skills; the stack skills `backend-*`, `frontend-*`, `cms-optimizely`, `tests-*`, loaded once
+    skills; the stack skills `backend-*`, `frontend-*`, `tests-*`, loaded once
     `morpheus` resolves the project's stack and tools.
   - `hooks/` — `bash-safety.sh`, `read-guard.sh`, `lane-guard.sh`, `format.sh`,
     `dispatch-denied.sh`, `plan-guard.sh`, wired in `hooks/hooks.json`. The
@@ -41,6 +41,8 @@ entry.
     repo-level `scripts/` below).
   - `CHANGELOG.md`, `README.md` (user-facing), `VERIFICATION.md` (the manual scenario matrix),
     `CLAUDE.md` (the plugin map for agents working on it).
+- `plugins/optimizely/` — skills only: one `optimizely-<product>` skill per Optimizely product.
+  `backend-dotnet` points the crew at them; they also work without the crew.
 - `scripts/` — repo tooling, never shipped: `validate-plugin.sh` (tree-only structural checks,
   the `§N` sections below), `check-changelog.sh` (the diff-based release gate, takes the base
   branch), `release-notes.sh` (one version's changelog section, used by `auto-release.yml`).
@@ -265,7 +267,7 @@ What the lockstep sections protect, one line each:
 - **§9** — a name missing from a guard's roster **fails open**: unrestricted git, no lane. Each
   agent declares `owns-git` and `lane-guarded`; each roster carries a `# crew-roster:` marker in
   the load-bearing `a|b|c)` arm shape; exactly one git owner.
-- **§10** — a `crew:` reference in prose that resolves to no agent or command fails late.
+- **§10** — a `crew:` reference in prose that resolves to no agent, command or skill fails late.
 - **§11** — `init.md` §1's `- **Slot** (`key`) —` bullets and `.claude/crew.md`'s keys agree both
   ways, paired on the key.
 - **§12** — the always-loaded footprint (agent + preloaded skills) is reported; an agent may set

@@ -390,7 +390,7 @@ d="$(new_repo)"; mk_hook "$d/plugins/foo" x.sh 'exit 0'; mk_lib "$d/plugins/foo"
 mk_hooks_json "$d/plugins/foo" "$wired_lib"
 assert_emits "§6 bites on wiring a sourced library as a hook" "$d" "but hooks/lib/*.sh are sourced libraries"
 
-# --- §10: namespaced refs in prose must resolve to an agent or command --------
+# --- §10: namespaced refs in prose must resolve to an agent, command or skill -
 mk_prose_agent() {  # <plugin_dir> <name> <body>
   mkdir -p "$1/agents"
   printf -- '---\nname: %s\ndescription: d\n---\n%s\n' "$2" "$3" > "$1/agents/$2.md"
@@ -409,6 +409,13 @@ d="$(new_repo_foo)"
 mk_prose_agent "$d/plugins/foo" bar 'Run `/foo:ship` to finish.'
 mkdir -p "$d/plugins/foo/commands"; printf -- '---\nname: ship\ndescription: d\n---\nbody\n' > "$d/plugins/foo/commands/ship.md"
 assert_silent "§10 silent when the ref resolves to a command" "$d" "but no plugins/foo"
+
+# A ref to another plugin's skill resolves too (crew loads `optimizely:` skills).
+d="$(new_repo_foo)"
+# shellcheck disable=SC2016
+mk_prose_agent "$d/plugins/foo" bar 'Also load `foo:platform`.'
+mkdir -p "$d/plugins/foo/skills/platform"; printf -- '---\nname: platform\ndescription: d\n---\nbody\n' > "$d/plugins/foo/skills/platform/SKILL.md"
+assert_silent "§10 silent when the ref resolves to a skill" "$d" "but no plugins/foo"
 
 # A plugin name embedded in a longer word is not a reference. Guards the
 # delimiter group that stands in for `\b` (a GNU extension we can't use).

@@ -13,6 +13,7 @@ to each plugin and load automatically when working under it — start there inst
 re-exploring:
 
 - [plugins/crew/CLAUDE.md](plugins/crew/CLAUDE.md)
+- [plugins/optimizely/CLAUDE.md](plugins/optimizely/CLAUDE.md)
 
 Keep them accurate: a PR that changes anything they state updates them in the same commit.
 

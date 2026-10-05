@@ -486,7 +486,7 @@ while IFS= read -r plugin_manifest; do
   fi
 done < <(git ls-files 'plugins/*/.claude-plugin/plugin.json')
 
-# 10. Every `<plugin>:<name>` in prose must resolve to an agent or command file
+# 10. Every `<plugin>:<name>` in prose must resolve to an agent, command or skill
 #     (§2g does this for `skills:` frontmatter). Namespaces no plugin here
 #     declares are ignored. See AGENTS.md, "Validating changes".
 plugin_names=""
@@ -506,10 +506,11 @@ while IFS= read -r doc; do
   while IFS= read -r ref; do
     [ -z "$ref" ] && continue
     rp="${ref%%:*}"; rn="${ref##*:}"
-    if [ -f "plugins/$rp/agents/$rn.md" ] || [ -f "plugins/$rp/commands/$rn.md" ]; then
+    if [ -f "plugins/$rp/agents/$rn.md" ] || [ -f "plugins/$rp/commands/$rn.md" ] \
+      || [ -f "plugins/$rp/skills/$rn/SKILL.md" ]; then
       ok "$doc -> $ref resolves"
     else
-      err "$doc references '$ref' but no plugins/$rp/agents/$rn.md or plugins/$rp/commands/$rn.md exists"
+      err "$doc references '$ref' but no plugins/$rp/agents/$rn.md, commands/$rn.md or skills/$rn/SKILL.md exists"
     fi
   done <<<"$refs"
 done < <(git ls-files 'plugins/*/agents/*.md' 'plugins/*/commands/*.md' 'plugins/*/skills/*/SKILL.md')

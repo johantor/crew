@@ -1,13 +1,15 @@
 ---
 name: backend-dotnet
-description: .NET backend stack conventions — MVC controllers, Razor server-side ownership, dotnet build specifics. Load when the resolved backend stack is dotnet. If the project also uses Optimizely CMS, also load `cms-optimizely`.
+description: .NET backend stack conventions — MVC controllers, Razor server-side ownership, dotnet build specifics. Load when the resolved backend stack is dotnet. If the project also uses Optimizely, also load the matching `optimizely:` product skill.
 ---
 
 # Backend: .NET
 
 You are working in a .NET backend: C#, ASP.NET MVC controllers, and the server-side of Razor
-views. If the project uses Optimizely CMS (detect via an `EPiServer.CMS`/`Optimizely.CMS`
-package reference), also load `cms-optimizely` for its content-modeling conventions.
+views. If the project uses Optimizely, load the product skills from the `optimizely` plugin
+whose markers it carries: `optimizely:optimizely-cms12` for an `EPiServer.CMS*` reference (plus
+`optimizely:optimizely-cms13` at 13.x). Each product skill names its own markers and
+neighbours. Without the `optimizely` plugin installed, say so once and carry on.
 
 ## Crew config
 

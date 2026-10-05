@@ -55,7 +55,7 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
     signature, filter and discovery syntax, the skip mechanism),
     `mid-run-direction` (all eight workers, not `morpheus`) and `design-tokens` (`seraph`).
   - Loaded once resolved: frontend mode, stack and test-tool skills. Backends `backend-dotnet`
-    (+ `cms-optimizely`), `-node`, `-shell`, each paired with a `tests-*` skill. Other languages
+    (+ the `optimizely` plugin's product skills), `-node`, `-shell`, each paired with a `tests-*` skill. Other languages
     are unsupported; the hooks keep their Python/Go/Rust/JVM patterns for mixed repos. Only node needs lane paths (its extensions collide with a frontend's).
     `frontendStack: none` is a stated absence: `morpheus` skips frontend, e2e and unit-tool
     resolution and dispatches only `tank`/`oracle`. That gate sits above the resolution table.
