@@ -34,8 +34,7 @@ run until this command fills it (`branchNaming` is asked once per run instead, a
 - **Frontend mode** (`frontendMode`) — `headless` or `server-rendered`. Orthogonal to the
   stack: Next.js is `headless` even though it server-renders, since there is no shared server
   template.
-- **Backend stack** (`backendStack`) — `dotnet`, `node`, `python`, `go`, `rust`, `java`, or
-  `shell`. The lane guard refuses `tank`/`trinity` while it is `unset`.
+- **Backend stack** (`backendStack`) — `dotnet`, `node`, or `shell`. The lane guard refuses `tank`/`trinity` while it is `unset`.
 - **Frontend stack** (`frontendStack`) — `react`, `nextjs`, or `none`;
   `none` is a statement: the project has no client-facing surface (a library, a headless service,
   a script pack), so `morpheus` skips frontend mode, e2e and unit-tool resolution and never
@@ -63,9 +62,9 @@ run until this command fills it (`branchNaming` is asked once per run instead, a
   with one row per line: `<dir> <extensions> <command>`. `format.sh` runs every row whose
   directory prefix (`.` for the whole project) and comma-separated extension list match the
   edited file, in order, from that directory, with `{file}` replaced by the file's path relative
-  to it; a directory holding a space is single-quoted (`'my service/' java …`). A file no row
+  to it; a directory holding a space is single-quoted (`'my service/' cs …`). A file no row
   covers is left alone. `none` when the project has no single-file
-  formatter; whole-project formatters (`cargo fmt`, Spotless, shfmt via `.editorconfig`) stay
+  formatter; whole-project formatters (`dotnet format`, shfmt via `.editorconfig`) stay
   at the lint gate and get no row.
 - **Base branch** (`baseBranch`) — the branch `morpheus` branches off (`main` / `develop` / trunk).
 - **Branch naming** (`branchNaming`) — e.g. `feature/<ticket>-<slug>`.
@@ -114,7 +113,7 @@ trust or correct it; never invent a command you can't see configured.
 
 | Slot | Detect from |
 |---|---|
-| Backend stack | `*.csproj`/`*.sln` → `dotnet`; `package.json` with a server framework (NestJS/Express/Fastify) and no SPA-only bundle config → `node`; `pyproject.toml` (or `requirements*.txt`/`setup.py`/`Pipfile`) → `python`; `go.mod` → `go`; `Cargo.toml` → `rust`; `pom.xml` or `build.gradle*` **with Java sources** (`src/main/java`, or a `java`/`java-library` plugin) → `java` — the build file alone also fits Kotlin, Scala and Android, none supported, so ask; `*.sh`/`*.bats` with no other backend marker → `shell` (the scripts are the deliverable, not a repo that merely has a build script). Two backends' markers → ask, don't break the tie. |
+| Backend stack | `*.csproj`/`*.sln` → `dotnet`; `package.json` with a server framework (NestJS/Express/Fastify) and no SPA-only bundle config → `node`; `*.sh`/`*.bats` with no other backend marker → `shell` (the scripts are the deliverable, not a repo that merely has a build script). Only other languages' markers (`pyproject.toml`, `go.mod`, `Cargo.toml`, `pom.xml`, …), one or several → stop, unsupported. Markers for two supported backends → ask which governs the crew, don't break the tie; an unsupported marker beside a supported one does not count. |
 | Backend build, test, lint | Load the detected stack's `backend-<stack>` skill and propose what its **Crew config** section says; it names the static gate for a stack with no compile step and the runner prefix a command needs. |
 | Frontend stack | `next.config.*` → `nextjs`; a React/Vite SPA build without it → `react`; no client-facing surface → propose `none` and say why. A TUI or designed CLI output → stop, unsupported. |
 | Frontend build, test, lint | `package.json` `scripts`: `build`/`typecheck` → build, `test`/`e2e`/a Playwright config → test, `lint` → lint. Use the scripts that exist; don't assume an `npx` download. A script that only runs from a subdirectory says so in the value: `npm run build (from src/Site)`. |
@@ -209,7 +208,10 @@ Say plainly where the slots go: `.claude/crew.md` is committed and shared with t
   if present but still a placeholder (`unset` / `none`) and a value was detected and confirmed.
   **Never overwrite a key the user has set to a real value** — show those as "kept" rather than
   changing them; a `formatMatrix` block with rows is such a value, so propose new rows as a
-  diff rather than rewriting the block. Preserve the body notes verbatim.
+  diff rather than rewriting the block. Preserve the body notes verbatim. The one exception: a
+  value §1 no longer lists (a `backendStack` of `python`, `go`, `rust` or `java` from crew 6)
+  is shown as "unsupported" with the supported values, and the user picks one or removes the
+  crew from the project.
 
 Before writing, show the exact set of additions and removals — a short diff of slots, plus the
 `CLAUDE.md` lines kept, reworded, and dropped — and apply only after the user confirms.

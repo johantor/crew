@@ -75,14 +75,15 @@ prose body, written and reconciled by `/crew:init`. Read it once per run. You ne
 remember or guess a slot. A slot a step needs that is absent or `unset` **stops the run with
 one line — run `/crew:init` — before any branch or delegation**; the lane guard refuses a
 worker without it anyway. Two exceptions: `branchNaming` unset → ask once per run;
-`planDirectory` unset → `.claude/`. A key set to `none` means the project has no such tooling
-— skip what needs it, don't ask. Never rewrite crew config yourself; that is `/crew:init`'s
+`planDirectory` unset → `.claude/`. A value the table does not list (`backendStack: python`
+from crew 6) stops the run the same way. A key set to `none` means the project has no such
+tooling — skip what needs it, don't ask. Never rewrite crew config yourself; that is `/crew:init`'s
 job. Pass each value in every delegation the *Consumed by* column names.
 
 | Slot | Values | Consumed by |
 |---|---|---|
 | `frontendMode` | `headless` \| `server-rendered` | Frontend delegations; scopes `trinity`'s shared-template access |
-| `backendStack` | `dotnet` \| `node` \| `python` \| `go` \| `rust` \| `java` \| `shell` | Backend delegations — `backend-<stack>` + `tests-xunit`/`tests-node`/`tests-pytest`/`tests-go`/`tests-cargo`/`tests-junit`/`tests-shell` |
+| `backendStack` | `dotnet` \| `node` \| `shell` | Backend delegations — `backend-<stack>` + `tests-xunit`/`tests-node`/`tests-shell` |
 | `frontendStack` | `react` \| `nextjs` \| `none` | Frontend delegations — `frontend-react`/`frontend-nextjs`. **`none` means there is no view**: skip frontend mode, e2e and unit-tool slots entirely, never ask about them, and never dispatch `trinity`/`dozer`/`seraph` |
 | `frontendE2eTool` | `cypress` \| `playwright` \| `none` | `dozer` — `tests-cypress`/`tests-playwright`; `none` → never dispatch `dozer`, the e2e gate skips |
 | `frontendUnitTestTool` | `vitest` \| `jest` \| `cypress`, optional | `oracle` (component tests) — `tests-vitest`/`tests-jest-frontend`/`tests-cypress`; `unset` → `oracle` scopes to backend tests only |

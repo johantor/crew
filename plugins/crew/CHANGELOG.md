@@ -5,6 +5,13 @@ All notable changes to the `crew` plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.0.0] - 2026-10-05
+
+### Removed
+
+- **Breaking:** the Python, Go, Rust and Java stacks (`backend-*` and `tests-*` skills); the
+  crew now targets .NET with Optimizely, Node and shell, and stops on other stacks (#270).
+
 ## [7.0.0] - 2026-10-05
 
 ### Changed

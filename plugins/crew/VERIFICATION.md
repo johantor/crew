@@ -46,15 +46,14 @@ These are prompt behavior, so they need a scratch repo and an observed run — a
 cannot show that `/crew:init` detected a stack or that a worker loaded a skill.
 
 - [ ] **Each backend stack is detected by init and loads its pair** — a scratch repo carrying
-  only that stack's marker (`pyproject.toml` / `go.mod` / `Cargo.toml` / `pom.xml` with
-  `src/main/java` / `*.sh` with no other marker) → `/crew:init` proposes the stack; after
-  confirming, a `/crew:feature` dispatch names `backend-<stack>` for `tank` and the matching
-  `tests-*` for `oracle`.
-- [ ] **A Gradle build alone is a question, not an answer** — `build.gradle` with no
-  `src/main/java` and no `java` plugin → `/crew:init` **asks** rather than proposing `java`,
-  since Kotlin, Scala and Android carry the same marker.
-- [ ] **Two backend markers ask** — `pyproject.toml` **and** `go.mod` → `/crew:init` asks which
-  is the backend rather than breaking the tie.
+  only that stack's marker (`*.csproj` / a `package.json` with a server framework / `*.sh` with
+  no other marker) → `/crew:init` proposes the stack; after confirming, a `/crew:feature`
+  dispatch names `backend-<stack>` for `tank` and the matching `tests-*` for `oracle`.
+- [ ] **An unsupported stack stops** — a scratch repo with only `go.mod` → `/crew:init` says the
+  stack is unsupported rather than proposing one. A stale pin (`backendStack: python`) → init
+  reports it as unsupported, and `morpheus` stops naming `/crew:init`.
+- [ ] **Two backend markers ask** — `*.csproj` **and** a server `package.json` → `/crew:init`
+  asks which is the backend rather than breaking the tie.
 - [x] **An unset stack stops the run** — no `.claude/crew.md`, `/crew:feature <task>` →
   `morpheus` stops with one line naming `/crew:init` before any branch or delegation; a
   `crew:tank` edit in the same repo is refused by `lane-guard` with the same name. (#269: the
@@ -93,7 +92,7 @@ cannot show that `/crew:init` detected a stack or that a worker loaded a skill.
   configured, no per-gate path, `nocache` on the runner. A `test` script of `vitest run
   --coverage`, or a `jest.config` whose `cacheDirectory` points into the tree, keeps or sends the
   lane serial; the serial rerun after a failed check builds again rather than hitting the cache.
-- [ ] **One build writer at a time elsewhere** — a Java diff that triggers build, tests and
+- [ ] **One build writer at a time elsewhere** — a .NET diff that triggers build, tests and
   lint → the three run one after another (no Parallel gates recipe for that stack).
 - [ ] **An unchanged tree is not rebuilt** — `/crew:review` run twice with no edit between →
   the second run's build gate hands back at once, its log opening with `crew-gate: cached`,
