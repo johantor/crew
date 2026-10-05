@@ -55,8 +55,9 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
     signature, filter and discovery syntax, the skip mechanism),
     `mid-run-direction` (all eight workers, not `lead`) and `design-tokens` (`visual-review`).
   - Loaded once resolved: frontend mode, stack and test-tool skills. Backends `backend-dotnet`
-    (+ the `optimizely-<product>` skills), `-node`, `-shell`, each paired with a `tests-*` skill. Other languages
-    are unsupported; the hooks keep their Python/Go/Rust/JVM patterns for mixed repos. Only node needs lane paths (its extensions collide with a frontend's).
+    (+ the `optimizely-<product>` skills), `-node`, `-python` (Opal tools), `-shell`, each paired
+    with a `tests-*` skill. Other languages are unsupported; the hooks keep their Go/Rust/JVM
+    patterns for mixed repos. Only node needs lane paths (its extensions collide with a frontend's).
     `frontendStack: none` is a stated absence: `lead` skips frontend, e2e and unit-tool
     resolution and dispatches only `backend`/`unit-tests`. That gate sits above the resolution table.
   - Optimizely: one `optimizely-<product>` skill per product, sections in order **Detect**

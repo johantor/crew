@@ -9,7 +9,7 @@
 
 **Ship features like a crew, not a single agent.** This repository is the `johantor`
 [Claude Code](https://code.claude.com/docs/en/overview) plugin marketplace for
-team-style software delivery across .NET and Optimizely, Node and shell: a
+team-style software delivery across .NET and Optimizely, Node, Python and shell: a
 captain that plans and delegates to backend, view, test, and design specialists
 behind hook-enforced guardrails (**crew**). The same captain pays down tech debt and
 upgrades dependencies one verified fix at a time.
@@ -27,7 +27,7 @@ claude plugin install crew@johantor
 
 | Plugin | Status | What it does | Adds to your session |
 |---|---|---|---|
-| **[crew](plugins/crew/README.md)** | Stable | Orchestrated, multi-agent feature delivery: a captain (`lead`) plans the work and delegates to backend, client-facing, test, and visual-review specialists across .NET, Node and shell, with a consolidated review gate before anything ships. | `/crew:*` commands, agents, safety hooks, skills |
+| **[crew](plugins/crew/README.md)** | Stable | Orchestrated, multi-agent feature delivery: a captain (`lead`) plans the work and delegates to backend, client-facing, test, and visual-review specialists across .NET, Node, Python and shell, with a consolidated review gate before anything ships. | `/crew:*` commands, agents, safety hooks, skills |
 
 ## Requirements
 

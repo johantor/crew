@@ -6,7 +6,7 @@
 **Ship a feature like a team, not a single agent.** `crew` turns a Claude Code session into a
 captain that plans and delegates, plus specialists — backend, the client-facing layer, tests,
 visual review — each scoped to its own lane. The backend lane covers .NET (with Optimizely),
-Node and shell; the crew is for software delivery, not for websites specifically. A
+Node, Python and shell; the crew is for software delivery, not for websites specifically. A
 project with no view layer says so with `frontendStack: none`, and the frontend half of the crew
 stays out of the way. You approve the plan, every step is verified and committed as it
 lands, and nothing reaches a pull request until a consolidated review gate returns **GO**.
@@ -321,9 +321,9 @@ one that isn't installed, so it just reports the server as unavailable.
   For the five workers with a shell: `worker-contract` (the rules every dispatch follows). For
   every worker: `mid-run-direction` (how to treat a steer that arrives mid-run), and
   `design-tokens` for the agent doing design conformance.
-  Loaded once the stack is resolved: per frontend mode, per backend stack (.NET, Node, shell —
+  Loaded once the stack is resolved: per frontend mode, per backend stack (.NET, Node, Python, shell —
   plus one skill per Optimizely product on top, today CMS 12 and CMS 13), per frontend stack (React, Next.js), and per test tool
-  (xUnit, bats, Vitest, Jest, Cypress, Playwright).
+  (xUnit, pytest, bats, Vitest, Jest, Cypress, Playwright).
 
 Local agent memory is git-ignored (`.claude/agent-memory-local/`).
 
