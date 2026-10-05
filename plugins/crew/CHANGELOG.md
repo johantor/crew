@@ -5,12 +5,12 @@ All notable changes to the `crew` plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [8.1.0] - 2026-10-05
+## [9.0.0] - 2026-10-05
 
 ### Changed
 
-- `cms-optimizely` is replaced by full `optimizely-cms12` and `optimizely-cms13` skills and an
-  `optimizely-cms-upgrade` skill for 12 → 13, the first of one skill per product (#271).
+- **Breaking:** `cms-optimizely` is removed, replaced by full `optimizely-cms12` and
+  `optimizely-cms13` skills and `optimizely-cms-upgrade` for 12 → 13; a call to the old name fails (#271).
 
 ## [8.0.0] - 2026-10-05
 
