@@ -42,7 +42,8 @@ run until this command fills it (`branchNaming` is asked once per run instead, a
   dispatches the frontend workers. **A TUI, or a CLI whose rendered output is designed, is a
   view** in `trinity`'s lane with no supported value yet — stop and surface unsupported rather
   than writing `none` or `unset`.
-- **Frontend e2e tool** (`frontendE2eTool`) — `cypress` or `playwright`.
+- **Frontend e2e tool** (`frontendE2eTool`) — `cypress`, `playwright`, or `none` when the
+  project has no e2e suite (a confirmed absence: `dozer` is then never dispatched).
 - **Frontend unit test tool** (`frontendUnitTestTool`) — `vitest`, `jest`, or `cypress`; `unset`
   when the project has no frontend unit tests, and `oracle` then scopes to backend tests.
 - **Backend lane path(s)** (`backendLanePaths`) — comma-separated path prefixes, e.g. `apps/api/`.
@@ -119,7 +120,7 @@ trust or correct it; never invent a command you can't see configured.
 | Frontend build, test, lint | `package.json` `scripts`: `build`/`typecheck` → build, `test`/`e2e`/a Playwright config → test, `lint` → lint. Use the scripts that exist; don't assume an `npx` download. A script that only runs from a subdirectory says so in the value: `npm run build (from src/Site)`. |
 | Format matrix | One row per configured single-file formatter per package, from the package's own directory (in a monorepo that is not the root); a package with Prettier and ESLint gets two rows. Backend rows come from the `backend-<stack>` skill's **Crew config** section. Web rows from the configs in the package (a config file, or the matching `package.json` key): `biome.json*` → `node_modules/.bin/biome check --write {file}`; `.prettierrc*`/`prettier.config.*`/a `prettier` key → `node_modules/.bin/prettier --write {file}`; `.eslintrc*`/`eslint.config.*`/an `eslintConfig` key → `node_modules/.bin/eslint --fix --cache {file}` (script extensions only); `.stylelintrc*`/`stylelint.config.*`/a `stylelint` key → `node_modules/.bin/stylelint --fix {file}` (style extensions only). Always the locally installed binary, never `npx`. A tool merely on `PATH` with no config is not the project's choice: no row. No single-file formatter anywhere → `none`. |
 | Frontend mode | React/Vite/Next SPA build → `headless`; Razor `.cshtml` views without an SPA bundle → `server-rendered`. Mixed or unclear → **ask** which mode governs the areas the crew will work in, write that one, and describe the split in the body notes. Never leave it `unset`: `morpheus` stops on it and sends the user back here. |
-| Frontend e2e tool | `cypress.config.*` or a `cypress/` directory → `cypress`; `playwright.config.*` → `playwright`. |
+| Frontend e2e tool | `cypress.config.*` or a `cypress/` directory → `cypress`; `playwright.config.*` → `playwright`; neither → `none`, a confirmed absence, never `unset`. |
 | Frontend unit test tool | `vitest.config.*` → `vitest`; `jest.config.*` or a `jest` key with no vitest → `jest`; a `cypress.config.*` `component` key with neither → `cypress`. Absent → `unset`, a confirmed absence that stops nothing. |
 | Lane paths | Never auto-detect. Only when backend and frontend stacks are the same language, and then ask for the paths. |
 | Base branch | `git symbolic-ref refs/remotes/origin/HEAD`, else an existing `main`/`develop`. Ambiguous → ask; `origin/HEAD` is often unset or stale, and a wrong base is expensive. |

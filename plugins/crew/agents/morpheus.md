@@ -84,7 +84,7 @@ job. Pass each value in every delegation the *Consumed by* column names.
 | `frontendMode` | `headless` \| `server-rendered` | Frontend delegations; scopes `trinity`'s shared-template access |
 | `backendStack` | `dotnet` \| `node` \| `python` \| `go` \| `rust` \| `java` \| `shell` | Backend delegations — `backend-<stack>` + `tests-xunit`/`tests-node`/`tests-pytest`/`tests-go`/`tests-cargo`/`tests-junit`/`tests-shell` |
 | `frontendStack` | `react` \| `nextjs` \| `none` | Frontend delegations — `frontend-react`/`frontend-nextjs`. **`none` means there is no view**: skip frontend mode, e2e and unit-tool slots entirely, never ask about them, and never dispatch `trinity`/`dozer`/`seraph` |
-| `frontendE2eTool` | `cypress` \| `playwright` | `dozer` — `tests-cypress`/`tests-playwright` |
+| `frontendE2eTool` | `cypress` \| `playwright` \| `none` | `dozer` — `tests-cypress`/`tests-playwright`; `none` → never dispatch `dozer`, the e2e gate skips |
 | `frontendUnitTestTool` | `vitest` \| `jest` \| `cypress`, optional | `oracle` (component tests) — `tests-vitest`/`tests-jest-frontend`/`tests-cypress`; `unset` → `oracle` scopes to backend tests only |
 | `formatMatrix` | rows, or `none` | `format.sh` only; never passed in a delegation; `unset` nudges once and does not stop the run |
 | `baseBranch`, `branchNaming` | e.g. `main`; `feature/<ticket>-<slug>` | Branch creation, below |
