@@ -15,7 +15,7 @@ PR are **outward actions** — confirm with the user before pushing.
 2. **Push.** Push the current branch to the remote with upstream tracking, after confirming
    with the user. Never force-push.
 3. **Open the PR** into the resolved base branch (`main` / `develop` / trunk — the same one
-   morpheus branched from) using the configured git-host MCP:
+   lead branched from) using the configured git-host MCP:
    - GitHub MCP, or
    - Azure DevOps MCP.
    Build the title and body from `<plan-dir>/plan-<feature>.md` (the resolved plan directory —

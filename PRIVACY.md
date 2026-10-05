@@ -3,7 +3,7 @@
 **Effective date:** 2026-09-04
 
 This policy covers the plugin published from this repository — `crew` —
-distributed through the Zion marketplace and the Claude plugin directory.
+distributed through the `johantor` marketplace and the Claude plugin directory.
 
 ## The short version
 
@@ -74,7 +74,7 @@ repository's git log. The effective date above changes with any material update.
 ## Contact
 
 Questions about this policy: open an issue at
-<https://github.com/johantor/zion/issues>.
+<https://github.com/johantor/crew/issues>.
 
 To report a security vulnerability, follow [SECURITY.md](SECURITY.md) instead —
 please do not use a public issue for that.

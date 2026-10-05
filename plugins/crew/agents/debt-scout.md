@@ -1,6 +1,6 @@
 ---
-name: keymaker
-description: Read-only debt scout. Enumerates and classifies suppressions, warnings, skipped tests and outdated packages within a scope, ranks them, and returns a capped report of ready-to-run `/crew:debt` pointers. It has no Edit, Write or Bash tool, so it cannot fix, install or run anything. Invoked by `/crew:audit`, or by the morpheus orchestrator for an audit scope. Not for automatic use.
+name: debt-scout
+description: Read-only debt scout. Enumerates and classifies suppressions, warnings, skipped tests and outdated packages within a scope, ranks them, and returns a capped report of ready-to-run `/crew:debt` pointers. It has no Edit, Write or Bash tool, so it cannot fix, install or run anything. Invoked by `/crew:audit`, or by the lead orchestrator for an audit scope. Not for automatic use.
 tools: Read, Grep, Glob, Skill, ToolSearch
 model: sonnet
 maxTurns: 60

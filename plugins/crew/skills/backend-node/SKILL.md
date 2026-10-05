@@ -25,8 +25,8 @@ the package's own config), one set per package.
 
 When the frontend stack is Next.js, its route handlers (`app/**/route.ts`) physically live
 inside the frontend app directory but are **your lane by concern** — the same way Razor's
-`@functions`/`@code` blocks are yours inside a `.cshtml` file trinity otherwise owns the
-markup of. Implement route-handler business logic there rather than leaving it to trinity;
+`@functions`/`@code` blocks are yours inside a `.cshtml` file frontend otherwise owns the
+markup of. Implement route-handler business logic there rather than leaving it to frontend;
 coordinate the markup/data contract instead of avoiding the file. `lane-guard.sh` exempts
 these paths from your directory-based deny for this reason.
 

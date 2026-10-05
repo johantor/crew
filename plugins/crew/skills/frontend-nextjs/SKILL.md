@@ -19,10 +19,10 @@ Components, and data fetching from the project's headless CMS/API (e.g. Optimize
 ## Route-handler ownership
 
 Route handlers (`app/**/route.ts`) are server logic that happens to live inside the frontend
-app directory — that makes them **tank's lane by concern**, not yours, the same way Razor's
-`@functions`/`@code` blocks are tank's inside a `.cshtml` file you otherwise own the markup
+app directory — that makes them **backend's lane by concern**, not yours, the same way Razor's
+`@functions`/`@code` blocks are backend's inside a `.cshtml` file you otherwise own the markup
 of. Don't implement route-handler business logic yourself; coordinate the data contract with
-tank. `lane-guard.sh` enforces this by path when lanes are directory-based (same-language
+backend. `lane-guard.sh` enforces this by path when lanes are directory-based (same-language
 stacks); don't rely on that alone — the rule holds regardless of enforcement mode.
 
 ## Build

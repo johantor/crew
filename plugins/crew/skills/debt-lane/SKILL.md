@@ -1,6 +1,6 @@
 ---
 name: debt-lane
-description: "morpheus's debt lane — pointer-driven tech-debt remediation and dependency upgrades. Use when the task is a pointer to known debt rather than a feature: a suppression (`file:line`), a rule ID (`CS8602`, `no-explicit-any`), a package + target version, or pasted build/lint output; also `/crew:debt`. Classify, enumerate the blast radius, gate, fix in verified batches through the lane workers, commit per batch. An audit scope is `crew:keymaker`'s, not this skill's."
+description: "lead's debt lane — pointer-driven tech-debt remediation and dependency upgrades. Use when the task is a pointer to known debt rather than a feature: a suppression (`file:line`), a rule ID (`CS8602`, `no-explicit-any`), a package + target version, or pasted build/lint output; also `/crew:debt`. Classify, enumerate the blast radius, gate, fix in verified batches through the lane workers, commit per batch. An audit scope is `crew:debt-scout`'s, not this skill's."
 ---
 
 # The debt lane
@@ -14,7 +14,7 @@ lives there or in its per-stack skill.
 
 ## Audit is not this lane
 
-An audit scope (`/crew:audit`, "audit src/") goes to `crew:keymaker`, the read-only scout: it has
+An audit scope (`/crew:audit`, "audit src/") goes to `crew:debt-scout`, the read-only scout: it has
 no Edit, Write or Bash tool. Dispatch it with the scope, resolving what needs a shell yourself
 and passing it as a data block — `diff`: `git diff --name-only <base>...HEAD`; `outdated`: each
 detected stack's discover-outdated command, metadata only — then relay its report with its
@@ -78,9 +78,9 @@ slug collides gets `-2`, `-3`, …; the header, never the filename, decides a re
 6. **Resolve every decision in the foreground** before any background dispatch — slice, no-test
    acknowledgement, branch. Branch as in *Branching and commits*; the default name is
    `chore/debt-<slug>`. Then write the ledger: header plus one `pending` entry per batch.
-7. **Delegate** one worker per lane per batch, by lane owner: backend → `crew:tank`, frontend →
-   `crew:trinity`; a skipped test the user decided in step 5 → `crew:oracle` (unit) or
-   `crew:dozer` (e2e), carrying that decision verbatim. Independent batches go out in parallel.
+7. **Delegate** one worker per lane per batch, by lane owner: backend → `crew:backend`, frontend →
+   `crew:frontend`; a skipped test the user decided in step 5 → `crew:unit-tests` (unit) or
+   `crew:e2e` (e2e), carrying that decision verbatim. Independent batches go out in parallel.
    Flip each to `in-progress` as it launches. A mechanical, behavior-preserving batch runs with
    `model: sonnet`; a run-and-report re-check with `model: haiku`. First snapshot per-mechanism
    suppression counts, **and which sites carry a justification**, across the batch's exact file
@@ -88,8 +88,8 @@ slug collides gets `-2`, `-3`, …; the header, never the filename, decides a re
    resume, check against that field, not against memory. Each handoff carries:
    - the exact file list; the taxonomy stack and "load `debt-taxonomy-<stack>`"; and every
      crew-config value the worker's *Consumed by* row names, resolved as usual — the backend
-     stack for `tank`/`oracle`, the frontend stack and mode for `trinity`, the e2e tool for
-     `dozer`. The taxonomy stack (`dotnet`, `typescript`) is not the crew-config stack, and a
+     stack for `backend`/`unit-tests`, the frontend stack and mode for `frontend`, the e2e tool for
+     `e2e`. The taxonomy stack (`dotnet`, `typescript`) is not the crew-config stack, and a
      worker with one but not the other asks instead of working;
    - the suppression text or call-site pattern, the rule or package, and the mechanism's
      **Removal** cell from the stack skill;

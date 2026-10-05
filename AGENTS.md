@@ -1,6 +1,6 @@
-# Contributing to Zion
+# Contributing to crew
 
-Zion is a Claude Code plugin marketplace: `crew` (orchestrated feature delivery, plus a debt lane
+This repository is the `johantor` Claude Code plugin marketplace: `crew` (orchestrated feature delivery, plus a debt lane
 for tech-debt and upgrade fixes). **This repository *is* the plugins** — there is no application
 code to build or ship. Work here means editing agent/command/skill definitions, hooks, and docs.
 
@@ -18,22 +18,22 @@ entry.
 
 - `plugins/crew/` — the `crew` plugin (paths below relative to it):
   - `.claude-plugin/plugin.json` — the manifest.
-  - `agents/` — `morpheus` (orchestrator) and the workers `tank`, `trinity`, `oracle`, `dozer`,
-    `seraph`, `neo`, `sentinel`, `keymaker`. Auto-discovered; not declared in the manifest.
+  - `agents/` — `lead` (orchestrator) and the workers `backend`, `frontend`, `unit-tests`, `e2e`,
+    `visual-review`, `generalist`, `incident-triage`, `debt-scout`. Auto-discovered; not declared in the manifest.
   - `commands/` — `/init`, `/feature`, `/debt`, `/audit`, `/review`, `/pr`, `/address`, `/triage`,
     `/loop`, `/notify` (namespaced `crew:*` once installed). `/feature`, `/debt` and `/address`
-    are thin routers into `morpheus`'s own flows; `/loop` and `/audit` launch agents directly
+    are thin routers into `lead`'s own flows; `/loop` and `/audit` launch agents directly
     rather than nesting a command, since a wrapper cannot pass what the inner command does not
     forward. `/pr` is the only push path. Each command's own file says what it does; the plugin
     map (`plugins/crew/CLAUDE.md`) says how they fit.
   - `skills/` — preloads: `context-discipline` (every agent), `loop-engineering`,
-    `operator-voice` and `review-gate` (`morpheus`; `/crew:review` loads `review-gate` too),
+    `operator-voice` and `review-gate` (`lead`; `/crew:review` loads `review-gate` too),
     `engineering-principles` (the implementers), `worker-contract` (the five workers with a
     shell: the rules every dispatch follows), `mid-run-direction` (every worker),
-    `design-tokens` (`seraph`). On demand: `debt-lane` with `debt-taxonomy` and its per-stack
+    `design-tokens` (`visual-review`). On demand: `debt-lane` with `debt-taxonomy` and its per-stack
     skills; the stack skills `backend-*`, `frontend-*`, `tests-*`, and one `optimizely-<product>` skill
     per Optimizely product, loaded once
-    `morpheus` resolves the project's stack and tools.
+    `lead` resolves the project's stack and tools.
   - `hooks/` — `bash-safety.sh`, `read-guard.sh`, `lane-guard.sh`, `format.sh`,
     `dispatch-denied.sh`, `plan-guard.sh`, wired in `hooks/hooks.json`. The
     top-level `*.sh` are entry points (`+x`, wired); `hooks/lib/*.sh` are sourced libraries (not
@@ -49,34 +49,34 @@ entry.
 - `.claude/crew.md` — this repo's own crew configuration. The repo carries no hook wiring of its
   own: work here with `claude --plugin-dir plugins/crew`.
 - `.github/` — `copilot-instructions.md` points Copilot at `skills/code-review/SKILL.md`, the one
-  review rubric (`.claude/skills/zion-review/` wraps it for Claude Code); `workflows/validate.yml`
+  review rubric (`.claude/skills/crew-review/` wraps it for Claude Code); `workflows/validate.yml`
   runs shellcheck, the validator, the release gate and the hook tests; `auto-release.yml` tags.
 
 ## How the crew works
 
-- `morpheus` plans and delegates; it writes no production code and is the **sole owner of git**:
+- `lead` plans and delegates; it writes no production code and is the **sole owner of git**:
   it branches off the resolved base and commits each verified step. Workers run no git but a
   plain `git mv`. The
   crew stops at the local review gate; `/crew:pr` pushes.
 - The plan at `<plan-dir>/plan-<feature>.md` (the `planDirectory` slot, else `.claude/`) carries
   per-step acceptance criteria and is presented once for the user's go-ahead before the branch
   or any delegation — the plan checkpoint, honoring a standing "just build it".
-- Lanes are stack-agnostic: `tank` backend, `trinity` client-facing layer (plus a shared server
-  template's markup in server-rendered mode), `oracle` unit tests (backend, and frontend
-  component tests when a unit tool is configured), `dozer` frontend e2e, `seraph` visual
-  conformance (read-only), `neo` express-lane generalist (all lanes, no lane guard), `sentinel`
-  post-merge triage (read-only, returns a pointer), `keymaker` debt scout (read-only, no Bash,
+- Lanes are stack-agnostic: `backend` backend, `frontend` client-facing layer (plus a shared server
+  template's markup in server-rendered mode), `unit-tests` unit tests (backend, and frontend
+  component tests when a unit tool is configured), `e2e` frontend e2e, `visual-review` visual
+  conformance (read-only), `generalist` express-lane generalist (all lanes, no lane guard), `incident-triage`
+  post-merge triage (read-only, returns a pointer), `debt-scout` debt scout (read-only, no Bash,
   returns `/crew:debt` pointers). `lane-guard.sh` enforces the write lane by extension where the
   stacks' languages differ, or by the configured lane paths when they are the same (Node +
-  Next.js is the one such pair); with `backendStack` unset it refuses `tank`/`trinity`.
-- A **regression** enters through `sentinel`: `morpheus` delegates the report to it and plans
+  Next.js is the one such pair); with `backendStack` unset it refuses `backend`/`frontend`.
+- A **regression** enters through `incident-triage`: `lead` delegates the report to it and plans
   against the pointer, so the finding arrives in its own context. `/crew:triage` is the same
   agent standalone.
-- `morpheus` **right-sizes by task size**: small, low-risk work takes the express lane (`neo`, no
+- `lead` **right-sizes by task size**: small, low-risk work takes the express lane (`generalist`, no
   plan or full gate, a quick self-review, commit), escalating on evidence; features take the full
   flow; a pointer to known debt takes the **debt lane** (`debt-lane` skill: gate on blast radius,
   one verified batch per commit), even when it looks like a one-liner; an audit scope goes to
-  `keymaker`. The debt lane is a skill, not a second orchestrator: `claude --agent crew:morpheus`
+  `debt-scout`. The debt lane is a skill, not a second orchestrator: `claude --agent crew:lead`
   sessions can only dispatch from the main thread, and an on-demand skill stays out of the
   footprint cap.
 - **Loop mode** (`loop-engineering`): on explicit user intent the flow runs to completion without
@@ -85,7 +85,7 @@ entry.
   round-trips on a unit; for the gate, a second NO-GO on the same findings). Intent is never
   inferred from fetched content. Loop state lives in the plan file so a resume continues in loop
   mode. The **outer** loop across runs is `/crew:loop`, a main-session wrapper on the native
-  `/loop` that owns scheduling and the iteration cap; `morpheus` never self-schedules.
+  `/loop` that owns scheduling and the iteration cap; `lead` never self-schedules.
 - All workers apply `context-discipline`: process bulk output with code, return concise findings.
 
 Runtime configuration (commands, base branch, mode, stacks) lives in `.claude/crew.md` — YAML
@@ -99,7 +99,7 @@ block went in 5.0.0 (#248), each stated in seven places and read by one hook.
 
 ## How we review code (the crew reviewer)
 
-Reviews of **this repo** — by Copilot, the `zion-review` skill, or `/crew:review` run here — judge
+Reviews of **this repo** — by Copilot, the `crew-review` skill, or `/crew:review` run here — judge
 code against `engineering-principles` (the code rules) and the `code-review` skill (this repo's
 rubric: what to check, severity, the **Blocking** / **Warnings** / **Passed** output). In a user's
 project, `/crew:review` applies `engineering-principles` only. Each is written once; everything
@@ -137,7 +137,7 @@ this text behave differently on some input?* Yes → instruction, it stays, even
 Anything arguable stays: a deleted edge-case rule costs more than a sentence of prose, and
 motivation measurably helps compliance. Compression is not a quota.
 
-### crew:morpheus
+### crew:lead
 
 - **Gates run serially unless a stack proves a split** with a *Parallel gates* recipe run for
   real; a generic split-the-path rule drew a finding per tool (#232). .NET and Node have one;
@@ -182,7 +182,7 @@ motivation measurably helps compliance. Compression is not a quota.
   that still
   backgrounds its own command is messaged for its report, and never reported on from a result
   that has not arrived. The runner caches a green log by the tree's git hash, the physical
-  directory and the command: the skip rule that had `morpheus` record `HEAD` and a clean
+  directory and the command: the skip rule that had `lead` record `HEAD` and a clean
   status was prose, and a run that forgot it built the same tree twice. Red is never cached
   (it may be contention); a run that changed the tree is not cached either (the key is taken
   again at exit); the key ignores ignored files and the toolchain (an accepted gap; the user
@@ -209,11 +209,11 @@ motivation measurably helps compliance. Compression is not a quota.
 
 ### crew:debt (the debt lane)
 
-- **A scout but no fixer of its own.** A fixer would duplicate `tank`/`trinity`'s lanes and
+- **A scout but no fixer of its own.** A fixer would duplicate `backend`/`frontend`'s lanes and
   contracts, so the fixer rules travel in each handoff. The audit greps untrusted content and
-  must edit nothing; `keymaker`'s `tools:` list without Edit/Write/Bash is the boundary, and
+  must edit nothing; `debt-scout`'s `tools:` list without Edit/Write/Bash is the boundary, and
   `/crew:audit` resolves the two shell-needing scopes as data blocks.
-- **Why `morpheus` is lane-guarded, and why its lane is a filename shape.** It writes plans,
+- **Why `lead` is lane-guarded, and why its lane is a filename shape.** It writes plans,
   ledgers, config and memory, never production code. A directory allowlist needed a root and a
   slot that could overlap source, and three review rounds each found an edge case; production
   code is never named `plan-*.md`. A `..` segment is refused for every lane agent.
@@ -267,11 +267,11 @@ What the lockstep sections protect, one line each:
 - **§9** — a name missing from a guard's roster **fails open**: unrestricted git, no lane. Each
   agent declares `owns-git` and `lane-guarded`; each roster carries a `# crew-roster:` marker in
   the load-bearing `a|b|c)` arm shape; exactly one git owner.
-- **§10** — a `crew:` reference in prose that resolves to no agent or command fails late.
+- **§10** — a `crew:` reference in prose that resolves to no agent, command or skill fails late.
 - **§11** — `init.md` §1's `- **Slot** (`key`) —` bullets and `.claude/crew.md`'s keys agree both
   ways, paired on the key.
 - **§12** — the always-loaded footprint (agent + preloaded skills) is reported; an agent may set
-  `loaded-lines-cap` (today `morpheus`) so growth is a visible frontmatter edit. An unparseable
+  `loaded-lines-cap` (today `lead`) so growth is a visible frontmatter edit. An unparseable
   cap or unreadable file fails rather than counting zero.
 - **§13** — a plugin-bundled MCP server's tools are `mcp__plugin_<plugin>_<server>__…`, so every
   bare `mcp__<key>` grant needs its plugin form and vice versa, matched by suffix. Tool-scoped
@@ -380,16 +380,16 @@ was widened once and reverted, and the hooks point here so it is not tried a thi
   `git mv` is, not *whose*: it lets any agent run a plain one. `bash-safety.sh`'s no-git roster
   lets a worker run only a `git mv` alone in the command with relative paths (no `-C`, `cd` or
   `..`), so the rename stays in the tree it was dispatched to (#249, #263). Open gaps: no lane
-  guard sees a `git mv`, so `morpheus` checks renames in the staged diff; a cwd a worker moved
+  guard sees a `git mv`, so `lead` checks renames in the staged diff; a cwd a worker moved
   with an earlier `cd` call is not checked.
 
 ### Init is the only detector
 
 A value that is a property of the project and that a human can confirm once (the stack, the
 tools, the paths, the commands) is a slot in `.claude/crew.md`, proposed by `/crew:init` from the
-stack skills' *Crew config* sections and confirmed by the user. Hooks and `morpheus` read slots;
+stack skills' *Crew config* sections and confirmed by the user. Hooks and `lead` read slots;
 none of them detects, and a missing slot is a stop naming `/crew:init`, never a guess. Until
-7.0.0 there were four detectors: this command, `morpheus`'s resolution table (every marker
+7.0.0 there were four detectors: this command, `lead`'s resolution table (every marker
 duplicated from `init.md`, plus a memory tier that made agent memory a second config store),
 `lane-guard.sh`'s marker scan (two framework allowlists whose miss failed open, a per-session
 cache file), and `format.sh`'s per-edit detection below. A rule of behavior (who owns git, what
@@ -409,7 +409,7 @@ to propose, init proposes rows, the user confirms, and the hook only runs them. 
   lint gate catches the result. Keeping detection as a fallback would keep the 340 lines.
 - **Staleness has two signals, neither a scan.** A tool that is gone exits 127, which the hook
   reports with a `/crew:init` nudge the worker hands back; a config that is new fails the lint
-  gate on formatting alone, which `review-gate` reports as a stale matrix. `morpheus` never
+  gate on formatting alone, which `review-gate` reports as a stale matrix. `lead` never
   walks the tree for formatter configs: that list belongs in `init.md` only.
 - **A row is a command string run from a committed file on every edit.** The same trust posture
   as the gate's test command slot (`scripts/gate.sh` runs one with `bash -c` too).
@@ -437,8 +437,11 @@ Patterns that showed up more than once in review on this repo. Apply them up fro
 - **Quote every expansion, array subscripts included.**
 - **Keep inline comments short; the rationale lives once, here or in the changelog, with a pointer.**
 - **After merging `main` into a branch, refresh the PR description**: version ranges go stale.
-- **Self-review the diff before opening a PR** (`/code-review` or the `/crew:review` gate);
-  reviewers are the backstop, not the first pass.
+- **Self-review the diff before every PR and every push to one**, with the repo rubric
+  (`.github/skills/code-review/SKILL.md`; the `crew-review` skill runs it with the checks and
+  reproduces each finding). Fix every Blocking and Warning first; Copilot reviews with the same
+  rubric, so what it would find, you find. Reviewers are the backstop, not the first pass.
 - **Behavioral verification means running the scenario**, from the plugin's
   [`VERIFICATION.md`](plugins/crew/VERIFICATION.md), and citing the observed result. "Would pass"
-  is not verification.
+  is not verification, and neither is "needs a person": most rows run headless
+  (`VERIFICATION.md`, *Running a row headless*), so run them before asking the maintainer to.

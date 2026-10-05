@@ -3,12 +3,12 @@
 #
 # Auto mode drops `Agent` allow rules on entry and judges every dispatch on its
 # own, so a dispatch identical to one that passed a minute ago can be refused
-# now. Without this hook `morpheus` sees only "Blocked by classifier" and hands
+# now. Without this hook `lead` sees only "Blocked by classifier" and hands
 # the step back with nothing actionable.
 #
 # First denial of a worker in a session: retry once. Not a bypass — the retried
 # call goes through the classifier again, which gets the final say. Later denials
-# do NOT retry: they report the fixes that actually exist, so `morpheus` stops
+# do NOT retry: they report the fixes that actually exist, so `lead` stops
 # thrashing and hands the step back cleanly.
 #
 # Advisory, not a guard: it never blocks. Silent (exit 0, no output) when it can't

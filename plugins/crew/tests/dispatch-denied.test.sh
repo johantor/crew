@@ -68,7 +68,7 @@ export CREW_DISPATCH_DENIED_DIR
 
 # --- Only crew dispatches are this hook's business ------------------------------
 assert_silent "a subagent not on crew's roster is left alone" "$(payload_denied general-purpose /tmp/t/a.jsonl)"
-assert_silent "an unnamespaced agent is left alone" "$(payload_denied neo /tmp/t/a.jsonl)"
+assert_silent "an unnamespaced agent is left alone" "$(payload_denied generalist /tmp/t/a.jsonl)"
 assert_silent "a bare 'crew:' prefix with no worker is not a dispatch" "$(payload_denied crew: /tmp/t/a.jsonl)"
 assert_silent "no subagent_type (not a dispatch) -> silent" "$(payload_denied "" /tmp/t/a.jsonl)"
 assert_silent "unparseable payload -> fail open" 'not json'
@@ -79,13 +79,13 @@ for f in "$CREW_DISPATCH_DENIED_DIR"/crew-dispatch-denied.*; do [ -e "$f" ] && f
 if [ -n "$found" ]; then _fail "state written for a non-crew dispatch: $found"; else _pass; fi
 
 # --- Retry once, then report ----------------------------------------------------
-assert_retry "first denial retries once" "$(payload_denied crew:neo /tmp/t/run.jsonl)"
+assert_retry "first denial retries once" "$(payload_denied crew:generalist /tmp/t/run.jsonl)"
 assert_no_retry "second denial stops and names the working fix" \
-  "$(payload_denied crew:neo /tmp/t/run.jsonl)" "acceptEdits"
+  "$(payload_denied crew:generalist /tmp/t/run.jsonl)" "acceptEdits"
 assert_no_retry "third denial still refuses to retry" \
-  "$(payload_denied crew:neo /tmp/t/run.jsonl)" "autoMode.environment"
+  "$(payload_denied crew:generalist /tmp/t/run.jsonl)" "autoMode.environment"
 # The advice must not send the user down the path that cannot work.
-run_hook dispatch-denied.sh "$(payload_denied crew:neo /tmp/t/run.jsonl)"
+run_hook dispatch-denied.sh "$(payload_denied crew:generalist /tmp/t/run.jsonl)"
 if jq -e '.systemMessage | contains("permissions.allow cannot cover this")' >/dev/null 2>&1 <<<"$_stdout"; then
   _pass
 else
@@ -94,24 +94,24 @@ fi
 
 # --- Counters are per worker and per session ------------------------------------
 assert_retry "a different worker in the same session gets its own first retry" \
-  "$(payload_denied crew:trinity /tmp/t/run.jsonl)"
+  "$(payload_denied crew:frontend /tmp/t/run.jsonl)"
 assert_retry "the same worker in a different session starts fresh" \
-  "$(payload_denied crew:neo /tmp/t/other.jsonl)"
+  "$(payload_denied crew:generalist /tmp/t/other.jsonl)"
 
 # --- Corrupt counter state is treated as fresh, not a crash ---------------------
 corrupt="/tmp/t/corrupt.jsonl"
-run_hook dispatch-denied.sh "$(payload_denied crew:tank "$corrupt")"
+run_hook dispatch-denied.sh "$(payload_denied crew:backend "$corrupt")"
 state_file=""
-for f in "$CREW_DISPATCH_DENIED_DIR"/crew-dispatch-denied.*.tank; do [ -e "$f" ] && state_file="$f"; done
-if [ -n "$state_file" ]; then _pass; else _fail "expected a tank state file after one denial"; fi
+for f in "$CREW_DISPATCH_DENIED_DIR"/crew-dispatch-denied.*.backend; do [ -e "$f" ] && state_file="$f"; done
+if [ -n "$state_file" ]; then _pass; else _fail "expected a backend state file after one denial"; fi
 printf 'garbage\n' > "$state_file"
-assert_retry "corrupt state restarts at the first attempt" "$(payload_denied crew:tank "$corrupt")"
+assert_retry "corrupt state restarts at the first attempt" "$(payload_denied crew:backend "$corrupt")"
 
 # --- Can't count -> never retry --------------------------------------------------
 assert_no_retry "no session key -> report without retrying" \
-  "$(payload_denied crew:neo "")" "acceptEdits"
+  "$(payload_denied crew:generalist "")" "acceptEdits"
 # ...and it must not pass itself off as a repeat: nothing was retried.
-run_hook dispatch-denied.sh "$(payload_denied crew:neo "")"
+run_hook dispatch-denied.sh "$(payload_denied crew:generalist "")"
 if jq -e '.systemMessage | contains("again") | not' >/dev/null 2>&1 <<<"$_stdout"; then
   _pass
 else
@@ -127,7 +127,7 @@ if [ -w "$ro_dir" ]; then
   chmod u+w "$ro_dir"
 else
   _status=0
-  _stdout="$(printf '%s' "$(payload_denied crew:neo /tmp/t/ro.jsonl)" \
+  _stdout="$(printf '%s' "$(payload_denied crew:generalist /tmp/t/ro.jsonl)" \
     | ( cd "$(new_tmpdir)" && CREW_DISPATCH_DENIED_DIR="$ro_dir" exec "$HOOKS_DIR/dispatch-denied.sh" ) 2>/dev/null)" || _status=$?
   if [ "$_status" -eq 0 ] \
      && jq -e '(.hookSpecificOutput.retry // false) == false' >/dev/null 2>&1 <<<"$_stdout"; then

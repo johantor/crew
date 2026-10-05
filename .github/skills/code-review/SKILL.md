@@ -1,14 +1,14 @@
 ---
 name: code-review
-description: Review a pull request or diff in the Zion plugin marketplace — Bash guard hooks, Markdown agent/command/skill prompts, plugin manifests and changelogs. Use when asked to review code, a PR, or a diff in this repository.
+description: Review a pull request or diff in the crew plugin marketplace — Bash guard hooks, Markdown agent/command/skill prompts, plugin manifests and changelogs. Use when asked to review code, a PR, or a diff in this repository.
 ---
 
-# Reviewing a Zion change
+# Reviewing a crew change
 
-Zion ships Bash hooks, Markdown prompts that agents execute, and JSON manifests. `AGENTS.md` is
+This repo ships Bash hooks, Markdown prompts that agents execute, and JSON manifests. `AGENTS.md` is
 the contributor guide and wins on conflict. Code rules: the `engineering-principles` skill
 (`plugins/crew/skills/engineering-principles/SKILL.md`). This file is the one rubric and owns the
-output format; Copilot reads it directly and Claude Code's `zion-review` skill loads it.
+output format; Copilot reads it directly and Claude Code's `crew-review` skill loads it.
 
 ## Scope: one full pass, then only what changed
 

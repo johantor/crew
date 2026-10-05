@@ -1,9 +1,9 @@
 ---
-name: zion-review
-description: Review a PR, branch or working diff in this repo against its own rubric, run the repo's checks, and reproduce each finding before reporting it. Use when asked to review code or a PR in Zion.
+name: crew-review
+description: Review a PR, branch or working diff in this repo against its own rubric, run the repo's checks, and reproduce each finding before reporting it. Use when asked to review code or a PR in this repo.
 ---
 
-# Zion review
+# crew review
 
 The rubric is `.github/skills/code-review/SKILL.md`. Read it first and apply all of it. This
 skill adds only what a session with a shell can do.
@@ -17,4 +17,7 @@ skill adds only what a session with a shell can do.
    the finding. No wrong verdict, no Blocking finding.
 4. **Check new tests pin something**: run the changed suite against the base version of every
    changed hook file, `hooks/lib/` included. A new case that still passes is a Warning.
-5. **Report** in the rubric's format, most severe first. Post to GitHub only when asked.
+5. **Run the behavior the diff changes.** For each `plugins/crew/VERIFICATION.md` row the change
+   touches (a prompt, a skill route, a guard's input), run it headless as that file's *Running a
+   row headless* says, and cite what you observed. A row you cannot run is named in the report.
+6. **Report** in the rubric's format, most severe first. Post to GitHub only when asked.

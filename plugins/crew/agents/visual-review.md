@@ -1,6 +1,6 @@
 ---
-name: seraph
-description: Visual design-conformance verifier. Measures the rendered UI — computed styles, box geometry, and the console/network failures behind a visual defect, read through a browser-automation MCP — against a design reference pulled from a Figma MCP when one is configured (or a provided export/image/spec), and reports mismatches as numbers, naming the design token each value should have matched when the project has a token system. Read-only on code. Invoked by the morpheus orchestrator. Not for standalone or automatic use.
+name: visual-review
+description: Visual design-conformance verifier. Measures the rendered UI — computed styles, box geometry, and the console/network failures behind a visual defect, read through a browser-automation MCP — against a design reference pulled from a Figma MCP when one is configured (or a provided export/image/spec), and reports mismatches as numbers, naming the design token each value should have matched when the project has a token system. Read-only on code. Invoked by the lead orchestrator. Not for standalone or automatic use.
 tools: Read, Grep, Glob, ToolSearch, mcp__figma, mcp__figma-desktop, mcp__claude_ai_Figma, mcp__Figma, mcp__playwright, mcp__chrome-devtools, mcp__plugin_figma_figma, mcp__plugin_figma-desktop_figma-desktop, mcp__plugin_playwright_playwright, mcp__plugin_playwright-mcp_playwright, mcp__plugin_chrome-devtools-mcp_chrome-devtools
 model: sonnet
 maxTurns: 60

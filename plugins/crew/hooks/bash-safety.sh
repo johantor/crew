@@ -42,26 +42,26 @@ guard_block_raw_reads
 [ -n "$agent_type" ] && guard_block_cat
 [ -n "$agent_type" ] && guard_block_file_writes
 
-# Workers run no git but a plain `git mv` -- morpheus is the sole git owner (see
-# AGENTS.md, "How the crew works"). A rename lands in morpheus's commit, where it
-# is reviewed. seraph, sentinel and keymaker carry no Bash tool, so they need no
+# Workers run no git but a plain `git mv` -- lead is the sole git owner (see
+# AGENTS.md, "How the crew works"). A rename lands in lead's commit, where it
+# is reviewed. visual-review, incident-triage and debt-scout carry no Bash tool, so they need no
 # entry.
 # crew-roster: no-git -- every Bash-capable agent that doesn't own git belongs in
 # the arm below; validator §9 keeps it in lockstep with the agents' frontmatter
 # `owns-git`, and parses exactly this shape: the marker, the `case` header, then
 # the `a|b|c)` arm on the very next line.
 case "$agent_type" in
-  tank|trinity|oracle|dozer|neo)
+  backend|frontend|unit-tests|e2e|generalist)
     if ! guard_is_plain_git_mv && [[ $guard_cmd =~ $GUARD_RE_GIT_AT_CMD ]]; then
-      echo "Blocked: ${agent_type} runs no git but a plain \`git mv <from> <to>\`, alone in the command, with relative paths — morpheus owns branching and commits. Return your result; morpheus commits verified steps." >&2
+      echo "Blocked: ${agent_type} runs no git but a plain \`git mv <from> <to>\`, alone in the command, with relative paths — lead owns branching and commits. Return your result; lead commits verified steps." >&2
       exit 2
     fi ;;
 esac
 
-# Any other agent (morpheus, an agent not on crew's roster) must not commit onto a
+# Any other agent (lead, an agent not on crew's roster) must not commit onto a
 # protected base branch. Scoped via agent_type, so a normal main session (no
 # agent_type) is never intercepted.
 guard_block_protected_branch_commit "$agent_type" \
-  "Work on a feature branch (morpheus owns branching)."
+  "Work on a feature branch (lead owns branching)."
 
 exit 0

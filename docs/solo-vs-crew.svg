@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="560" viewBox="0 0 1200 560" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">
-  <title>A solo agent juggling every concern, versus the zion crew: planned lanes, a review gate, then a pull request</title>
+  <title>A solo agent juggling every concern, versus the crew: planned lanes, a review gate, then a pull request</title>
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path d="M0,0 L10,5 L0,10 z" fill="#3fb950"/>
@@ -50,15 +50,15 @@
 
   <!-- ============ RIGHT: the crew ============ -->
   <rect x="624" y="24" width="552" height="512" rx="12" fill="#161b22" stroke="#30363d"/>
-  <text x="900" y="58" text-anchor="middle" font-size="16" font-weight="bold" fill="#00c853">the zion crew</text>
+  <text x="900" y="58" text-anchor="middle" font-size="16" font-weight="bold" fill="#00c853">the crew</text>
 
-  <!-- morpheus -->
+  <!-- lead -->
   <rect x="836" y="84" width="128" height="36" rx="8" fill="#0d1117" stroke="#bc8cff" stroke-width="2"/>
   <circle cx="856" cy="102" r="5" fill="#bc8cff"/>
-  <text x="906" y="107" text-anchor="middle" font-size="13" font-weight="bold" fill="#c9d1d9">morpheus</text>
+  <text x="906" y="107" text-anchor="middle" font-size="13" font-weight="bold" fill="#c9d1d9">lead</text>
   <text x="900" y="140" text-anchor="middle" font-size="12" fill="#8b949e" stroke="#161b22" stroke-width="5" paint-order="stroke">plan · delegate · verify · commit</text>
 
-  <!-- lanes morpheus -> workers -->
+  <!-- lanes lead -> workers -->
   <g fill="none" stroke-width="1.8" opacity="0.9">
     <path d="M870,120 C 800,170 730,190 700,228" stroke="#58a6ff"/>
     <path d="M885,120 C 850,170 810,195 801,228" stroke="#7ce0ff"/>
@@ -69,11 +69,11 @@
 
   <!-- workers row -->
   <g font-size="13" text-anchor="middle" font-weight="bold">
-    <rect x="652"  y="230" width="96" height="32" rx="7" fill="#0d1117" stroke="#58a6ff"/><text x="700"  y="251" fill="#c9d1d9">tank</text>
-    <rect x="753"  y="230" width="96" height="32" rx="7" fill="#0d1117" stroke="#7ce0ff"/><text x="801"  y="251" fill="#c9d1d9">trinity</text>
-    <rect x="852"  y="230" width="96" height="32" rx="7" fill="#0d1117" stroke="#d29922"/><text x="900"  y="251" fill="#c9d1d9">oracle</text>
-    <rect x="951"  y="230" width="96" height="32" rx="7" fill="#0d1117" stroke="#f0883e"/><text x="999"  y="251" fill="#c9d1d9">dozer</text>
-    <rect x="1052" y="230" width="96" height="32" rx="7" fill="#0d1117" stroke="#c9d1d9"/><text x="1100" y="251" fill="#c9d1d9">seraph</text>
+    <rect x="652"  y="230" width="96" height="32" rx="7" fill="#0d1117" stroke="#58a6ff"/><text x="700"  y="251" fill="#c9d1d9">backend</text>
+    <rect x="753"  y="230" width="96" height="32" rx="7" fill="#0d1117" stroke="#7ce0ff"/><text x="801"  y="251" fill="#c9d1d9">frontend</text>
+    <rect x="852"  y="230" width="96" height="32" rx="7" fill="#0d1117" stroke="#d29922"/><text x="900"  y="251" fill="#c9d1d9">unit-tests</text>
+    <rect x="951"  y="230" width="96" height="32" rx="7" fill="#0d1117" stroke="#f0883e"/><text x="999"  y="251" fill="#c9d1d9">e2e</text>
+    <rect x="1052" y="230" width="96" height="32" rx="7" fill="#0d1117" stroke="#c9d1d9"/><text x="1100" y="251" fill="#c9d1d9">visual-review</text>
   </g>
   <g font-size="11" text-anchor="middle" fill="#8b949e">
     <text x="700"  y="278">backend</text>
@@ -92,9 +92,9 @@
     <path d="M1100,262 C 1100,310 1030,330 1000,348" stroke="#c9d1d9"/>
   </g>
 
-  <!-- neo express lane -->
+  <!-- generalist express lane -->
   <path d="M964,102 C 1150,130 1168,270 1030,362" fill="none" stroke="#e3b341" stroke-width="1.6" stroke-dasharray="6 5"/>
-  <text x="1096" y="166" text-anchor="middle" font-size="12" fill="#e3b341" stroke="#161b22" stroke-width="5" paint-order="stroke">⚡ neo</text>
+  <text x="1096" y="166" text-anchor="middle" font-size="12" fill="#e3b341" stroke="#161b22" stroke-width="5" paint-order="stroke">⚡ generalist</text>
   <text x="1096" y="182" text-anchor="middle" font-size="11" fill="#8b949e" stroke="#161b22" stroke-width="5" paint-order="stroke">express lane</text>
 
   <!-- review gate -->

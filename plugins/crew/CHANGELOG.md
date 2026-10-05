@@ -5,6 +5,19 @@ All notable changes to the `crew` plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0] - 2026-10-05
+
+### Changed
+
+- **Breaking:** agents use role names: `morpheus` → `lead`, `tank` → `backend`, `trinity` →
+  `frontend`, `oracle` → `unit-tests`, `dozer` → `e2e`, `seraph` → `visual-review`, `neo` →
+  `generalist`, `sentinel` → `incident-triage`, `keymaker` → `debt-scout`. Start the crew with
+  `claude --agent crew:lead`; agent memory saved under an old name is not carried over (#272).
+- **Breaking:** the marketplace is `johantor` and the repository `johantor/crew`: install with
+  `claude plugin marketplace add johantor/crew` and `crew@johantor` (#272).
+- The guards match only `crew:<name>` agents, so a project's own agent named `backend` or
+  `lead` is not put on crew's no-git, lane or format rosters (#272).
+
 ## [9.0.0] - 2026-10-05
 
 ### Changed

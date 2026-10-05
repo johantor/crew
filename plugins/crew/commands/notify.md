@@ -15,7 +15,7 @@ first form that matches:
 and neither absence is an error or a fact about the peers:
 - No `SendMessage` → say so in one line and stop, printing the message for the user to deliver by
   hand only after the refusal and `steer-token:` rules below have been applied to it.
-- No `ListAgents` (a `claude --agent crew:morpheus` session) → require `to=`, send to it as typed,
+- No `ListAgents` (a `claude --agent crew:lead` session) → require `to=`, send to it as typed,
   and say the name could not be checked. Never say there are no peers.
 
 **Resolve.** Address a peer by the name a `ListAgents` row prints, copied exactly (add its `[ref]`

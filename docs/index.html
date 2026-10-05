@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Zion — Claude Code plugins for team-style delivery</title>
-<meta name="description" content="Ship features like a crew, not a single agent. Zion is a Claude Code plugin marketplace: an orchestrated multi-agent crew and a tech-debt fixer, behind hook-enforced guardrails.">
-<link rel="canonical" href="https://johantor.github.io/zion/">
+<title>crew — Claude Code plugins for team-style delivery</title>
+<meta name="description" content="Ship features like a crew, not a single agent. crew is a Claude Code plugin: an orchestrated multi-agent crew and a tech-debt fixer, behind hook-enforced guardrails.">
+<link rel="canonical" href="https://johantor.github.io/crew/">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Zion — Claude Code plugins for team-style delivery">
+<meta property="og:title" content="crew — Claude Code plugins for team-style delivery">
 <meta property="og:description" content="Ship features like a crew, not a single agent. An orchestrated multi-agent crew for Claude Code, behind hook-enforced guardrails.">
-<meta property="og:url" content="https://johantor.github.io/zion/">
-<meta property="og:image" content="https://johantor.github.io/zion/solo-vs-crew.png">
+<meta property="og:url" content="https://johantor.github.io/crew/">
+<meta property="og:image" content="https://johantor.github.io/crew/solo-vs-crew.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%233ddc9a' opacity='.22'/%3E%3Ccircle cx='16' cy='16' r='8' fill='%233ddc9a'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="style.css">
@@ -25,7 +25,7 @@
       <li><a href="#crew">crew</a></li>
       <li><a href="#debt">debt</a></li>
       <li><a href="#install">Install</a></li>
-      <li><a href="https://github.com/johantor/zion">GitHub&nbsp;↗</a></li>
+      <li><a href="https://github.com/johantor/crew">GitHub&nbsp;↗</a></li>
     </ul>
   </div>
 </nav>
@@ -35,7 +35,7 @@
     <div class="eyebrow">Claude Code plugin marketplace</div>
     <h1>Ship features like a crew,<br>not a single agent.</h1>
     <p class="lede">One agent doing everything holds the whole feature in one context and reviews its own
-      work. Zion splits the job the way a team would: a captain that <strong>plans and delegates</strong>,
+      work. crew splits the job the way a team would: a captain that <strong>plans and delegates</strong>,
       specialists that each own one lane, and <strong>hook-enforced guardrails</strong> that make the
       boundaries real rather than advisory.</p>
 
@@ -44,14 +44,14 @@
         <i class="dot"></i><i class="dot"></i><i class="dot"></i>
         <span>bash</span>
       </div>
-<pre id="cmd"><span class="p">$ </span>claude plugin marketplace add johantor/zion
-<span class="p">$ </span>claude plugin install crew@zion</pre>
+<pre id="cmd"><span class="p">$ </span>claude plugin marketplace add johantor/crew
+<span class="p">$ </span>claude plugin install crew@johantor</pre>
       <button class="copy" id="copy" type="button">Copy commands</button>
     </div>
 
     <div class="cta">
       <a class="btn primary" href="#crew">See how the crew works</a>
-      <a class="btn" href="https://github.com/johantor/zion">Source on GitHub</a>
+      <a class="btn" href="https://github.com/johantor/crew">Source on GitHub</a>
     </div>
   </div>
 </header>
@@ -60,7 +60,7 @@
   <div class="wrap">
     <figure>
       <img src="solo-vs-crew.png" width="1200" height="630"
-           alt="Left: one agent juggling backend, frontend, tests, and review at once. Right: the Zion crew, with a captain planning lanes, specialists working in parallel, a review gate, and then a pull request.">
+           alt="Left: one agent juggling backend, frontend, tests, and review at once. Right: the crew, with a captain planning lanes, specialists working in parallel, a review gate, and then a pull request.">
       <figcaption>A solo agent juggling every concern, versus planned lanes, a review gate, then a PR.</figcaption>
     </figure>
   </div>
@@ -98,28 +98,28 @@
   <div class="wrap">
     <div class="sec-head">
       <h2>The crew</h2>
-      <p><code>morpheus</code> plans the work, presents the plan for your go-ahead, then delegates each
+      <p><code>lead</code> plans the work, presents the plan for your go-ahead, then delegates each
         step to a specialist. It writes no production code itself, and it is the only agent that
         touches git.</p>
     </div>
 
     <div class="roster">
-      <div class="agent"><b>morpheus</b><i>Captain</i>
+      <div class="agent"><b>lead</b><i>Captain</i>
         <p>Plans and delegates. Maintains a written plan with per-step acceptance criteria, and commits
           each step only once it passes.</p></div>
-      <div class="agent"><b>tank</b><i>Backend</i>
+      <div class="agent"><b>backend</b><i>Backend</i>
         <p>Implements backend work for the stack the project resolves to.</p></div>
-      <div class="agent"><b>trinity</b><i>Frontend</i>
+      <div class="agent"><b>frontend</b><i>Frontend</i>
         <p>Implements the frontend, including a shared server template's markup in server-rendered mode.</p></div>
-      <div class="agent"><b>oracle</b><i>Unit tests</i>
+      <div class="agent"><b>unit-tests</b><i>Unit tests</i>
         <p>Authors all unit tests — backend, plus frontend component tests when a tool is configured.</p></div>
-      <div class="agent"><b>dozer</b><i>End-to-end</i>
+      <div class="agent"><b>e2e</b><i>End-to-end</i>
         <p>Frontend e2e only, for whichever e2e tool the project resolves to.</p></div>
-      <div class="agent"><b>seraph</b><i>Design · read-only</i>
+      <div class="agent"><b>visual-review</b><i>Design · read-only</i>
         <p>Visual design conformance. Names the design token, not just the pixel value.</p></div>
-      <div class="agent"><b>neo</b><i>Express lane</i>
+      <div class="agent"><b>generalist</b><i>Express lane</i>
         <p>Generalist for small, low-risk changes across all lanes, skipping the full ceremony.</p></div>
-      <div class="agent"><b>sentinel</b><i>Triage · read-only</i>
+      <div class="agent"><b>incident-triage</b><i>Triage · read-only</i>
         <p>Post-merge triage. Traces a production signal to the code and the suspect commits, and returns
           a pointer rather than a fix.</p></div>
     </div>
@@ -128,7 +128,7 @@
       <h2>Commands</h2>
       <p>Namespaced once installed. <code>/crew:feature</code> and <code>/crew:address</code> are thin
         routers, so both also work by just asking in a
-        <code>claude --agent crew:morpheus</code> session.</p>
+        <code>claude --agent crew:lead</code> session.</p>
     </div>
     <ul class="cmds">
       <li><code>/crew:init</code><span>Once per project: detect and record the build, test, and lint configuration.</span></li>
@@ -174,7 +174,7 @@
     </div>
     <ul class="cmds">
       <li><code>/crew:debt</code><span>A suppression at a line, an analyzer or ESLint rule, or a dependency upgrade.</span></li>
-      <li><code>/crew:audit</code><span>Read-only scout over a scope you name, run by <code>keymaker</code>, an agent with no write tool; returns ready-to-paste pointers.</span></li>
+      <li><code>/crew:audit</code><span>Read-only scout over a scope you name, run by <code>debt-scout</code>, an agent with no write tool; returns ready-to-paste pointers.</span></li>
     </ul>
     <p class="note">Two stacks today: .NET / C# and TypeScript / JavaScript. Platform-scale migrations get
       a handoff outline rather than a forced implementation, and the blast radius is reported before any
@@ -201,15 +201,14 @@
 <footer>
   <div class="wrap">
     <div class="flinks">
-      <a href="https://github.com/johantor/zion">GitHub</a>
-      <a href="https://github.com/johantor/zion/blob/main/plugins/crew/README.md">crew docs</a>
-      <a href="https://github.com/johantor/zion/blob/main/AGENTS.md">Contributing</a>
-      <a href="https://github.com/johantor/zion/blob/main/PRIVACY.md">Privacy</a>
-      <a href="https://github.com/johantor/zion/blob/main/SECURITY.md">Security</a>
-      <a href="https://github.com/johantor/zion/releases">Releases</a>
+      <a href="https://github.com/johantor/crew">GitHub</a>
+      <a href="https://github.com/johantor/crew/blob/main/plugins/crew/README.md">crew docs</a>
+      <a href="https://github.com/johantor/crew/blob/main/AGENTS.md">Contributing</a>
+      <a href="https://github.com/johantor/crew/blob/main/PRIVACY.md">Privacy</a>
+      <a href="https://github.com/johantor/crew/blob/main/SECURITY.md">Security</a>
+      <a href="https://github.com/johantor/crew/releases">Releases</a>
     </div>
     <p class="fine">Apache-2.0 licensed. The plugins collect no data and send nothing to the maintainers.</p>
-    <p class="fine">Named from <em>The Matrix</em>: Zion is the city that houses the resistance.</p>
   </div>
 </footer>
 

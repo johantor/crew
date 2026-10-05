@@ -3,7 +3,7 @@
 # refused; the orchestrator, read-only workers, agents not on crew's roster, and every
 # other permission mode pass. Fails open on anything it can't read.
 #
-# The real agent files decide the shipped verdicts (tank blocks, sentinel
+# The real agent files decide the shipped verdicts (backend blocks, incident-triage
 # passes); a fixture agents dir (CREW_AGENTS_DIR) exercises the frontmatter
 # parser on shapes the shipped agents don't all carry.
 # shellcheck source=tests/hooks/lib.sh
@@ -24,34 +24,34 @@ hook=plan-guard.sh
 msg="plan mode"
 
 # --- Shipped agents: the writers wait, the readers and the orchestrator run ----
-for w in tank trinity oracle dozer neo; do
+for w in backend frontend unit-tests e2e generalist; do
   assert_block "plan mode refuses crew:$w (edits files)" "$hook" "$(payload_dispatch "crew:$w" plan)" "$msg"
 done
-run_hook "$hook" "$(payload_dispatch crew:tank plan)"
-if [[ "$_stderr" == *"crew:tank"* ]]; then _pass; else _fail "refusal should name the worker (got: $_stderr)"; fi
-for w in sentinel seraph keymaker; do
+run_hook "$hook" "$(payload_dispatch crew:backend plan)"
+if [[ "$_stderr" == *"crew:backend"* ]]; then _pass; else _fail "refusal should name the worker (got: $_stderr)"; fi
+for w in incident-triage visual-review debt-scout; do
   assert_allow "plan mode lets crew:$w through (no Edit/Write)" "$hook" "$(payload_dispatch "crew:$w" plan)"
 done
-assert_allow "plan mode lets crew:morpheus through (owns git; it plans there)" "$hook" "$(payload_dispatch crew:morpheus plan)"
+assert_allow "plan mode lets crew:lead through (owns git; it plans there)" "$hook" "$(payload_dispatch crew:lead plan)"
 
 # --- Every other mode is not this guard's business ------------------------------
 for m in default acceptEdits auto dontAsk bypassPermissions; do
-  assert_allow "crew:tank passes in $m" "$hook" "$(payload_dispatch crew:tank "$m")"
+  assert_allow "crew:backend passes in $m" "$hook" "$(payload_dispatch crew:backend "$m")"
 done
-assert_allow "no permission_mode -> allow" "$hook" "$(payload_dispatch crew:tank "")"
+assert_allow "no permission_mode -> allow" "$hook" "$(payload_dispatch crew:backend "")"
 
 # --- Only crew dispatches -------------------------------------------------------------
 assert_allow "built-in Explore passes in plan mode" "$hook" "$(payload_dispatch Explore plan)"
 assert_allow "general-purpose passes in plan mode" "$hook" "$(payload_dispatch general-purpose plan)"
-assert_allow "an unnamespaced 'tank' is not a crew dispatch" "$hook" "$(payload_dispatch tank plan)"
+assert_allow "an unnamespaced 'backend' is not a crew dispatch" "$hook" "$(payload_dispatch backend plan)"
 assert_allow "a bare 'crew:' prefix is not a dispatch" "$hook" "$(payload_dispatch crew: plan)"
 assert_allow "an unknown crew worker fails open (it won't launch anyway)" "$hook" "$(payload_dispatch crew:nobody plan)"
-assert_allow "a worker name that is not a file name is not ours" "$hook" "$(payload_dispatch 'crew:../agents/tank' plan)"
+assert_allow "a worker name that is not a file name is not ours" "$hook" "$(payload_dispatch 'crew:../agents/backend' plan)"
 assert_allow "no subagent_type (not a dispatch) -> allow" "$hook" "$(payload_dispatch "" plan)"
 assert_allow "unparseable payload -> fail open" "$hook" 'not json'
 # A "plan" that is not the permission mode must not trip the fast path into a block.
 assert_allow "the word plan elsewhere in the payload is not plan mode" "$hook" \
-  "$(jq -nc '{tool_name: "Agent", permission_mode: "acceptEdits", tool_input: {subagent_type: "crew:tank", prompt: "write the plan"}}')"
+  "$(jq -nc '{tool_name: "Agent", permission_mode: "acceptEdits", tool_input: {subagent_type: "crew:backend", prompt: "write the plan"}}')"
 
 # --- Frontmatter parser, on fixture agents ------------------------------------------
 fx="$(make_tree \

@@ -1,6 +1,6 @@
 # crew
 
-[![crew](https://img.shields.io/github/v/release/johantor/zion?filter=crew/v*&label=)](https://github.com/johantor/zion/releases)
+[![crew](https://img.shields.io/github/v/release/johantor/crew?filter=crew/v*&label=)](https://github.com/johantor/crew/releases)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](../../LICENSE)
 
 **Ship a feature like a team, not a single agent.** `crew` turns a Claude Code session into a
@@ -11,7 +11,7 @@ project with no view layer says so with `frontendStack: none`, and the frontend 
 stays out of the way. You approve the plan, every step is verified and committed as it
 lands, and nothing reaches a pull request until a consolidated review gate returns **GO**.
 
-Part of the [Zion](../../README.md) marketplace.
+Part of the [`johantor`](../../README.md) marketplace.
 
 ## Why a crew
 
@@ -30,7 +30,7 @@ Part of the [Zion](../../README.md) marketplace.
 - **A crew run is slower than one agent**, and it spends more tokens. Planning, delegation, and a
   consolidated gate are not free. That's what the express lane is for. But if your whole
   workload is one-line fixes, you don't need crew.
-- **The checkpoint is a real stop.** `morpheus` waits for your go-ahead before it branches or
+- **The checkpoint is a real stop.** `lead` waits for your go-ahead before it branches or
   delegates. Background workers can't prompt, so a step that still needs a decision has to get one
   from you first.
 - **The lane guards will refuse things.** They fail closed and detect nothing: an unset backend
@@ -43,20 +43,20 @@ Part of the [Zion](../../README.md) marketplace.
 ## Install
 
 ```bash
-claude plugin marketplace add johantor/zion
-claude plugin install crew@zion
+claude plugin marketplace add johantor/crew
+claude plugin install crew@johantor
 ```
 
 …or in the UI, from `/plugin > Discover` in Claude Code.
 
 ## Quick start
 
-**A dedicated orchestration session** is the recommended path. The session *is* `morpheus`:
+**A dedicated orchestration session** is the recommended path. The session *is* `lead`:
 describe the feature, paste a ticket, ask for a review. It's scoped to crew work, so run
 general/config tasks (statusline and the like) in a normal session.
 
 ```bash
-claude --agent crew:morpheus
+claude --agent crew:lead
 ```
 
 **Or from a normal session**, when you want the crew on tap without it taking over:
@@ -92,7 +92,7 @@ every permission mode.
   `"$defaults"` entry. It has to be user-level — the classifier deliberately ignores `autoMode` in
   project `.claude/settings.json`.
 - **A denied dispatch retries once.** The `dispatch-denied` hook asks for one retry (the classifier
-  still decides), then stops and prints the options above rather than letting `morpheus` thrash.
+  still decides), then stops and prints the options above rather than letting `lead` thrash.
 - **`/permissions` › Recently denied › `r`** reissues a denied call by hand.
 
 `permissions.allow` is the one thing that won't help — `Agent` entries there are dropped on
@@ -112,14 +112,14 @@ running again; after a toolchain change outside the tree, clear it with `rm -r /
 ### Plan mode
 
 Plan mode (Shift+Tab, `/plan`, or `claude --permission-mode plan`) works with the crew, and its
-approval replaces `morpheus`'s own plan checkpoint, so you get one gate, not two. What changes
+approval replaces `lead`'s own plan checkpoint, so you get one gate, not two. What changes
 underneath:
 
-- **In a `claude --agent crew:morpheus` session**, `morpheus` explores (itself, or through the
+- **In a `claude --agent crew:lead` session**, `lead` explores (itself, or through the
   built-in `Explore`/`Plan` research agents, which its agent allowlist includes), presents the
   plan through plan mode's approval prompt, and only then writes `<plan-dir>/plan-<feature>.md`,
   branches, and delegates.
-- **From `/crew:feature` in a normal session**, `morpheus` runs as a subagent, and a subagent
+- **From `/crew:feature` in a normal session**, `lead` runs as a subagent, and a subagent
   can neither approve a plan nor write during plan mode. The command launches it twice: once to
   explore and return the plan, which you approve through the normal prompt, and once more with the
   approved plan to build it. The plan travels between the two as text.
@@ -140,13 +140,13 @@ rather than a per-worker setting.
 |---|---|
 | `/crew:init` | Detect this project's build/test/lint commands, per-edit formatters, base branch, frontend mode, and stacks, and record them in `.claude/crew.md` (committed, so teammates inherit them). It proposes for `CLAUDE.md` only what a glance at `package.json` would get wrong. Idempotent: re-run to pick up slots a newer version added. |
 | `/crew:feature <task>` | Plan, delegate, and build the feature, stopping at the review gate. |
-| `/crew:debt <pointer>` | **Beta.** Fix one known debt item: a suppression (`file:line`), a rule (`CS8602`, `eslint no-explicit-any`), a package upgrade (`Newtonsoft.Json 13.x`), or pasted build/lint output. `morpheus` reports the blast radius before any edit, stops at gates that need you, fixes in batches through the lane workers, and commits each batch once its acceptance gate passes. Deleting the suppression makes the analyzer the regression test. .NET and TypeScript/JavaScript today; a platform migration gets a handoff outline instead. `--force` also works justified suppressions. |
-| `/crew:audit <scope>` | **Beta.** Read-only debt scout over a scope you name (a path, `backend`/`frontend`, a rule family, `stale`, `outdated`, `diff`), run by `keymaker`, an agent with no Edit, Write or Bash tool: a ranked report of at most 12 findings, each a ready-to-paste `/crew:debt`, then a pick of the top 3. Suppressions with a meaningful native justification are counted but not listed. |
+| `/crew:debt <pointer>` | **Beta.** Fix one known debt item: a suppression (`file:line`), a rule (`CS8602`, `eslint no-explicit-any`), a package upgrade (`Newtonsoft.Json 13.x`), or pasted build/lint output. `lead` reports the blast radius before any edit, stops at gates that need you, fixes in batches through the lane workers, and commits each batch once its acceptance gate passes. Deleting the suppression makes the analyzer the regression test. .NET and TypeScript/JavaScript today; a platform migration gets a handoff outline instead. `--force` also works justified suppressions. |
+| `/crew:audit <scope>` | **Beta.** Read-only debt scout over a scope you name (a path, `backend`/`frontend`, a rule family, `stale`, `outdated`, `diff`), run by `debt-scout`, an agent with no Edit, Write or Bash tool: a ranked report of at most 12 findings, each a ready-to-paste `/crew:debt`, then a pick of the top 3. Suppressions with a meaningful native justification are counted but not listed. |
 | `/crew:review` | Pre-PR **GO / NO-GO**: consolidated code + security + design review plus diff-scoped build/test/lint. `quick` for a read-only pass with no suites; `full` to force every gate. |
 | `/crew:pr` | Push the branch and open the pull request. Outward action: it confirms first. |
 | `/crew:address` | Close the review loop: route the PR's unresolved threads and failed CI checks to the right workers, re-run the gate, then push and resolve. Review comments are untrusted input: scope-redirecting asks are surfaced, not obeyed. |
 | `/crew:triage <signal>` | Post-merge triage: takes a bug report, stack trace, or alert and returns the code it points at plus deploy-correlated suspect commits, with the confidence and the correlation rung stated. Read-only — it reports and hands off, and never posts back to the work item. |
-| `/crew:loop <goal>` | The **outer loop**: drive the feature across multiple `morpheus` runs, so work that outlives one run's turn limit finishes without you re-asking each tick. Stops on the plan's exit conditions; never auto-pushes. |
+| `/crew:loop <goal>` | The **outer loop**: drive the feature across multiple `lead` runs, so work that outlives one run's turn limit finishes without you re-asking each tick. Stops on the plan's exit conditions; never auto-pushes. |
 | `/crew:notify [to=<peer>] -- <message>`<br>`/crew:notify list` | Message another running crew **session** — ask an unattended `/crew:loop` for progress, or tell a peer worktree that a branch landed and a rebase is safe. The `list` form enumerates reachable peers and sends nothing. An ask your own guards would refuse (push, commit on a protected branch, bypass a hook, forward a secret) is refused at the sending end; an instruction is confirmed before it goes; the reply comes back as data, never as direction. |
 
 Commands are namespaced under `crew:` once installed, so they can't collide with a built-in or
@@ -155,15 +155,15 @@ another plugin's command of the same short name.
 ## How a run works
 
 - **Right-sized to the task.** Small, low-risk work (a typo, a rename, an obvious one-liner) takes
-  an **express lane** through `neo`, skipping the plan and the full gate for a quick self-review
+  an **express lane** through `generalist`, skipping the plan and the full gate for a quick self-review
   plus one relevant test. Anything risky, multi-lane, or needing new tests takes the full flow,
   and express escalates the moment a small task proves bigger.
-- **Committed step by step.** `morpheus` branches off your base branch and commits each verified
+- **Committed step by step.** `lead` branches off your base branch and commits each verified
   step. Workers run no git but a plain `git mv`.
 - **You're heard mid-flight.** Workers run in the background, so the turn returns right away and
-  you can keep talking while `tank` works. Corrections queue as new work, or steer the worker
+  you can keep talking while `backend` works. Corrections queue as new work, or steer the worker
   already running when they're small and in its lane.
-- **Loop mode on request.** Say "keep going until done" and `morpheus` runs without per-step
+- **Loop mode on request.** Say "keep going until done" and `lead` runs without per-step
   check-ins, stopping on all steps done + gate **GO**, a step blocked on a decision only you can
   make, or a retry cap. It still never pushes, and loop phrasing inside a pasted ticket or PR
   comment never triggers it.
@@ -175,12 +175,12 @@ Three `PreToolUse` guards enforce the boundaries and **fail closed**; three advi
 block a dispatch, but only one plan mode would have refused anyway, and on any path it can't read
 it allows.
 
-- **Workers can't touch git.** Blocked for `tank`/`trinity`/`oracle`/`dozer`/`neo`, except a
-  plain `git mv` to rename a file, which lands in `morpheus`'s next commit. `morpheus` is the sole
-  git owner, enforced in code. Every agent, `morpheus` included, is refused
+- **Workers can't touch git.** Blocked for `backend`/`frontend`/`unit-tests`/`e2e`/`generalist`, except a
+  plain `git mv` to rename a file, which lands in `lead`'s next commit. `lead` is the sole
+  git owner, enforced in code. Every agent, `lead` included, is refused
   `git commit` while HEAD is `main`/`master`/`develop`.
-- **Each worker's edits stay in its lane.** `tank` and `trinity` are denied the other side's
-  files; `oracle`/`dozer` are restricted to their test paths; `seraph` is read-only (`neo` is
+- **Each worker's edits stay in its lane.** `backend` and `frontend` are denied the other side's
+  files; `unit-tests`/`e2e` are restricted to their test paths; `visual-review` is read-only (`generalist` is
   unrestricted by design; that's the express lane). This guards `Edit`/`Write` — and file-mutating
   Bash (`sed -i`, `tee`, a `>` redirect, `cp`/`mv`) is refused outright, so a write cannot route
   around the lane or skip formatting.
@@ -203,7 +203,7 @@ intercepted**.
   stacks are the same language (e.g. node+nextjs) and an extension alone can't tell the lanes
   apart. Node is the only supported backend that shares its extensions with a frontend, so it is
   the only one that needs the paths; without them it fails closed rather than guessing. The
-  regime comes from the `backendStack` slot alone: while it is `unset`, `tank` and `trinity`
+  regime comes from the `backendStack` slot alone: while it is `unset`, `backend` and `frontend`
   are refused with a line naming `/crew:init`. The guard never probes the tree.
 - **read-guard** blocks raw reads of files over 64 KiB (65536 bytes); an explicit `limit` of
   ≤ 2000 lines passes. See the `context-discipline` skill.
@@ -216,10 +216,10 @@ intercepted**.
   root) — and
   names `Edit`/`Write` instead. That half is a floor, not a sandbox: a build's own code generator
   still writes files, and a write hidden inside a quoted `bash -c` string is not read as one. What
-  it closes is the routine path, the one auto mode's own notice recommends. `seraph` has no Bash
-  tool, so it needs no entry. Whatever your *resolved* base branch is (`develop`, `trunk`, …), `morpheus` and
+  it closes is the routine path, the one auto mode's own notice recommends. `visual-review` has no Bash
+  tool, so it needs no entry. Whatever your *resolved* base branch is (`develop`, `trunk`, …), `lead` and
   `/crew:pr` keep the crew off it too.
-- **format** runs the project's formatters after an edit by `tank`, `trinity`, `oracle` or `neo`,
+- **format** runs the project's formatters after an edit by `backend`, `frontend`, `unit-tests` or `generalist`,
   from the `formatMatrix` slot `/crew:init` writes: one row per `<dir> <extensions> <command>`,
   every row whose directory and extension match the edited file, in order, from that directory,
   `{file}` substituted. The hook detects nothing; a file no row covers is left alone, and
@@ -255,16 +255,16 @@ frontmatter for security.
 
 | Purpose | MCP server | Used by | Without it |
 | --- | --- | --- | --- |
-| Browser automation & visual checks | [Playwright](https://github.com/microsoft/playwright-mcp) or [Chrome DevTools](https://github.com/ChromeDevTools/chrome-devtools-mcp) | `trinity`, `seraph` | `seraph` reports a browser MCP is needed — it measures the rendered UI through this, so without one there is nothing to compare; `trinity` skips its browser loop-checks |
-| Design reference | [Figma MCP](https://developers.figma.com/docs/figma-mcp-server/) — Dev Mode (local) or the hosted `claude.ai Figma` connector | `trinity`, `seraph` | both fall back to the design reference passed in the delegation |
-| Library & framework docs | [Context7](https://github.com/upstash/context7) | `tank`, `trinity` | implementers code from memory instead of current, version-specific API docs |
-| Issue tracking (ticket-in) | [Atlassian (Jira/Confluence)](https://www.atlassian.com/platform/remote-mcp-server) or [Linear](https://linear.app/docs/mcp) | `morpheus` | `morpheus` plans from the prompt alone; paste ticket details in by hand |
-| Git hosting (ticket-in / PR-out) | [GitHub](https://github.com/github/github-mcp-server) or [Azure DevOps](https://github.com/microsoft/azure-devops-mcp) | `morpheus` | crew stops at the local **GO/NO-GO** gate; open the PR with `/crew:pr` |
-| Database (schema & test data) | [SQL Server](https://learn.microsoft.com/en-us/sql/mcp/) or [Postgres](https://github.com/crystaldba/postgres-mcp) | `tank`, `oracle` | data-access code and integration tests work from assumed schema |
-| Error monitoring | [Sentry](https://mcp.sentry.dev/) | `morpheus` | bug context (stack, breadcrumbs) must be pasted in by hand |
+| Browser automation & visual checks | [Playwright](https://github.com/microsoft/playwright-mcp) or [Chrome DevTools](https://github.com/ChromeDevTools/chrome-devtools-mcp) | `frontend`, `visual-review` | `visual-review` reports a browser MCP is needed — it measures the rendered UI through this, so without one there is nothing to compare; `frontend` skips its browser loop-checks |
+| Design reference | [Figma MCP](https://developers.figma.com/docs/figma-mcp-server/) — Dev Mode (local) or the hosted `claude.ai Figma` connector | `frontend`, `visual-review` | both fall back to the design reference passed in the delegation |
+| Library & framework docs | [Context7](https://github.com/upstash/context7) | `backend`, `frontend` | implementers code from memory instead of current, version-specific API docs |
+| Issue tracking (ticket-in) | [Atlassian (Jira/Confluence)](https://www.atlassian.com/platform/remote-mcp-server) or [Linear](https://linear.app/docs/mcp) | `lead` | `lead` plans from the prompt alone; paste ticket details in by hand |
+| Git hosting (ticket-in / PR-out) | [GitHub](https://github.com/github/github-mcp-server) or [Azure DevOps](https://github.com/microsoft/azure-devops-mcp) | `lead` | crew stops at the local **GO/NO-GO** gate; open the PR with `/crew:pr` |
+| Database (schema & test data) | [SQL Server](https://learn.microsoft.com/en-us/sql/mcp/) or [Postgres](https://github.com/crystaldba/postgres-mcp) | `backend`, `unit-tests` | data-access code and integration tests work from assumed schema |
+| Error monitoring | [Sentry](https://mcp.sentry.dev/) | `lead` | bug context (stack, breadcrumbs) must be pasted in by hand |
 
 Playwright and Chrome DevTools are interchangeable for the crew's needs: both evaluate scripts
-in the page (how `seraph` measures computed styles and geometry) and both list console messages
+in the page (how `visual-review` measures computed styles and geometry) and both list console messages
 and network requests (how it finds the failed font or asset behind a visual defect). Chrome
 DevTools is Chrome-only but adds performance/Lighthouse tracing and CDP-level detail.
 
@@ -274,11 +274,11 @@ DevTools is Chrome-only but adds performance/Lighthouse tracing and CDP-level de
 allowlist matches out of the box:
 
 - `playwright` / `chrome-devtools` (browser) and `figma` / `figma-desktop` (design):
-  `trinity` + `seraph`
-- `context7` (docs): `tank` + `trinity`
-- `mssql` / `postgres` (database): `tank` + `oracle`
+  `frontend` + `visual-review`
+- `context7` (docs): `backend` + `frontend`
+- `mssql` / `postgres` (database): `backend` + `unit-tests`
 - `github` / `ado` (git host), `linear` / `atlassian` (issue tracking), `sentry` (errors):
-  `morpheus`
+  `lead`
 
 `figma-desktop` is the key Figma's own install docs use for the Dev Mode server; `figma` is
 allowlisted too, so either works.
@@ -308,17 +308,16 @@ one that isn't installed, so it just reports the server as unavailable.
 
 ## What's included
 
-- **Agents:** `morpheus` (captain) and the workers `tank` (backend), `trinity` (client-facing
-  layer),
-  `oracle` (unit tests), `dozer` (e2e), `seraph` (visual review), `neo` (express generalist),
-  `sentinel` (post-merge triage), `keymaker` (read-only debt scout). Workers stay idle until
-  `morpheus` or a command delegates.
+- **Agents:** `lead` (captain) and the workers `backend`, `frontend` (client-facing layer),
+  `unit-tests`, `e2e`, `visual-review`, `generalist` (express path), `incident-triage`
+  (post-merge, read-only) and `debt-scout` (read-only). Workers stay idle until `lead` or a
+  command delegates.
 - **Commands:** `/crew:init`, `/crew:feature`, `/crew:debt`, `/crew:audit`, `/crew:review`,
   `/crew:pr`, `/crew:address`, `/crew:triage`, `/crew:loop`, `/crew:notify`.
 - **Hooks:** lane guard, read guard, bash safety, formatter entrypoint,
   dispatch-denied advisor (see *Permission mode*).
-- **Skills:** always on for every agent: `context-discipline`. For `morpheus`: `loop-engineering`,
-  `operator-voice` and `review-gate` (the gate rules, which `/crew:review` loads too). For the implementers `tank`, `trinity` and `neo`: `engineering-principles`.
+- **Skills:** always on for every agent: `context-discipline`. For `lead`: `loop-engineering`,
+  `operator-voice` and `review-gate` (the gate rules, which `/crew:review` loads too). For the implementers `backend`, `frontend` and `generalist`: `engineering-principles`.
   For the five workers with a shell: `worker-contract` (the rules every dispatch follows). For
   every worker: `mid-run-direction` (how to treat a steer that arrives mid-run), and
   `design-tokens` for the agent doing design conformance.

@@ -1,6 +1,6 @@
 ---
 name: loop-engineering
-description: Loop-mode discipline for orchestrated runs — recognize loop intent ("keep going until done", "loop this", "finish it", "clear all the stale ones", "bump everything SAFE"), offer to loop on open-ended work, and run to completion under explicit stop rules that always end at the run's terminal gate. Preloaded by morpheus; the feature flow and the debt lane each define their own bindings. Use whenever the user asks to keep going, loop, or finish the work without further check-ins.
+description: Loop-mode discipline for orchestrated runs — recognize loop intent ("keep going until done", "loop this", "finish it", "clear all the stale ones", "bump everything SAFE"), offer to loop on open-ended work, and run to completion under explicit stop rules that always end at the run's terminal gate. Preloaded by lead; the feature flow and the debt lane each define their own bindings. Use whenever the user asks to keep going, loop, or finish the work without further check-ins.
 ---
 
 # Loop engineering

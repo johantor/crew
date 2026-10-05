@@ -9,8 +9,8 @@ Write and run frontend e2e specs using Playwright conventions and the repository
 
 - Spec files typically live in `tests/` or `e2e/` (configured via `playwright.config.*`). In
   crew, keep them in a structured e2e location — `e2e/` or `tests/e2e/` — so they stay in
-  dozer's lane; a bare root `tests/` is only in-lane when a **Frontend lane path** is configured
-  (lane-guard confines dozer to it there).
+  e2e's lane; a bare root `tests/` is only in-lane when a **Frontend lane path** is configured
+  (lane-guard confines e2e to it there).
 - Use `page.route()` for network mocking; `test.use({ storageState })` for auth state reuse.
 - Prefer `getByRole()`, `getByTestId()`, and `getByLabel()` locators — avoid CSS/XPath selectors.
 - **Targeted rerun:** the spec file path, or `--grep`.

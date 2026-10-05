@@ -397,7 +397,7 @@ mk_prose_agent() {  # <plugin_dir> <name> <body>
 }
 d="$(new_repo_foo)"
 # Backticks below are Markdown code spans in fixture prose, not substitution:
-# these refs are nearly always written as `crew:tank`, so §10 must see that form.
+# these refs are nearly always written as `crew:backend`, so §10 must see that form.
 # shellcheck disable=SC2016
 mk_prose_agent "$d/plugins/foo" bar 'Delegate to `foo:ghost` when stuck.'
 assert_emits "§10 bites on a prose ref to a nonexistent agent" "$d" \

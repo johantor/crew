@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# PostToolUse(Edit|Write) formatter for the agents that write source (oracle
+# PostToolUse(Edit|Write) formatter for the agents that write source (unit-tests
 # included: an unformatted test fails the same lint gate). A runner, not a
 # detector: every `formatMatrix` row matching the edited file runs from its
 # directory with `{file}` substituted (AGENTS.md, "Why format.sh runs a matrix
@@ -16,18 +16,18 @@ command -v jq >/dev/null 2>&1 || exit 0
 guard_read_payload
 # One jq pass; the path is only computed for an agent this hook formats for.
 guard_jq2 \
-  '(if ((.agent_type // "") | sub("^crew:"; "") | test("^(tank|trinity|neo|oracle)$")) then ((.tool_input.file_path // .tool_input.path) // "") else "" end)' \
+  '(if ((.agent_type // "") | test("^crew:(backend|frontend|generalist|unit-tests)$")) then ((.tool_input.file_path // .tool_input.path) // "") else "" end)' \
   '.agent_type // ""' || exit 0
 guard_agent_type
 path="$guard_untrusted"
 
 case "$agent_type" in
-  tank|trinity|neo|oracle) : ;;
+  backend|frontend|generalist|unit-tests) : ;;
   *)                       exit 0 ;;
 esac
 [ -n "$path" ] || exit 0
 
-# No matrix means per-edit formatting is off; morpheus nudges once, not every edit.
+# No matrix means per-edit formatting is off; lead nudges once, not every edit.
 guard_config_load
 rows="$(config_block formatMatrix)"
 [ -n "$rows" ] || exit 0

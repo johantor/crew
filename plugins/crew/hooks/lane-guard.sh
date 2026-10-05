@@ -22,7 +22,7 @@ guard_read_payload
 # One jq pass; the path is only computed for a lane agent (see guard_jq2).
 # shellcheck disable=SC2016  # $at is a jq variable, not a shell one
 if ! guard_jq2 \
-  '((.agent_type // "") | sub("^crew:"; "")) as $at | (if (["oracle","dozer","tank","trinity","morpheus"] | index($at)) then ((.tool_input.file_path // .tool_input.path) // "") else "" end)' \
+  '((.agent_type // "") | if startswith("crew:") then .[5:] else "" end) as $at | (if (["unit-tests","e2e","backend","frontend","lead"] | index($at)) then ((.tool_input.file_path // .tool_input.path) // "") else "" end)' \
   '.agent_type // ""'; then
   echo "Blocked: lane-guard could not parse the hook payload." >&2
   exit 2
@@ -30,12 +30,12 @@ fi
 guard_agent_type
 path="$guard_untrusted"
 
-# The main session and `neo` (the express lane) have no lane and bail here.
+# The main session and `generalist` (the express lane) have no lane and bail here.
 # crew-roster: lane-guarded -- validator §9 keeps the arm below in lockstep with
 # the agents' frontmatter `lane-guarded`. Load-bearing shape: this marker, then
 # the `case` header, then the `a|b|c)` arm on the very next line.
 case "$agent_type" in
-  oracle|dozer|tank|trinity|morpheus) ;;
+  unit-tests|e2e|backend|frontend|lead) ;;
   *) exit 0 ;;
 esac
 [ -z "$path" ] && exit 0
@@ -72,8 +72,8 @@ confine=""
 exclude=""
 case "$agent_type" in
   # The union of every stack's test convention, minus the e2e directories, which
-  # are dozer's (a Playwright `e2e/foo.spec.ts` would otherwise be oracle's too).
-  oracle) mode="--allow"
+  # are e2e's (a Playwright `e2e/foo.spec.ts` would otherwise be unit-tests's too).
+  unit-tests) mode="--allow"
           patterns='**/*Tests/** **/*.Tests.* tests/** **/__tests__/** **/*.test.* **/*.spec.*'
           patterns+=' **/test*.py **/*_test.py **/conftest.py'    # pytest + unittest discover
           patterns+=' **/*_test.go **/testdata/**'                 # go test + its fixtures
@@ -83,7 +83,7 @@ case "$agent_type" in
           patterns+=' **/src/test/** **/*Test.java **/Test*.java **/*Tests.java'
           patterns+=' **/*TestCase.java **/*IT.java **/IT*.java **/*ITCase.java'
           exclude='e2e/** cypress/** playwright/** tests/e2e/**' ;;
-  dozer)
+  e2e)
     # The configured e2e tool's locations. A bare tests/** also matches backend
     # tests, so Playwright gets it only when a frontend lane path confines it.
     mode="--allow"
@@ -101,7 +101,7 @@ case "$agent_type" in
     esac
     [ -n "$frontend_lane" ] && confine="$(lane_globs "$frontend_lane")"
     ;;
-  tank|trinity)
+  backend|frontend)
     backend_lane="$(config_slot backendLanePaths)"
     frontend_lane="$(config_slot frontendLanePaths)"
     backend_stack="$(config_slot backendStack)"
@@ -110,10 +110,10 @@ case "$agent_type" in
       echo "Blocked: Backend stack is not configured, so ${agent_type} has no lane. Run /crew:init before delegating." >&2
       exit 2
     elif [ -n "$backend_lane" ] && [ -n "$frontend_lane" ]; then
-      # Route handlers live in the frontend tree but are tank's by concern.
+      # Route handlers live in the frontend tree but are backend's by concern.
       route_handlers='app/**/route.ts app/**/route.js pages/api/**'
       mode="--deny"
-      if [ "$agent_type" = "tank" ]; then
+      if [ "$agent_type" = "backend" ]; then
         patterns="$(lane_globs "$frontend_lane")"
         exempt="$route_handlers"
       else
@@ -123,19 +123,19 @@ case "$agent_type" in
       echo "Blocked: only one of Backend lane path(s) / Frontend lane path(s) is configured. Set both in .claude/crew.md (see /crew:init) before delegating." >&2
       exit 2
     elif [ "$backend_stack" = "node" ] && [ -n "$frontend_stack" ]; then
-      echo "Blocked: backend stack is node — tank and trinity can both touch .ts/.js files, so extension-based lanes can't tell them apart. Set Backend lane path(s) / Frontend lane path(s) in .claude/crew.md (see /crew:init) before delegating." >&2
+      echo "Blocked: backend stack is node — backend and frontend can both touch .ts/.js files, so extension-based lanes can't tell them apart. Set Backend lane path(s) / Frontend lane path(s) in .claude/crew.md (see /crew:init) before delegating." >&2
       exit 2
     elif [ "$backend_stack" = "node" ]; then
-      # Backend-only Node: tank owns the tree; trinity has no lane to scope to.
-      [ "$agent_type" = "tank" ] && exit 0
-      echo "Blocked: backend stack is node with no frontend configured — trinity has no frontend lane here. Set a Frontend stack / Frontend lane path(s) in .claude/crew.md (see /crew:init) before delegating frontend work." >&2
+      # Backend-only Node: backend owns the tree; frontend has no lane to scope to.
+      [ "$agent_type" = "backend" ] && exit 0
+      echo "Blocked: backend stack is node with no frontend configured — frontend has no frontend lane here. Set a Frontend stack / Frontend lane path(s) in .claude/crew.md (see /crew:init) before delegating frontend work." >&2
       exit 2
     else
       # Extension regime. .cshtml is shared by concern, so neither agent is denied
-      # it; the prompts hold that split. trinity's list is the union of every
+      # it; the prompts hold that split. frontend's list is the union of every
       # backend's files, manifests included, not the configured stack's.
       mode="--deny"
-      if [ "$agent_type" = "tank" ]; then
+      if [ "$agent_type" = "backend" ]; then
         patterns='*.ts *.tsx *.jsx *.js *.mjs *.scss *.css *.html'
       else
         patterns='*.cs *.csproj'                                     # dotnet
@@ -157,9 +157,9 @@ case "$agent_type" in
       fi
     fi
     ;;
-  # morpheus writes plans, ledgers, config, memory and scratch: a filename shape
-  # at any depth, never a directory (AGENTS.md, "Why `morpheus` is lane-guarded").
-  morpheus) mode="--allow"
+  # lead writes plans, ledgers, config, memory and scratch: a filename shape
+  # at any depth, never a directory (AGENTS.md, "Why `lead` is lane-guarded").
+  lead) mode="--allow"
             patterns='plan-*.md */plan-*.md debt-*.md */debt-*.md crew.md */crew.md'
             patterns+=' */agent-memory-local/*.md */agent-memory/*.md'   # Markdown only
             patterns+=' /tmp/** /private/tmp/** /var/folders/** /private/var/folders/**' ;;
@@ -188,7 +188,7 @@ fi
 if matches "$patterns"; then match=1; else match=0; fi
 
 if [ "$mode" = "--allow" ] && [ -n "$exclude" ] && matches "$exclude"; then
-  echo "Blocked: $path is in an e2e lane (dozer's), not ${agent_type}'s." >&2
+  echo "Blocked: $path is in an e2e lane (e2e's), not ${agent_type}'s." >&2
   exit 2
 fi
 
