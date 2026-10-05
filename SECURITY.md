@@ -1,7 +1,7 @@
 # Security Policy
 
-crew is a [Claude Code](https://code.claude.com/docs/en/overview) plugin
-marketplace (`crew`). Much of its value is
+crew is a [Claude Code](https://code.claude.com/docs/en/overview) plugin distributed through the
+`johantor` marketplace. Much of its value is
 in *guardrails* — the Bash hooks that block unsafe commands and enforce write
 lanes — so a way to bypass a guard is a security bug, and we want to hear about
 it privately before it's public.
