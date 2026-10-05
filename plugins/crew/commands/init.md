@@ -202,7 +202,10 @@ Say plainly where the slots go: `.claude/crew.md` is committed and shared with t
   if present but still a placeholder (`unset` / `none`) and a value was detected and confirmed.
   **Never overwrite a key the user has set to a real value** — show those as "kept" rather than
   changing them; a `formatMatrix` block with rows is such a value, so propose new rows as a
-  diff rather than rewriting the block. Preserve the body notes verbatim.
+  diff rather than rewriting the block. Preserve the body notes verbatim. The one exception: a
+  value §1 no longer lists (a `backendStack` of `python`, `go`, `rust` or `java` from crew 6)
+  is shown as "unsupported" with the supported values, and the user picks one or removes the
+  crew from the project.
 
 Before writing, show the exact set of additions and removals — a short diff of slots, plus the
 `CLAUDE.md` lines kept, reworded, and dropped — and apply only after the user confirms.
