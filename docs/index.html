@@ -3,27 +3,27 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>crew — Claude Code plugins for team-style delivery</title>
-<meta name="description" content="Ship features like a crew, not a single agent. crew is a Claude Code plugin: an orchestrated multi-agent crew and a tech-debt fixer, behind hook-enforced guardrails.">
+<title>crew — an agent team for Optimizely work in Claude Code</title>
+<meta name="description" content="crew is a Claude Code plugin: a lead agent plans and delegates to specialists that know Optimizely CMS 12 and 13, behind hook-enforced guardrails and one review gate.">
 <link rel="canonical" href="https://johantor.github.io/crew/">
 <meta property="og:type" content="website">
-<meta property="og:title" content="crew — Claude Code plugins for team-style delivery">
-<meta property="og:description" content="Ship features like a crew, not a single agent. An orchestrated multi-agent crew for Claude Code, behind hook-enforced guardrails.">
+<meta property="og:title" content="crew — an agent team for Optimizely work in Claude Code">
+<meta property="og:description" content="A lead agent plans, specialists build, hooks keep every lane honest, and one review gate decides.">
 <meta property="og:url" content="https://johantor.github.io/crew/">
 <meta property="og:image" content="https://johantor.github.io/crew/solo-vs-crew.png">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%233ddc9a' opacity='.22'/%3E%3Ccircle cx='16' cy='16' r='8' fill='%233ddc9a'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232f3bff'/%3E%3Ctext x='16' y='22' text-anchor='middle' font-family='Arial' font-weight='900' font-size='17' fill='white'%3Ec%3C/text%3E%3C/svg%3E">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <nav>
   <div class="wrap">
-    <span class="brand">ZI<span>O</span>N</span>
+    <span class="brand">crew<i>.</i></span>
     <ul>
-      <li><a href="#plugins">Plugins</a></li>
-      <li><a href="#crew">crew</a></li>
-      <li><a href="#debt">debt</a></li>
+      <li><a href="#optimizely">Optimizely</a></li>
+      <li><a href="#crew">The crew</a></li>
+      <li><a href="#guardrails">Guardrails</a></li>
       <li><a href="#install">Install</a></li>
       <li><a href="https://github.com/johantor/crew">GitHub&nbsp;↗</a></li>
     </ul>
@@ -32,169 +32,143 @@
 
 <header class="hero">
   <div class="wrap">
-    <div class="eyebrow">Claude Code plugin marketplace</div>
-    <h1>Ship features like a crew,<br>not a single agent.</h1>
-    <p class="lede">One agent doing everything holds the whole feature in one context and reviews its own
-      work. crew splits the job the way a team would: a captain that <strong>plans and delegates</strong>,
-      specialists that each own one lane, and <strong>hook-enforced guardrails</strong> that make the
-      boundaries real rather than advisory.</p>
+    <div class="eyebrow">Claude Code plugin · for Optimizely teams</div>
+    <h1>Ship Optimizely features like a <em>team.</em></h1>
+    <p class="lede">One agent holding a whole feature reviews its own work. crew splits the job the way
+      your team does: a <strong>lead</strong> that plans and delegates, <strong>specialists</strong>
+      that know the CMS they work in, and <strong>guardrails in code</strong> that keep every lane
+      honest until one review gate says go.</p>
 
     <div class="install" id="install">
-      <div class="install-head">
-        <i class="dot"></i><i class="dot"></i><i class="dot"></i>
-        <span>bash</span>
-      </div>
 <pre id="cmd"><span class="p">$ </span>claude plugin marketplace add johantor/crew
 <span class="p">$ </span>claude plugin install crew@johantor</pre>
       <button class="copy" id="copy" type="button">Copy commands</button>
     </div>
 
     <div class="cta">
-      <a class="btn primary" href="#crew">See how the crew works</a>
+      <a class="btn primary" href="#optimizely">What it knows</a>
       <a class="btn" href="https://github.com/johantor/crew">Source on GitHub</a>
     </div>
   </div>
 </header>
 
-<section id="why">
+<section id="optimizely">
   <div class="wrap">
-    <figure>
-      <img src="solo-vs-crew.png" width="1200" height="630"
-           alt="Left: one agent juggling backend, frontend, tests, and review at once. Right: the crew, with a captain planning lanes, specialists working in parallel, a review gate, and then a pull request.">
-      <figcaption>A solo agent juggling every concern, versus planned lanes, a review gate, then a PR.</figcaption>
-    </figure>
+    <div class="sec-head">
+      <div class="kicker">Built for Optimizely</div>
+      <h2>Knows the CMS you are on.</h2>
+      <p>One skill per product. The backend specialist reads your <code>EPiServer.CMS</code> version and
+        loads the matching skill: content model rules, rendering, jobs, caching, security and DXP deploys.</p>
+    </div>
+    <div class="grid">
+      <div class="card"><span class="tag ok">Available</span><h3>CMS 12</h3>
+        <p>ASP.NET Core PaaS: content types and GUIDs, <code>IContentLoader</code>, rendering, jobs, DXP.</p></div>
+      <div class="card"><span class="tag ok">Available</span><h3>CMS 13</h3>
+        <p>.NET 10: applications, Graph registration, Visual Builder, <code>[ScheduledJob]</code>.</p></div>
+      <div class="card"><span class="tag ok">Available</span><h3>12 → 13 upgrade</h3>
+        <p>The breaking changes, the API replacement map and the ordered upgrade steps.</p></div>
+      <div class="card"><span class="tag ok">Available</span><h3>Graph</h3>
+        <p>Sync, the per-type and unified schemas, keys, preview, caching, search and facets.</p></div>
+      <div class="card"><span class="tag next">Next</span><h3>SaaS CMS</h3>
+        <p>Content types in code, Visual Builder and live preview. <a href="https://github.com/johantor/crew/issues/277">#277</a></p></div>
+      <div class="card"><span class="tag next">Next</span><h3>Commerce &amp; Search</h3>
+        <p>Customized and Configured Commerce, Search &amp; Navigation. <a href="https://github.com/johantor/crew/issues/279">#279</a>, <a href="https://github.com/johantor/crew/issues/278">#278</a></p></div>
+      <div class="card"><span class="tag next">Next</span><h3>Opal, OCP, ODP &amp; Experimentation</h3>
+        <p>Opal tools in .NET, Node and Python, Connect Platform apps, data and flags. <a href="https://github.com/johantor/crew/issues/273">#273</a></p></div>
+    </div>
+    <div class="stacks"><span>.NET</span><span>Node</span><span>Python</span><span>shell</span><span>React</span><span>Next.js</span></div>
   </div>
 </section>
 
-<section id="plugins">
+<section id="why">
   <div class="wrap">
-    <div class="sec-head">
-      <h2>One crew, two lanes</h2>
-      <p>The same captain, workers, configuration and guard hooks build features and pay down
-        debt.</p>
-    </div>
-    <div class="grid">
-      <div class="card">
-        <h3>crew <span class="tag stable">Stable</span></h3>
-        <p>Orchestrated, multi-agent feature delivery. A captain plans the work and delegates to
-          backend, frontend, test, and visual-review specialists, with a consolidated GO/NO-GO gate
-          before anything ships.</p>
-        <div class="foot"><a href="#crew">How it works ↓</a></div>
-      </div>
-      <div class="card">
-        <h3>debt lane <span class="tag beta">Beta</span></h3>
-        <p>Pointer-driven tech-debt remediation and dependency upgrades. Fix one suppression, rule, or
-          package at a time, with the blast radius reported before anything moves.</p>
-        <div class="foot"><a href="#debt">How it works ↓</a></div>
-      </div>
-    </div>
-    <p class="note"><strong>Note:</strong> both lanes read the same
-      <code>.claude/crew.md</code> configuration, and <code>crew</code> carries the
-      <code>engineering-principles</code> review rubric that its reviewers grade against.</p>
+    <figure>
+      <img src="solo-vs-crew.png" width="1200" height="560"
+           alt="Left: one agent juggling backend, frontend, tests and review at once. Right: the crew, with a lead planning lanes, specialists working in parallel, a review gate, and then a pull request.">
+      <figcaption>A solo agent juggling every concern, against planned lanes, one review gate, then a PR.</figcaption>
+    </figure>
   </div>
 </section>
 
 <section id="crew">
   <div class="wrap">
     <div class="sec-head">
-      <h2>The crew</h2>
-      <p><code>lead</code> plans the work, presents the plan for your go-ahead, then delegates each
-        step to a specialist. It writes no production code itself, and it is the only agent that
-        touches git.</p>
+      <div class="kicker">The crew</div>
+      <h2>A lead, and a specialist per lane.</h2>
+      <p><code>lead</code> plans, waits for your go-ahead, then delegates each step. It writes no
+        production code and is the only agent that touches git.</p>
     </div>
-
     <div class="roster">
-      <div class="agent"><b>lead</b><i>Captain</i>
-        <p>Plans and delegates. Maintains a written plan with per-step acceptance criteria, and commits
-          each step only once it passes.</p></div>
+      <div class="agent"><b>lead</b><i>Plans · delegates · commits</i>
+        <p>Keeps a written plan with acceptance criteria and commits each step once it passes.</p></div>
       <div class="agent"><b>backend</b><i>Backend</i>
-        <p>Implements backend work for the stack the project resolves to.</p></div>
-      <div class="agent"><b>frontend</b><i>Frontend</i>
-        <p>Implements the frontend, including a shared server template's markup in server-rendered mode.</p></div>
+        <p>Server code for your stack, with the Optimizely skill for your CMS version.</p></div>
+      <div class="agent"><b>frontend</b><i>Client-facing layer</i>
+        <p>Views and components, including Razor markup in server-rendered mode.</p></div>
       <div class="agent"><b>unit-tests</b><i>Unit tests</i>
-        <p>Authors all unit tests — backend, plus frontend component tests when a tool is configured.</p></div>
+        <p>Backend tests, plus frontend component tests when a tool is configured.</p></div>
       <div class="agent"><b>e2e</b><i>End-to-end</i>
-        <p>Frontend e2e only, for whichever e2e tool the project resolves to.</p></div>
+        <p>Browser tests with Playwright or Cypress.</p></div>
       <div class="agent"><b>visual-review</b><i>Design · read-only</i>
-        <p>Visual design conformance. Names the design token, not just the pixel value.</p></div>
+        <p>Checks the build against the design and names the token, not just the pixel.</p></div>
       <div class="agent"><b>generalist</b><i>Express lane</i>
-        <p>Generalist for small, low-risk changes across all lanes, skipping the full ceremony.</p></div>
-      <div class="agent"><b>incident-triage</b><i>Triage · read-only</i>
-        <p>Post-merge triage. Traces a production signal to the code and the suspect commits, and returns
-          a pointer rather than a fix.</p></div>
+        <p>Small, low-risk changes across lanes, without the full ceremony.</p></div>
+      <div class="agent"><b>incident-triage</b><i>Post-merge · read-only</i>
+        <p>Traces a production signal to the code and the suspect commits.</p></div>
+      <div class="agent"><b>debt-scout</b><i>Tech debt · read-only</i>
+        <p>Scouts a scope you name and returns ready-to-paste debt pointers.</p></div>
     </div>
 
-    <div class="sec-head" style="margin-top:52px">
+    <div class="sec-head" style="margin-top:72px">
       <h2>Commands</h2>
-      <p>Namespaced once installed. <code>/crew:feature</code> and <code>/crew:address</code> are thin
-        routers, so both also work by just asking in a
-        <code>claude --agent crew:lead</code> session.</p>
+      <p>Or open a <code>claude --agent crew:lead</code> session and just describe the work.</p>
     </div>
     <ul class="cmds">
-      <li><code>/crew:init</code><span>Once per project: detect and record the build, test, and lint configuration.</span></li>
+      <li><code>/crew:init</code><span>Once per project: record the stack, the build, test and lint commands, and the formatters.</span></li>
       <li><code>/crew:feature</code><span>Plan, delegate, build, and stop at the review gate.</span></li>
-      <li><code>/crew:review</code><span>Pre-PR GO / NO-GO: code, security, and design review plus build, test, and lint.</span></li>
-      <li><code>/crew:pr</code><span>Push the branch and open the pull request. The only path out of the machine.</span></li>
-      <li><code>/crew:address</code><span>Route review comments and CI failures back to the crew, then re-run the gate.</span></li>
-      <li><code>/crew:triage</code><span>A bug report, trace, or alert → the code and the suspect commits.</span></li>
-      <li><code>/crew:loop</code><span>Outer-loop driver: re-launch the captain each tick until the plan's exit conditions are met.</span></li>
-      <li><code>/crew:notify</code><span>Message another running crew session.</span></li>
+      <li><code>/crew:review</code><span>GO or NO-GO: code, security and design review, plus build, test and lint.</span></li>
+      <li><code>/crew:pr</code><span>Push the branch and open the pull request. The only way out of the machine.</span></li>
+      <li><code>/crew:address</code><span>Route review comments and CI failures back to the crew, then run the gate again.</span></li>
+      <li><code>/crew:debt</code><span>Fix one debt pointer: a suppression, an analyzer rule, a package upgrade. <span class="tag beta">Beta</span></span></li>
+      <li><code>/crew:triage</code><span>A bug report, trace or alert → the code and the suspect commits.</span></li>
+      <li><code>/crew:loop</code><span>Run the lead again each tick until the plan's exit conditions are met.</span></li>
     </ul>
+  </div>
+</section>
 
-    <div class="sec-head" style="margin-top:52px">
-      <h2>The guardrails are hooks, not prose</h2>
-      <p>An instruction in a prompt is a suggestion to a model. These are enforced by the harness before
-        the tool call runs, so a worker cannot talk its way past them.</p>
+<section id="guardrails">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="kicker">Guardrails</div>
+      <h2>Hooks, not promises.</h2>
+      <p>A prompt is a suggestion to a model. These run in the harness before each tool call, so a
+        worker cannot talk its way past them.</p>
     </div>
     <ul class="rails">
-      <li><b>One pair of hands on git</b>Only the captain runs git. Workers never do.</li>
-      <li><b>No commits on the base branch</b>Work happens on a feature branch the captain creates.</li>
-      <li><b>Writes stay in lane</b>Each worker edits only its own lane — and file-mutating shell commands
-        are refused too, so a write cannot route around the guard.</li>
-      <li><b>Destructive commands refused</b>Destructive <code>rm</code>, force-push, and writes into
+      <li><b>One pair of hands on git</b>Only the lead runs git. Workers never do.</li>
+      <li><b>No commits on the base branch</b>Work happens on a feature branch the lead creates.</li>
+      <li><b>Writes stay in lane</b>Each worker edits only its own files, and shell writes that would
+        route around the guard are refused.</li>
+      <li><b>Destructive commands refused</b>Destructive <code>rm</code>, force-push and writes into
         <code>.git/</code> are blocked.</li>
-      <li><b>Guards fail closed</b>When a guard cannot inspect its input, it blocks rather than allows.</li>
-      <li><b>Nothing leaves on its own</b>No push, no pull request, until you run <code>/crew:pr</code>.</li>
+      <li><b>Guards fail closed</b>When a guard cannot read its input, it blocks.</li>
+      <li><b>Nothing leaves on its own</b>No push and no pull request until you run <code>/crew:pr</code>.</li>
     </ul>
-
-    <figure style="margin-top:52px">
-      <img src="demo.gif" alt="Terminal recording of a /crew:feature run: the captain presents a plan, delegates steps to workers, and commits each verified step." loading="lazy">
-      <figcaption>A <code>/crew:feature</code> run, start to review gate.</figcaption>
-    </figure>
   </div>
 </section>
 
-<section id="debt">
+<section id="requirements">
   <div class="wrap">
     <div class="sec-head">
-      <h2>debt lane <span class="tag beta">Beta</span></h2>
-      <p>Pointer-driven, not sweep-driven. Every run starts from something you identified, and a required
-        scope argument prevents accidental full-repo scans. Deleting the suppression makes the analyzer
-        itself the regression test.</p>
-    </div>
-    <ul class="cmds">
-      <li><code>/crew:debt</code><span>A suppression at a line, an analyzer or ESLint rule, or a dependency upgrade.</span></li>
-      <li><code>/crew:audit</code><span>Read-only scout over a scope you name, run by <code>debt-scout</code>, an agent with no write tool; returns ready-to-paste pointers.</span></li>
-    </ul>
-    <p class="note">Two stacks today: .NET / C# and TypeScript / JavaScript. Platform-scale migrations get
-      a handoff outline rather than a forced implementation, and the blast radius is reported before any
-      edit. Expect breaking changes before v1.0.</p>
-  </div>
-</section>
-
-<section id="install">
-  <div class="wrap">
-    <div class="sec-head">
-      <h2>Requirements</h2>
+      <div class="kicker">Requirements</div>
+      <h2>Bring a repo. That's it.</h2>
     </div>
     <ul class="rails">
-      <li><b>Claude Code</b>CLI, desktop, or IDE extension, with plugin support.</li>
-      <li><b>A git repository</b><code>crew</code> branches and commits its work.</li>
-      <li><b>Optional MCP servers</b>Playwright, Figma, and a GitHub or Azure DevOps server unlock visual
-        review and PR workflows. Everything else works without them.</li>
+      <li><b>Claude Code</b>CLI, desktop or IDE extension, with plugin support.</li>
+      <li><b>A git repository</b>crew branches and commits its work.</li>
+      <li><b>Optional MCP servers</b>Playwright, Figma, and GitHub or Azure DevOps unlock visual review
+        and PR workflows. Everything else works without them.</li>
     </ul>
-    <p class="note">You can also install from the UI: run <code>/plugin</code> in Claude Code and browse
-      to <strong>Discover</strong>.</p>
   </div>
 </section>
 
@@ -202,29 +176,26 @@
   <div class="wrap">
     <div class="flinks">
       <a href="https://github.com/johantor/crew">GitHub</a>
-      <a href="https://github.com/johantor/crew/blob/main/plugins/crew/README.md">crew docs</a>
+      <a href="https://github.com/johantor/crew/blob/main/plugins/crew/README.md">Docs</a>
       <a href="https://github.com/johantor/crew/blob/main/AGENTS.md">Contributing</a>
       <a href="https://github.com/johantor/crew/blob/main/PRIVACY.md">Privacy</a>
       <a href="https://github.com/johantor/crew/blob/main/SECURITY.md">Security</a>
       <a href="https://github.com/johantor/crew/releases">Releases</a>
     </div>
-    <p class="fine">Apache-2.0 licensed. The plugins collect no data and send nothing to the maintainers.</p>
+    <p class="fine">Apache-2.0. The plugin collects no data and sends nothing to the maintainers.</p>
+    <p class="fine">An independent project. Not affiliated with or endorsed by Optimizely or Anthropic.</p>
   </div>
 </footer>
 
 <script>
   document.getElementById('copy').addEventListener('click', function () {
-    const text = Array.prototype.map
-      .call(document.querySelectorAll('#cmd'), (el) => el.innerText)
-      .join('')
-      .replace(/^\$ /gm, '')
-      .trim();
-    const done = function (ok) {
+    const text = document.getElementById('cmd').innerText.replace(/^\$ /gm, '').trim();
+    const done = (ok) => {
       this.textContent = ok ? 'Copied' : 'Press ⌘C to copy';
-      setTimeout(function () { this.textContent = 'Copy commands'; }.bind(this), 1800);
-    }.bind(this);
+      setTimeout(() => { this.textContent = 'Copy commands'; }, 1800);
+    };
     if (navigator.clipboard?.writeText) {
-      navigator.clipboard.writeText(text).then(() => { done(true); }, () => { done(false); });
+      navigator.clipboard.writeText(text).then(() => done(true), () => done(false));
     } else {
       done(false);
     }

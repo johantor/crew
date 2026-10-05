@@ -3,11 +3,12 @@
 [![crew](https://img.shields.io/github/v/release/johantor/crew?filter=crew/v*&label=)](https://github.com/johantor/crew/releases)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](../../LICENSE)
 
-**Ship a feature like a team, not a single agent.** `crew` turns a Claude Code session into a
-captain that plans and delegates, plus specialists — backend, the client-facing layer, tests,
-visual review — each scoped to its own lane. The backend lane covers .NET (with Optimizely),
-Node, Python and shell; the crew is for software delivery, not for websites specifically. A
-project with no view layer says so with `frontendStack: none`, and the frontend half of the crew
+**Ship Optimizely features like a team, not a single agent.** `crew` turns a Claude Code
+session into a lead that plans and delegates, plus specialists — backend, the client-facing
+layer, tests, visual review — each scoped to its own lane. It is built for Optimizely work, with
+one skill per product (CMS 12, CMS 13, the upgrade between them, and Graph today), and the backend lane
+covers .NET, Node, Python (for Opal tools) and shell, Optimizely or not. A project with no view
+layer says so with `frontendStack: none`, and the frontend half of the crew
 stays out of the way. You approve the plan, every step is verified and committed as it
 lands, and nothing reaches a pull request until a consolidated review gate returns **GO**.
 

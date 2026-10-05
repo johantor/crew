@@ -7,112 +7,100 @@
 [![Validate](https://github.com/johantor/crew/actions/workflows/validate.yml/badge.svg)](https://github.com/johantor/crew/actions/workflows/validate.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
-**Ship features like a crew, not a single agent.** This repository is the `johantor`
-[Claude Code](https://code.claude.com/docs/en/overview) plugin marketplace for
-team-style software delivery across .NET and Optimizely, Node, Python and shell: a
-captain that plans and delegates to backend, view, test, and design specialists
-behind hook-enforced guardrails (**crew**). The same captain pays down tech debt and
-upgrades dependencies one verified fix at a time.
+**Ship Optimizely features like a team, not a single agent.** crew is a
+[Claude Code](https://code.claude.com/docs/en/overview) plugin: a `lead` agent plans the work
+and delegates each step to specialists that know the CMS they work in, behind hook-enforced
+guardrails and one review gate. It also pays down tech debt, one verified fix at a time.
 
 ```bash
 claude plugin marketplace add johantor/crew
 claude plugin install crew@johantor
 ```
 
-<!-- Illustration source: docs/solo-vs-crew.svg (edit the SVG, then re-export the PNG).
-     A terminal-style animation of a /crew:feature run also lives at docs/demo.gif. -->
+<!-- Illustration source: docs/solo-vs-crew.svg (edit the SVG, then re-export the PNG). -->
 ![A solo agent juggling every concern, versus the crew: planned lanes, a review gate, then a PR](docs/solo-vs-crew.png)
 
-## Plugins
+Site: <https://johantor.github.io/crew/>
 
-| Plugin | Status | What it does | Adds to your session |
-|---|---|---|---|
-| **[crew](plugins/crew/README.md)** | Stable | Orchestrated, multi-agent feature delivery: a captain (`lead`) plans the work and delegates to backend, client-facing, test, and visual-review specialists across .NET, Node, Python and shell, with a consolidated review gate before anything ships. | `/crew:*` commands, agents, safety hooks, skills |
+## Built for Optimizely
 
-## Requirements
+One skill per product. The `backend` specialist reads your `EPiServer.CMS` version and loads the
+matching skill.
 
-- [Claude Code](https://code.claude.com/docs/en/overview) with plugin support
-  (CLI, desktop, or IDE extension).
-- A git repository: `crew` branches and commits its work.
-- Optional, for `crew`'s visual review and PR workflows: Playwright, Figma, and
-  GitHub / Azure DevOps MCP servers. Setup is documented in the
-  [crew README](plugins/crew/README.md); everything else works without them.
+| Skill | Covers | Status |
+|---|---|---|
+| `optimizely-cms12` | CMS 12 (ASP.NET Core, PaaS/DXP) | Available |
+| `optimizely-cms13` | CMS 13 (.NET 10): applications, Graph, Visual Builder | Available |
+| `optimizely-cms-upgrade` | The 12 → 13 upgrade | Available |
+| `optimizely-graph` | Graph: sync, schemas, keys, querying from .NET and headless front ends | Available |
+| SaaS CMS, Search & Navigation, Commerce, Opal, OCP, ODP, Experimentation | | Planned ([#273](https://github.com/johantor/crew/issues/273)) |
 
-## Installation
+Stacks: .NET, Node, Python (for Opal tools) and shell on the backend; React and Next.js on the
+front end.
 
-Add the marketplace once:
+## The crew
 
-```bash
-claude plugin marketplace add johantor/crew
-```
-
-Then install the plugin:
-
-```bash
-claude plugin install crew@johantor
-```
-
-Alternatively, install from the UI: run `/plugin` in Claude Code and browse to
-**Discover**.
+| Agent | Role |
+|---|---|
+| `lead` | Plans, waits for your go-ahead, delegates, and commits each verified step. The only agent that runs git. |
+| `backend` | Server code for your stack, with the Optimizely skill for your CMS version. |
+| `frontend` | The client-facing layer, including Razor markup in server-rendered mode. |
+| `unit-tests` | Backend tests, plus frontend component tests when a tool is configured. |
+| `e2e` | Browser tests with Playwright or Cypress. |
+| `visual-review` | Checks the build against the design (read-only). |
+| `generalist` | The express lane for small, low-risk changes. |
+| `incident-triage` | Traces a production signal to the code and the suspect commits (read-only). |
+| `debt-scout` | Scouts a scope for tech debt and returns pointers (read-only). |
 
 ## Quick start
 
-### crew — build a feature
-
 ```bash
-claude --agent crew:lead     # dedicated orchestration session, just describe the feature
+claude --agent crew:lead     # a dedicated session: just describe the work
 ```
 
 or, from a normal session:
 
 ```
-/crew:init                 # once per project: detect and record build/test/lint config
+/crew:init                 # once per project: record the stack and the build/test/lint commands
 /crew:feature <task>       # plan, delegate, build, then stop at the gate
-/crew:review               # pre-PR GO / NO-GO: code + security + design review, build/test/lint
+/crew:review               # GO / NO-GO: code, security and design review, build/test/lint
 /crew:pr                   # push the branch and open the pull request
 /crew:address              # route PR comments and CI failures back to the crew
-/crew:triage <signal>      # a bug report, trace, or alert -> the code and the suspect commits
+/crew:triage <signal>      # a bug report, trace or alert -> the code and the suspect commits
+/crew:debt <pointer>       # fix one debt item: a suppression, a rule, a package upgrade (beta)
 ```
 
-`lead` presents its plan before building, commits each verified step to a
-feature branch, and runs workers in the background so you can keep talking to it
-mid-flight. Nothing is pushed and no PR is opened until you say so.
+`lead` presents its plan before building, commits each verified step to a feature branch, and
+runs workers in the background so you can keep talking to it. Nothing is pushed and no PR is
+opened until you say so.
 
-### crew — fix debt, one pointer at a time
+## Requirements
 
-```
-/crew:debt src/Orders/OrderService.cs:42    # a suppression at a specific line
-/crew:debt CS8602                           # every suppression of a rule
-/crew:debt eslint no-explicit-any           # an ESLint rule
-/crew:debt Newtonsoft.Json 13.x             # a dependency upgrade
-/crew:audit <scope>                         # read-only scout: returns ready-to-paste pointers
-```
+- [Claude Code](https://code.claude.com/docs/en/overview) with plugin support (CLI, desktop, or
+  IDE extension).
+- A git repository: crew branches and commits its work.
+- Optional: Playwright, Figma, and GitHub or Azure DevOps MCP servers, for visual review and PR
+  workflows. Setup is in the [crew README](plugins/crew/README.md).
 
-In a `claude --agent crew:lead` session, just name the pointer.
-
-Each fix is classified, gated on its blast radius, fixed in verified batches,
-and committed per batch. The deleted suppression makes the analyzer itself the
-regression test. Supports .NET / C# and TypeScript / JavaScript today.
+You can also install from the UI: run `/plugin` in Claude Code and browse to **Discover**.
 
 ## Updating and uninstalling
 
 ```bash
 claude plugin marketplace update johantor    # refresh the plugin catalog
-claude plugin update crew@johantor           # update an installed plugin
-claude plugin uninstall crew@johantor        # remove a plugin
+claude plugin update crew@johantor           # update the plugin
+claude plugin uninstall crew@johantor        # remove it
 ```
 
-Release notes: [crew](plugins/crew/CHANGELOG.md).
+Release notes: [CHANGELOG](plugins/crew/CHANGELOG.md).
 
 ## Documentation
 
-- [crew](plugins/crew/README.md): agents, commands, hooks, background
-  delegation, and optional MCP setup.
-- [AGENTS.md](AGENTS.md): contributing a plugin or hacking on the crew.
+- [crew](plugins/crew/README.md): agents, commands, hooks, background delegation and MCP setup.
+- [AGENTS.md](AGENTS.md): contributing and hacking on the crew.
 
 ## License
 
-[Apache-2.0](LICENSE)
-
-The plugins collect no data and send nothing to the maintainers — see
-[PRIVACY.md](PRIVACY.md) for what stays local, what leaves your machine, and why.
+[Apache-2.0](LICENSE). The plugin collects no data and sends nothing to the maintainers; see
+[PRIVACY.md](PRIVACY.md). An independent project, not affiliated with or endorsed by Optimizely
+or Anthropic.
