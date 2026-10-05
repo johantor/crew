@@ -27,6 +27,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   caching, search and facets. The CMS skills, `backend-dotnet`, `backend-node` and
   `frontend-headless` name its markers (#276).
 
+## [10.1.1] - 2026-10-05
+
+### Changed
+
+- The README opens on the Optimizely focus and the product skills (#284).
+
 ## [10.1.0] - 2026-10-05
 
 ### Added
