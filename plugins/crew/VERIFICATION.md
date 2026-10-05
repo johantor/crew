@@ -84,9 +84,10 @@ cannot show that `/crew:init` detected a stack or that a worker loaded a skill.
   `optimizely.config.mjs` and `@optimizely/cms-sdk` → `frontend` loads `optimizely-cms-saas`
   and `optimizely-graph`, and no `optimizely-cms12`/`-cms13`. (#290: `frontend` cited
   `optimizely.config.mjs`, then loaded `optimizely-graph` because the SaaS skill names it.)
-- [ ] **A Find reference loads the S&N skill** — a dotnet scratch repo with `EPiServer.CMS`
+- [x] **A Find reference loads the S&N skill** — a dotnet scratch repo with `EPiServer.CMS`
   `12.*` and `EPiServer.Find.Cms` → `backend` loads `optimizely-cms12` and
-  `optimizely-search-navigation`, and not `optimizely-graph`.
+  `optimizely-search-navigation`, and not `optimizely-graph`. (#291: `backend` cited both
+  `Site.csproj` lines and loaded nothing else.)
 - [x] **A worker's tool calls arrive namespaced** — a `crew:backend` dispatch's Bash call carries
   `agent_type: crew:backend`, a project agent `.claude/agents/backend.md` carries `backend` and
   runs `git status` unrefused. (#272, observed through a logging `PreToolUse` hook.)
