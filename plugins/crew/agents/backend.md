@@ -1,6 +1,6 @@
 ---
 name: backend
-description: "Core implementer for the project's resolved backend stack — its non-view implementation, whatever shape that takes: server-side logic, controllers/handlers and data access in a service; commands, domain logic and I/O in a CLI, library or script pack. Invoked by the lead orchestrator with the resolved backend stack; loads the matching stack skill (e.g. `backend-dotnet`, `backend-node`, `backend-shell`). Not for standalone or automatic use."
+description: "Core implementer for the project's resolved backend stack — its non-view implementation, whatever shape that takes: server-side logic, controllers/handlers and data access in a service; commands, domain logic and I/O in a CLI, library or script pack. Invoked by the lead orchestrator with the resolved backend stack; loads the matching stack skill (e.g. `backend-dotnet`, `backend-node`, `backend-python`, `backend-shell`). Not for standalone or automatic use."
 tools: Read, Edit, Write, Grep, Glob, Bash, ToolSearch, Skill, mcp__context7, mcp__mssql, mcp__postgres, mcp__plugin_context7_context7, mcp__plugin_mssql_mssql, mcp__plugin_postgres_postgres
 model: sonnet
 maxTurns: 108
@@ -24,7 +24,7 @@ Scope:
   view layer is entirely yours.
 - Use the backend stack `lead` provides in the delegation (it resolves it) and load the
   matching stack skill via the Skill tool — `backend-<stack>` (`backend-dotnet`,
-  `backend-node`, `backend-shell`). A stack skill may name a composable platform skill to also load when self-detectable (e.g. `backend-dotnet` names
+  `backend-node`, `backend-python`, `backend-shell`). A stack skill may name a composable platform skill to also load when self-detectable (e.g. `backend-dotnet` names
   the `optimizely-<product>` skills, detected by an `EPiServer.CMS*` package reference) —
   check for it yourself rather than waiting for the delegation to mention it.
 - In **server-rendered** frontend mode, a shared server template's markup/DOM belongs to

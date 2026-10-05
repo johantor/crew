@@ -64,9 +64,12 @@ These are prompt behavior, so they need a scratch repo and an observed run — a
 cannot show that `/crew:init` detected a stack or that a worker loaded a skill.
 
 - [ ] **Each backend stack is detected by init and loads its pair** — a scratch repo carrying
-  only that stack's marker (`*.csproj` / a `package.json` with a server framework / `*.sh` with
-  no other marker) → `/crew:init` proposes the stack; after confirming, a `/crew:feature`
-  dispatch names `backend-<stack>` for `backend` and the matching `tests-*` for `unit-tests`.
+  only that stack's marker (`*.csproj` / a `package.json` with a server framework /
+  `pyproject.toml` / `*.sh` with no other marker) → `/crew:init` proposes the stack; after
+  confirming, a `/crew:feature` dispatch names `backend-<stack>` for `backend` and the matching
+  `tests-*` for `unit-tests`. (#285, Python: init proposed `python`, `pytest`, `ruff check .` and
+  a `ruff check --fix` format row from a `pyproject.toml` with `[tool.pytest.ini_options]` and
+  `[tool.ruff]`.)
 - [x] **The CMS version picks the Optimizely skill** — a dotnet scratch repo with
   `EPiServer.CMS` `12.*` → `backend` loads `optimizely-cms12`; the same at `13.*` →
   `optimizely-cms13`; a task to move 12 to 13 also loads `optimizely-cms-upgrade`. (#272: each
@@ -77,7 +80,7 @@ cannot show that `/crew:init` detected a stack or that a worker loaded a skill.
   runs `git status` unrefused. (#272, observed through a logging `PreToolUse` hook.)
 - [x] **An unsupported stack stops** — a scratch repo with only `go.mod` → `/crew:init` says the
   stack is unsupported rather than proposing one. (#272: init named Go unsupported and offered
-  a wrong-repo check or an `unset` stack.) A stale pin (`backendStack: python`) → init
+  a wrong-repo check or an `unset` stack.) A stale pin (`backendStack: go`) → init
   reports it as unsupported, and `lead` stops naming `/crew:init`.
 - [ ] **Two backend markers ask** — `*.csproj` **and** a server `package.json` → `/crew:init`
   asks which is the backend rather than breaking the tie.
