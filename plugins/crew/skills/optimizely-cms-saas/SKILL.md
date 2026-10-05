@@ -17,8 +17,9 @@ caching, sync) is `optimizely-graph`.
 - A CMS URL of the form `https://app-<id>.cms.optimizely.com` (`OPTIMIZELY_CMS_URL`), and a
   management API at `https://api.cms.optimizely.com`.
 - No `*.csproj` and no `EPiServer.CMS*` package. The SDK and the CLI also work against CMS 13
-  (PaaS), so the SDK alone does not prove SaaS; a .NET project with `EPiServer.CMS*` 13 is
-  `optimizely-cms13`.
+  (PaaS), so the SDK alone does not prove SaaS: only the `*.cms.optimizely.com` URL does. A
+  front end whose CMS is CMS 13 uses the SDK sections below (content types, Visual Builder,
+  preview); its environments, keys and deploy follow `optimizely-cms13`.
 
 ## Content types in code
 
