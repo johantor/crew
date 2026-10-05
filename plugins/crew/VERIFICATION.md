@@ -73,8 +73,9 @@ cannot show that `morpheus` resolved a stack or that a worker loaded a skill.
   of a `.ts` file lands in the fake's log as `--write src/a.ts`. Set the slot to `none` → the
   same edit logs nothing. (#268: init proposed exactly that row; the `crew:tank` edit logged
   `--write src/a.ts`. Before the `agent_type` fix in the same PR the hook never ran.)
-- [ ] **A stale matrix nudges** — remove `node_modules/.bin/prettier` → `tank`'s hand-back
-  carries `format hook: prettier not found … run /crew:init` verbatim.
+- [x] **A stale matrix nudges** — remove `node_modules/.bin/prettier` → `tank`'s hand-back
+  carries `format hook: prettier not found … run /crew:init` verbatim. (#268: the hand-back
+  quoted the line and ended `remaining: … The format matrix still needs /crew:init`.)
 - [ ] **.NET gates in parallel on split paths** — a .NET diff that triggers backend tests, build,
   and lint → the session's first run is serial and passes the tree check; the next run dispatches
   the three together, each handoff (`oracle`'s too) naming its own `<location>/backend/<gate>`
