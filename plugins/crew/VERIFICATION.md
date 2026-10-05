@@ -49,6 +49,9 @@ cannot show that `/crew:init` detected a stack or that a worker loaded a skill.
   only that stack's marker (`*.csproj` / a `package.json` with a server framework / `*.sh` with
   no other marker) → `/crew:init` proposes the stack; after confirming, a `/crew:feature`
   dispatch names `backend-<stack>` for `backend` and the matching `tests-*` for `unit-tests`.
+- [ ] **The CMS version picks the Optimizely skill** — a dotnet scratch repo with
+  `EPiServer.CMS` `12.*` → `backend` loads `optimizely-cms12`; the same at `13.*` →
+  `optimizely-cms13`; a task to move 12 to 13 also loads `optimizely-cms-upgrade`.
 - [ ] **An unsupported stack stops** — a scratch repo with only `go.mod` → `/crew:init` says the
   stack is unsupported rather than proposing one. A stale pin (`backendStack: python`) → init
   reports it as unsupported, and `lead` stops naming `/crew:init`.
