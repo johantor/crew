@@ -27,27 +27,27 @@ Do the detection read-only first, then confirm with the user before writing anyt
 The slots the crew reads, each with its `.claude/crew.md` key. This list is the source of truth
 for what "complete" means — reconcile fills any that are missing, and CI keeps it in lockstep
 with this repo's own `.claude/crew.md`. Every slot marked *pin-only* is optional: `unset` lets
-`morpheus` resolve it per project.
+`lead` resolve it per project.
 
 - **Frontend mode** (`frontendMode`) — `headless` or `server-rendered`. Pin-only.
 - **Backend stack** (`backendStack`) — `dotnet`, `node`, or `shell`. Pin-only.
 - **Frontend stack** (`frontendStack`) — `react`, `nextjs`, or `none`. Pin-only, except that
   `none` is a statement: the project has no client-facing surface (a library, a headless service,
-  a script pack), so `morpheus` skips frontend mode, e2e and unit-tool resolution and never
+  a script pack), so `lead` skips frontend mode, e2e and unit-tool resolution and never
   dispatches the frontend workers. **A TUI, or a CLI whose rendered output is designed, is a
-  view** in `trinity`'s lane with no supported value yet — stop and surface unsupported rather
+  view** in `frontend`'s lane with no supported value yet — stop and surface unsupported rather
   than writing `none` or `unset`.
 - **Frontend e2e tool** (`frontendE2eTool`) — `cypress` or `playwright`. Pin-only.
 - **Frontend unit test tool** (`frontendUnitTestTool`) — `vitest`, `jest`, or `cypress`. Pin-only;
   also `unset` when the project has no frontend unit tests.
 - **Backend lane path(s)** (`backendLanePaths`) — comma-separated path prefixes, e.g. `apps/api/`.
   Only when backend and frontend stacks are the same language (Node backend + Next.js): by
-  extension `lane-guard.sh` cannot tell `tank`'s and `trinity`'s files apart and falls back to
+  extension `lane-guard.sh` cannot tell `backend`'s and `frontend`'s files apart and falls back to
   these. `unset` otherwise.
 - **Frontend lane path(s)** (`frontendLanePaths`) — e.g. `apps/web/`; same caveat.
 - **Backend test command** (`backendTestCommand`) — e.g. `dotnet test`.
 - **Frontend test command** (`frontendTestCommand`) — the **e2e** suite only (e.g. `npx playwright
-  test`); `oracle` derives unit/component runs from the Frontend unit test tool instead.
+  test`); `unit-tests` derives unit/component runs from the Frontend unit test tool instead.
 - **Backend build command** (`backendBuildCommand`) — e.g. `dotnet build`.
 - **Frontend build command** (`frontendBuildCommand`) — e.g. `tsc --noEmit` / `vite build`.
 - **Backend lint command** (`backendLintCommand`) — verify mode, e.g. `dotnet format
@@ -61,10 +61,10 @@ with this repo's own `.claude/crew.md`. Every slot marked *pin-only* is optional
   covers is left alone. `none` when the project has no single-file
   formatter; whole-project formatters (`dotnet format`, shfmt via `.editorconfig`) stay
   at the lint gate and get no row.
-- **Base branch** (`baseBranch`) — the branch `morpheus` branches off (`main` / `develop` / trunk).
+- **Base branch** (`baseBranch`) — the branch `lead` branches off (`main` / `develop` / trunk).
 - **Branch naming** (`branchNaming`) — e.g. `feature/<ticket>-<slug>`.
 - **Run/dev URL** (`runUrl`) — the local dev URL, if the project serves one.
-- **Plan directory** (`planDirectory`) — where `morpheus` writes `plan-<feature>.md`; `unset` uses
+- **Plan directory** (`planDirectory`) — where `lead` writes `plan-<feature>.md`; `unset` uses
   the `.claude/` fallback. Set it (e.g. `docs/plans/`) for a committed location.
 
 Free-text notes for the crew are not a slot: they go in the file's **body**, below the
@@ -115,7 +115,7 @@ trust or correct it; never invent a command you can't see configured.
 | Format matrix | One row per configured single-file formatter per package, from the package's own directory (in a monorepo that is not the root); a package with Prettier and ESLint gets two rows. Backend rows come from the `backend-<stack>` skill's **Crew config** section. Web rows from the configs in the package (a config file, or the matching `package.json` key): `biome.json*` → `node_modules/.bin/biome check --write {file}`; `.prettierrc*`/`prettier.config.*`/a `prettier` key → `node_modules/.bin/prettier --write {file}`; `.eslintrc*`/`eslint.config.*`/an `eslintConfig` key → `node_modules/.bin/eslint --fix --cache {file}` (script extensions only); `.stylelintrc*`/`stylelint.config.*`/a `stylelint` key → `node_modules/.bin/stylelint --fix {file}` (style extensions only). Always the locally installed binary, never `npx`. A tool merely on `PATH` with no config is not the project's choice: no row. No single-file formatter anywhere → `none`. |
 | Frontend mode | React/Vite/Next SPA build → `headless`; Razor `.cshtml` views without an SPA bundle → `server-rendered`. Mixed or unclear → `unset` with the split described in the body notes. |
 | Frontend e2e tool | `cypress.config.*` or a `cypress/` directory → `cypress`; `playwright.config.*` → `playwright`. |
-| Frontend unit test tool | `vitest.config.*` → `vitest`; `jest.config.*` or a `jest` key with no vitest → `jest`; a `cypress.config.*` `component` key with neither → `cypress`. Absent → `unset`; `morpheus` will not assume one exists. |
+| Frontend unit test tool | `vitest.config.*` → `vitest`; `jest.config.*` or a `jest` key with no vitest → `jest`; a `cypress.config.*` `component` key with neither → `cypress`. Absent → `unset`; `lead` will not assume one exists. |
 | Lane paths | Never auto-detect. Only when backend and frontend stacks are the same language, and then ask for the paths. |
 | Base branch | `git symbolic-ref refs/remotes/origin/HEAD`, else an existing `main`/`develop`. Ambiguous → ask; `origin/HEAD` is often unset or stale, and a wrong base is expensive. |
 | Run/dev URL, branch naming | Dev scripts, `launchSettings.json`, existing branch names; else `unset`. |
@@ -127,9 +127,9 @@ config unusable:
 - **Tooling slots** (test, build and lint commands; format matrix; run/dev URL): `none` when the
   project genuinely has no such tooling. Gates that need it then skip with that note.
 - **Project-identity slots** (base branch, branch naming, frontend mode, backend stack): `unset`,
-  never `none` — a base branch always exists. `morpheus` resolves or asks.
+  never `none` — a base branch always exists. `lead` resolves or asks.
 - **Frontend stack is the exception.** `none` is a real answer: write it when confirmed, since
-  `unset` would send `morpheus` asking a question a CLI or a script pack cannot answer.
+  `unset` would send `lead` asking a question a CLI or a script pack cannot answer.
 
 Write both placeholders as plain YAML values — `unset` and `none`, never quoted, never
 backticked — so reconcile recognizes them later. Write every key, so a slot a newer plugin
@@ -150,13 +150,13 @@ crew *is*, and never instructs the classifier to permit anything.
 ```markdown
 ## Crew orchestration
 
-Development in this repo is orchestrated: `morpheus` plans the work and delegates each step to a
-worker subagent (`tank`, `trinity`, `oracle`, `dozer`, `seraph`, `neo`, `sentinel`, `keymaker`). Dispatching a
+Development in this repo is orchestrated: `lead` plans the work and delegates each step to a
+worker subagent (`backend`, `frontend`, `unit-tests`, `e2e`, `visual-review`, `generalist`, `incident-triage`, `debt-scout`). Dispatching a
 worker is ordinary in-repo development — the worker reads files in this working tree, an
-implementer edits them (`seraph`, `sentinel` and `keymaker` carry no edit tool), and each returns
+implementer edits them (`visual-review`, `incident-triage` and `debt-scout` carry no edit tool), and each returns
 a summary. It is not remote execution, and it sends nothing outside the repository.
 
-The crew's guard hooks bound what a worker can do: only `morpheus` touches git, no agent commits on
+The crew's guard hooks bound what a worker can do: only `lead` touches git, no agent commits on
 the base branch, each worker's edits are confined to its own lane — through `Edit`/`Write`, and
 file-mutating Bash is refused so a write cannot route around the lane — and destructive shell
 commands are refused. Nothing is pushed and no pull request is opened on its own — `/crew:pr` is the only

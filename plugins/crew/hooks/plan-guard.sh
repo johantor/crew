@@ -96,7 +96,7 @@ done < "$agent_file"
 # through with an editing tool set.
 [ "$owns_git" = "true" ] && exit 0
 
-# A scoped grant (`Edit(src/**)`, the same shape as `Agent(crew:tank, …)`) is
+# A scoped grant (`Edit(src/**)`, the same shape as `Agent(crew:backend, …)`) is
 # still the editing tool, so the token before `(` decides too.
 tools=",${tools//[[:space:]]/},"
 case "$tools" in

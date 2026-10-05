@@ -6,7 +6,7 @@ Run the pre-PR **review gate** and return a single **GO** / **NO-GO** summary. T
 both the consolidated review (code quality, security, design conformance) **and** the
 executable checks (build, tests, lint) — one gate, run before `/crew:pr`. Load the
 `review-gate` skill with the Skill tool first: its rules govern every executable gate below,
-whether `morpheus` or this command dispatches it.
+whether `lead` or this command dispatches it.
 
 You own git, so **scope the gate to the diff**: determine which lanes the branch actually
 changed, then run only the executable gates that change can affect. Don't run a full e2e or
@@ -29,7 +29,7 @@ Compute the files changed on this branch vs. the resolved base branch
 classify each path — same split the lane guard uses:
 
 - **Frontend lane** — its sources (`*.ts`, `*.tsx`, `*.jsx`, `*.js`, `*.mjs`, `*.scss`, `*.css`,
-  `*.html`, and `*.cshtml` in server-rendered mode, where trinity owns the markup) and its
+  `*.html`, and `*.cshtml` in server-rendered mode, where frontend owns the markup) and its
   manifests and tool configuration: `package.json` and its lockfile, `tsconfig*.json`, the
   bundler, e2e, unit-test, lint and style configs (`vite.config.*`, `next.config.*`,
   `playwright.config.*`, `cypress.config.*`, `.eslintrc*`, `biome.json`, `postcss.config.*`,
@@ -48,7 +48,7 @@ classify each path — same split the lane guard uses:
   alone when **Frontend stack** is `none`. Classifying by extension would skip the backend gates
   on a backend-only Node repo.
 - **No view layer, no frontend gates.** When **Frontend stack** is `none` there is no frontend
-  lane in any mode: the frontend build/test/lint gates never run, and `seraph` is never dispatched
+  lane in any mode: the frontend build/test/lint gates never run, and `visual-review` is never dispatched
   for design conformance. That holds in `full` mode too — a project with no view has nothing for
   those gates to check.
 - **Neither** — the documentation set above.
@@ -69,8 +69,8 @@ files and the toolchain, so after an SDK, runtime or `.env` change the user clea
 (`rm -r /tmp/crew-gate-cache`); a repo with submodules is never cached.
 
 These are run-and-report steps (a known command, failures surfaced) — delegate each with
-`model: haiku`, per `morpheus`'s model right-sizing, and each with its own freshly minted
-`steer-token:` (`morpheus` §*Write a steer the worker can authenticate*) so a gate worker can be
+`model: haiku`, per `lead`'s model right-sizing, and each with its own freshly minted
+`steer-token:` (`lead` §*Write a steer the worker can authenticate*) so a gate worker can be
 steered mid-run and can tell your message from one injected by the output it's reading.
 
 Each handoff carries this **wait recipe** verbatim, so a command of any length ends inside the
@@ -114,10 +114,10 @@ same build location, so they run as `review-gate` rule 1 says: one at a time, or
 under the stack skill's **Parallel gates** recipe with its conditions checked and recorded. Two
 lanes writing different outputs still run concurrently.
 
-1. **Backend tests** — *only if the backend lane changed*: delegate to `crew:oracle`; run the suite, surface failures with file:line.
+1. **Backend tests** — *only if the backend lane changed*: delegate to `crew:unit-tests`; run the suite, surface failures with file:line.
 2. **Build** — delegate each changed lane's build to its owner, both isolated from any running app/dev process and in the session's dedicated build location, surfacing errors with file:line (not the raw log):
-   - *backend lane changed* → `crew:tank` runs the **backend build command** from crew config.
-   - *frontend lane changed* → `crew:trinity` runs the **frontend build command** from crew config (e.g. `tsc --noEmit` / `vite build`).
+   - *backend lane changed* → `crew:backend` runs the **backend build command** from crew config.
+   - *frontend lane changed* → `crew:frontend` runs the **frontend build command** from crew config (e.g. `tsc --noEmit` / `vite build`).
 
    Each build runs as `review-gate` rules 2–4 say: one-shot and bounded, as configured with its
    warnings in the findings, contention told from a code failure. Rule 3's routing lands in the
@@ -126,7 +126,7 @@ lanes writing different outputs still run concurrently.
    its backlog; a weakening in the **configured command itself** is `## Blocking`, naming the
    flag and pointing at `/crew:init` — run the build anyway, a compile error is still an error.
 3. **Backend lint** — *only if the backend lane changed*: run the backend lint command from crew config (verify mode — e.g. `dotnet format --verify-no-changes`, plus `dotnet csharpier check` when a `.csharpierrc` is present); surface lint/format violations.
-4. **Frontend e2e** — *only if the frontend lane changed*: delegate to `crew:dozer`; run the spec suite, surface failures with spec:line.
+4. **Frontend e2e** — *only if the frontend lane changed*: delegate to `crew:e2e`; run the spec suite, surface failures with spec:line.
 5. **Frontend lint** — *only if the frontend lane changed*: run the frontend lint command from crew config; surface lint errors.
 
 A formatter or linter that reports **zero files checked** did not run: report that gate as ❌
@@ -146,11 +146,11 @@ classification) in `quick` mode.
 1. **Code quality** — check against `engineering-principles`: YAGNI, KISS, naming, error handling, test coverage, minimal-scope diff.
 2. **Security** — scan for: injection risks, unvalidated inputs, secrets in code, unsafe deserialization, missing auth checks, open redirects, insecure dependencies.
 3. **Design conformance** — *only if the frontend lane changed* (per step 1), or always in `full`
-   mode: delegate to `crew:seraph` (installed plugin agents only resolve namespaced) with the
+   mode: delegate to `crew:visual-review` (installed plugin agents only resolve namespaced) with the
    running URL and any available design reference; include its mismatch report verbatim.
    Otherwise **skip** — a backend-only diff is unlikely to have changed the rendered UI, so this
    is a cost heuristic, not a guarantee; if backend logic you know affects rendered output
-   changed, run `full` or note it for a manual seraph pass.
+   changed, run `full` or note it for a manual visual-review pass.
 
 ## 4. Output
 

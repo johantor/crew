@@ -5,7 +5,7 @@
 #
 # Directory lanes (the crew-configuration path slots) win when set, else extension globs. A
 # same-language pair (node backend + JS frontend) with no lane paths fails CLOSED
-# -- extensions can't separate tank's files from trinity's. Caught whether the
+# -- extensions can't separate backend's files from frontend's. Caught whether the
 # stacks are pinned or unset; when unset the guard probes repo markers. A
 # backend-only Node repo has no such conflict, so enforcement is skipped.
 
@@ -28,7 +28,7 @@ guard_read_payload
 # non-lane session never pays even for the field lookup.
 # shellcheck disable=SC2016  # $at is a jq variable, not a shell one
 if ! guard_jq2 \
-  '((.agent_type // "") | sub("^crew:"; "")) as $at | (if (["oracle","dozer","tank","trinity","morpheus"] | index($at)) then ((.tool_input.file_path // .tool_input.path) // "") else "" end)' \
+  '((.agent_type // "") | sub("^crew:"; "")) as $at | (if (["unit-tests","e2e","backend","frontend","lead"] | index($at)) then ((.tool_input.file_path // .tool_input.path) // "") else "" end)' \
   '.agent_type // ""'; then
   echo "Blocked: lane-guard could not parse the hook payload." >&2
   exit 2
@@ -37,13 +37,13 @@ guard_agent_type
 path="$guard_untrusted"
 
 # Bail before any further parsing for the common case: the main session, or any
-# agent with no lane. `neo` is the express-lane generalist, so it has no lane
+# agent with no lane. `generalist` is the express-lane generalist, so it has no lane
 # restriction by design and bails here. Kept in sync with the lane dispatch below.
 # crew-roster: lane-guarded -- validator §9 keeps the arm below in lockstep with
 # the agents' frontmatter `lane-guarded`. Load-bearing shape: this marker, then
 # the `case` header, then the `a|b|c)` arm on the very next line.
 case "$agent_type" in
-  oracle|dozer|tank|trinity|morpheus) ;;
+  unit-tests|e2e|backend|frontend|lead) ;;
   *) exit 0 ;;
 esac
 [ -z "$path" ] && exit 0
@@ -80,8 +80,8 @@ lane_globs() {
 }
 
 # Marker detection — used only when the stack slots are *unset* and no lane paths
-# are configured, since extensions alone can't separate tank's `.ts`/`.js` from
-# trinity's when the backend is also Node. Non-source directories are pruned and
+# are configured, since extensions alone can't separate backend's `.ts`/`.js` from
+# frontend's when the backend is also Node. Non-source directories are pruned and
 # every marker is collected in a single traversal: a walk per marker is latency
 # the agent pays before its edit lands. The framework allowlists are not
 # exhaustive and need periodic review; a miss fails silently (the same-language
@@ -150,12 +150,12 @@ exempt=""
 confine=""
 exclude=""
 case "$agent_type" in
-  # `.spec.*` is kept (Vitest/Jest/Angular unit tests use it), but oracle is
-  # excluded from the e2e-tool directories, which are dozer's — otherwise a
-  # Playwright `e2e/foo.spec.ts` would fall in oracle's lane too.
+  # `.spec.*` is kept (Vitest/Jest/Angular unit tests use it), but unit-tests is
+  # excluded from the e2e-tool directories, which are e2e's — otherwise a
+  # Playwright `e2e/foo.spec.ts` would fall in unit-tests's lane too.
   # The union of every stack's test convention: the stack isn't resolved here, so
-  # a test file in *any* of them is oracle's.
-  oracle) mode="--allow"
+  # a test file in *any* of them is unit-tests's.
+  unit-tests) mode="--allow"
           patterns='**/*Tests/** **/*.Tests.* tests/** **/__tests__/** **/*.test.* **/*.spec.*'
           patterns+=' **/test*.py **/*_test.py **/conftest.py'    # pytest + unittest discover
           patterns+=' **/*_test.go **/testdata/**'                 # go test + its fixtures
@@ -165,11 +165,11 @@ case "$agent_type" in
           patterns+=' **/src/test/** **/*Test.java **/Test*.java **/*Tests.java'
           patterns+=' **/*TestCase.java **/*IT.java **/IT*.java **/*ITCase.java'
           exclude='e2e/** cypress/** playwright/** tests/e2e/**' ;;
-  dozer)
+  e2e)
     # Scope to the resolved e2e tool's conventional locations rather than a blanket
     # tests/** that would reach backend/unit tests. Playwright's default testDir is
     # tests/ or e2e/, but a bare tests/** also matches nested backend test dirs and
-    # overlaps oracle, so it is only widened to tests/** when a Frontend lane path
+    # overlaps unit-tests, so it is only widened to tests/** when a Frontend lane path
     # is configured (the confine below then keeps it in-lane). The broad fallback
     # applies only when the tool is unset/unknown.
     mode="--allow"
@@ -186,21 +186,21 @@ case "$agent_type" in
       *)          patterns='cypress/** e2e/** tests/** playwright/** **/*.cy.*' ;;
     esac
     # In a same-language monorepo a bare tests/** can match backend tests (e.g.
-    # apps/api/tests/**), so a configured Frontend lane path also confines dozer:
+    # apps/api/tests/**), so a configured Frontend lane path also confines e2e:
     # an e2e-shaped path outside that lane is still denied.
     [ -n "$frontend_lane" ] && confine="$(lane_globs "$frontend_lane")"
     ;;
-  tank|trinity)
+  backend|frontend)
     backend_lane="$(config_slot backendLanePaths)"
     frontend_lane="$(config_slot frontendLanePaths)"
     backend_stack="$(config_slot backendStack)"
     frontend_stack="$(config_slot frontendStack)"
     if [ -n "$backend_lane" ] && [ -n "$frontend_lane" ]; then
-      # Route handlers live in the frontend tree but are tank's by concern
-      # (single-owner, unlike Razor's markup/logic split) — exempt tank, deny trinity.
+      # Route handlers live in the frontend tree but are backend's by concern
+      # (single-owner, unlike Razor's markup/logic split) — exempt backend, deny frontend.
       route_handlers='app/**/route.ts app/**/route.js pages/api/**'
       mode="--deny"
-      if [ "$agent_type" = "tank" ]; then
+      if [ "$agent_type" = "backend" ]; then
         patterns="$(lane_globs "$frontend_lane")"
         exempt="$route_handlers"
       else
@@ -208,44 +208,44 @@ case "$agent_type" in
       fi
     elif [ -n "$backend_lane" ] || [ -n "$frontend_lane" ]; then
       # One lane path set but not both. Fail closed rather than falling back to
-      # the extension regime, which can't separate tank from trinity in
+      # the extension regime, which can't separate backend from frontend in
       # same-language stacks.
       echo "Blocked: only one of Backend lane path(s) / Frontend lane path(s) is configured. Set both in .claude/crew.md (see /crew:init) before delegating." >&2
       exit 2
     elif [ "$backend_stack" = "node" ] && [ -n "$frontend_stack" ]; then
-      echo "Blocked: backend stack is node — tank and trinity can both touch .ts/.js files, so extension-based lanes can't tell them apart. Set Backend lane path(s) / Frontend lane path(s) in .claude/crew.md (see /crew:init) before delegating." >&2
+      echo "Blocked: backend stack is node — backend and frontend can both touch .ts/.js files, so extension-based lanes can't tell them apart. Set Backend lane path(s) / Frontend lane path(s) in .claude/crew.md (see /crew:init) before delegating." >&2
       exit 2
     elif [ "$backend_stack" = "node" ]; then
-      # Backend-only Node repo (no Frontend stack configured). tank owns the whole
-      # Node codebase, so it writes freely; trinity has no frontend lane to scope
+      # Backend-only Node repo (no Frontend stack configured). backend owns the whole
+      # Node codebase, so it writes freely; frontend has no frontend lane to scope
       # to here, so it fails closed rather than getting unrestricted access.
-      [ "$agent_type" = "tank" ] && exit 0
-      echo "Blocked: backend stack is node with no frontend configured — trinity has no frontend lane here. Set a Frontend stack / Frontend lane path(s) in .claude/crew.md (see /crew:init) before delegating frontend work." >&2
+      [ "$agent_type" = "backend" ] && exit 0
+      echo "Blocked: backend stack is node with no frontend configured — frontend has no frontend lane here. Set a Frontend stack / Frontend lane path(s) in .claude/crew.md (see /crew:init) before delegating frontend work." >&2
       exit 2
     elif [ -z "$backend_stack" ] && { detect_regime; [ "$_det_node" = 1 ] && [ "$_det_dotnet" = 0 ]; }; then
       # Stacks unset, but the repo's markers show a Node backend and no .NET
-      # project. The extension regime can't separate tank's `.ts`/`.js` from
-      # trinity's, so mirror the pinned `Backend stack: node` behavior.
+      # project. The extension regime can't separate backend's `.ts`/`.js` from
+      # frontend's, so mirror the pinned `Backend stack: node` behavior.
       if [ "$_det_frontend" = 1 ]; then
         # Node backend + a frontend, no lane paths: genuinely ambiguous — fail closed.
-        echo "Blocked: detected a Node backend (server framework in package.json) alongside a frontend, with no lane paths configured — extension-based lanes can't tell tank's and trinity's .ts/.js apart. Set Backend lane path(s) / Frontend lane path(s) in .claude/crew.md (see /crew:init), or pin Backend stack / Frontend stack, before delegating." >&2
+        echo "Blocked: detected a Node backend (server framework in package.json) alongside a frontend, with no lane paths configured — extension-based lanes can't tell backend's and frontend's .ts/.js apart. Set Backend lane path(s) / Frontend lane path(s) in .claude/crew.md (see /crew:init), or pin Backend stack / Frontend stack, before delegating." >&2
         exit 2
       fi
-      # Backend-only Node repo: tank owns it, trinity has no frontend lane here.
-      [ "$agent_type" = "tank" ] && exit 0
-      echo "Blocked: detected a backend-only Node repo — trinity has no frontend lane here. Set a Frontend stack / Frontend lane path(s) in .claude/crew.md (see /crew:init) before delegating frontend work." >&2
+      # Backend-only Node repo: backend owns it, frontend has no frontend lane here.
+      [ "$agent_type" = "backend" ] && exit 0
+      echo "Blocked: detected a backend-only Node repo — frontend has no frontend lane here. Set a Frontend stack / Frontend lane path(s) in .claude/crew.md (see /crew:init) before delegating frontend work." >&2
       exit 2
     else
       # Extension-based regime (default). .cshtml is intentionally NOT denied to
-      # either agent: Razor is shared by concern (trinity = markup/DOM, tank =
+      # either agent: Razor is shared by concern (frontend = markup/DOM, backend =
       # C#/server logic), and that split is enforced by the agent prompts, since
       # file globs can't see inside a file.
-      # trinity's deny list is the union of every backend's extensions, not the
+      # frontend's deny list is the union of every backend's extensions, not the
       # resolved stack's: none of them is a client-facing file. These stacks reach
       # here rather than node's branch above because their extensions are disjoint
       # from the frontend's.
       mode="--deny"
-      if [ "$agent_type" = "tank" ]; then
+      if [ "$agent_type" = "backend" ]; then
         patterns='*.ts *.tsx *.jsx *.js *.mjs *.scss *.css *.html'
       else
         patterns='*.cs *.csproj'                                     # dotnet
@@ -262,7 +262,7 @@ case "$agent_type" in
         patterns+=' settings.gradle settings.gradle.kts gradle.properties'
         patterns+=' gradle/libs.versions.toml gradle/wrapper/gradle-wrapper.properties'
         # Backend config under src/main/resources. NOT the whole tree: templates/
-        # and static/ under it are the view layer, so they stay trinity's the way
+        # and static/ under it are the view layer, so they stay frontend's the way
         # .cshtml does.
         patterns+=' **/src/main/resources/application*.properties'
         patterns+=' **/src/main/resources/application*.yml **/src/main/resources/application*.yaml'
@@ -272,18 +272,18 @@ case "$agent_type" in
       fi
     fi
     ;;
-  # morpheus writes Markdown plans and ledgers, crew config, its agent memory and
+  # lead writes Markdown plans and ledgers, crew config, its agent memory and
   # scratch, never production code. The lane is a filename shape at any depth, not
   # a directory: production code is never named plan-*.md, so there is no root to
   # anchor and no plan-directory slot to read. See AGENTS.md, "Prompt design
   # rationale" -> "crew:debt (the debt lane)".
-  morpheus) mode="--allow"
+  lead) mode="--allow"
             patterns='plan-*.md */plan-*.md debt-*.md */debt-*.md crew.md */crew.md'
             # `memory: local` writes Markdown under .claude/agent-memory-local/ (AGENTS.md,
             # "Conventions"). Markdown only, so a lookalike directory cannot carry source.
             patterns+=' */agent-memory-local/*.md */agent-memory/*.md'
             patterns+=' /tmp/** /private/tmp/** /var/folders/** /private/var/folders/**' ;;
-  # seraph, sentinel and keymaker are read-only with no edit/write tools, so they
+  # visual-review, incident-triage and debt-scout are read-only with no edit/write tools, so they
   # never reach this Edit|Write hook — no lane entry needed.
   *) exit 0 ;;  # main session or any agent without a lane: no restriction
 esac
@@ -313,15 +313,15 @@ fi
 if matches "$patterns"; then match=1; else match=0; fi
 
 # An --allow agent with an exclude set is denied a path that matches it even when
-# it also matches the allow patterns: it keeps oracle's test globs out of the
-# e2e-tool directories, which are dozer's lane.
+# it also matches the allow patterns: it keeps unit-tests's test globs out of the
+# e2e-tool directories, which are e2e's lane.
 if [ "$mode" = "--allow" ] && [ -n "$exclude" ] && matches "$exclude"; then
-  echo "Blocked: $path is in an e2e lane (dozer's), not ${agent_type}'s." >&2
+  echo "Blocked: $path is in an e2e lane (e2e's), not ${agent_type}'s." >&2
   exit 2
 fi
 
 # An --allow agent with a confine set must ALSO be inside the confine globs, which
-# keeps dozer's e2e patterns within the configured frontend lane: a tests/** match
+# keeps e2e's e2e patterns within the configured frontend lane: a tests/** match
 # in a backend lane is still denied.
 if [ "$mode" = "--allow" ] && [ -n "$confine" ] && ! matches "$confine"; then
   echo "Blocked: $path is outside ${agent_type}'s frontend lane." >&2

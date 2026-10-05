@@ -22,8 +22,8 @@ analyzers against the project and takes 10-60s, so it stays at the lint gate.
 ## Razor ownership (server-rendered mode)
 
 Own the server-side of Razor (`.cshtml`): view-model binding, `@functions`/`@code`, control
-flow over data, and data access. In server-rendered mode, trinity owns the *markup/DOM*
-(structure, classes, ARIA, presentation) — coordinate the view-model contract with trinity
+flow over data, and data access. In server-rendered mode, frontend owns the *markup/DOM*
+(structure, classes, ARIA, presentation) — coordinate the view-model contract with frontend
 rather than reworking the markup yourself. In headless mode, Razor is entirely yours.
 
 ## Build
@@ -45,7 +45,7 @@ project file, or a nonsense compile error, rather than a clean lock error that n
   (`obj/`, `bin/`). They are per-build-writer.
 
 So if another crew build/test/lint run may be live against the same project, either wait for it or
-use the path your dispatch gave you (below). Say which you did in your findings — morpheus knows
+use the path your dispatch gave you (below). Say which you did in your findings — lead knows
 the dispatch and you do not.
 
 ### Parallel gates

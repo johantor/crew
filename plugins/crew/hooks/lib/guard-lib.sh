@@ -71,7 +71,7 @@ guard_jq2() {
 }
 
 # guard_agent_type -- sets $agent_type from the trusted field. An installed
-# plugin's agent calls tools as `crew:tank`, the namespaced form; the rosters
+# plugin's agent calls tools as `crew:backend`, the namespaced form; the rosters
 # below and in the hooks hold bare names, so this plugin's prefix is dropped and
 # any other plugin's agent keeps its prefix and matches no roster.
 guard_agent_type() { agent_type="${guard_trusted#crew:}"; }

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # PostToolUse(Edit|Write) formatter, gated to the agents that write source
-# (tank/trinity/neo/oracle; other agents and the main session are no-ops). oracle
+# (backend/frontend/generalist/unit-tests; other agents and the main session are no-ops). unit-tests
 # is included because a test file is source too: unformatted, it fails the same
 # lint gate at the end of the run.
 #
@@ -23,22 +23,22 @@ command -v jq >/dev/null 2>&1 || exit 0
 guard_read_payload
 # Both fields in one jq pass, and the path is only computed for an agent this
 # hook formats for, so the far more common no-op call doesn't pay to look it up.
-# neo is the cross-lane express-lane generalist, so it gets the same routing as
-# tank/trinity rather than a fixed lane.
+# generalist is the cross-lane express-lane generalist, so it gets the same routing as
+# backend/frontend rather than a fixed lane.
 guard_jq2 \
-  '(if ((.agent_type // "") | sub("^crew:"; "") | test("^(tank|trinity|neo|oracle)$")) then ((.tool_input.file_path // .tool_input.path) // "") else "" end)' \
+  '(if ((.agent_type // "") | sub("^crew:"; "") | test("^(backend|frontend|generalist|unit-tests)$")) then ((.tool_input.file_path // .tool_input.path) // "") else "" end)' \
   '.agent_type // ""' || exit 0
 guard_agent_type
 path="$guard_untrusted"
 
 case "$agent_type" in
-  tank|trinity|neo|oracle) : ;;
+  backend|frontend|generalist|unit-tests) : ;;
   *)                       exit 0 ;;
 esac
 [ -n "$path" ] || exit 0
 
 # No matrix (file or slot missing, `none`, `unset`) means per-edit formatting is
-# off. Silent: morpheus nudges once per run to run /crew:init; a line here would
+# off. Silent: lead nudges once per run to run /crew:init; a line here would
 # repeat on every edit.
 guard_config_load
 rows="$(config_block formatMatrix)"

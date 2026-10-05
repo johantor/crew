@@ -98,28 +98,28 @@
   <div class="wrap">
     <div class="sec-head">
       <h2>The crew</h2>
-      <p><code>morpheus</code> plans the work, presents the plan for your go-ahead, then delegates each
+      <p><code>lead</code> plans the work, presents the plan for your go-ahead, then delegates each
         step to a specialist. It writes no production code itself, and it is the only agent that
         touches git.</p>
     </div>
 
     <div class="roster">
-      <div class="agent"><b>morpheus</b><i>Captain</i>
+      <div class="agent"><b>lead</b><i>Captain</i>
         <p>Plans and delegates. Maintains a written plan with per-step acceptance criteria, and commits
           each step only once it passes.</p></div>
-      <div class="agent"><b>tank</b><i>Backend</i>
+      <div class="agent"><b>backend</b><i>Backend</i>
         <p>Implements backend work for the stack the project resolves to.</p></div>
-      <div class="agent"><b>trinity</b><i>Frontend</i>
+      <div class="agent"><b>frontend</b><i>Frontend</i>
         <p>Implements the frontend, including a shared server template's markup in server-rendered mode.</p></div>
-      <div class="agent"><b>oracle</b><i>Unit tests</i>
+      <div class="agent"><b>unit-tests</b><i>Unit tests</i>
         <p>Authors all unit tests — backend, plus frontend component tests when a tool is configured.</p></div>
-      <div class="agent"><b>dozer</b><i>End-to-end</i>
+      <div class="agent"><b>e2e</b><i>End-to-end</i>
         <p>Frontend e2e only, for whichever e2e tool the project resolves to.</p></div>
-      <div class="agent"><b>seraph</b><i>Design · read-only</i>
+      <div class="agent"><b>visual-review</b><i>Design · read-only</i>
         <p>Visual design conformance. Names the design token, not just the pixel value.</p></div>
-      <div class="agent"><b>neo</b><i>Express lane</i>
+      <div class="agent"><b>generalist</b><i>Express lane</i>
         <p>Generalist for small, low-risk changes across all lanes, skipping the full ceremony.</p></div>
-      <div class="agent"><b>sentinel</b><i>Triage · read-only</i>
+      <div class="agent"><b>incident-triage</b><i>Triage · read-only</i>
         <p>Post-merge triage. Traces a production signal to the code and the suspect commits, and returns
           a pointer rather than a fix.</p></div>
     </div>
@@ -128,7 +128,7 @@
       <h2>Commands</h2>
       <p>Namespaced once installed. <code>/crew:feature</code> and <code>/crew:address</code> are thin
         routers, so both also work by just asking in a
-        <code>claude --agent crew:morpheus</code> session.</p>
+        <code>claude --agent crew:lead</code> session.</p>
     </div>
     <ul class="cmds">
       <li><code>/crew:init</code><span>Once per project: detect and record the build, test, and lint configuration.</span></li>
@@ -174,7 +174,7 @@
     </div>
     <ul class="cmds">
       <li><code>/crew:debt</code><span>A suppression at a line, an analyzer or ESLint rule, or a dependency upgrade.</span></li>
-      <li><code>/crew:audit</code><span>Read-only scout over a scope you name, run by <code>keymaker</code>, an agent with no write tool; returns ready-to-paste pointers.</span></li>
+      <li><code>/crew:audit</code><span>Read-only scout over a scope you name, run by <code>debt-scout</code>, an agent with no write tool; returns ready-to-paste pointers.</span></li>
     </ul>
     <p class="note">Two stacks today: .NET / C# and TypeScript / JavaScript. Platform-scale migrations get
       a handoff outline rather than a forced implementation, and the blast radius is reported before any

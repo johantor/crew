@@ -6,17 +6,17 @@ source "$(dirname "${BASH_SOURCE[0]}")/../../../tests/hooks/lib.sh"
 HOOK="lane-guard.sh"
 
 # --- Default extension regime (no .claude/crew.md, stacks unresolved) ----------
-# In an empty cwd there are no markers, so tank/trinity fall back to file
-# extensions: tank owns frontend-shaped files' opposite (backend), etc.
-assert_block "tank denied a .tsx file"   "$HOOK" "$(payload_file tank Foo.tsx)"  "out of"
-assert_allow "tank allowed a .cs file"   "$HOOK" "$(payload_file tank Foo.cs)"
-# An installed plugin's worker calls tools as `crew:tank`; another plugin's
-# `tank` is not this crew's and gets no lane.
-assert_block "crew:tank denied a .tsx file" "$HOOK" "$(payload_file crew:tank Foo.tsx)" "out of"
-assert_allow "crew:tank allowed a .cs file" "$HOOK" "$(payload_file crew:tank Foo.cs)"
-assert_allow "other:tank has no lane here"  "$HOOK" "$(payload_file other:tank Foo.tsx)"
-assert_block "trinity denied a .cs file" "$HOOK" "$(payload_file trinity Foo.cs)" "out of"
-assert_allow "trinity allowed a .tsx file" "$HOOK" "$(payload_file trinity Foo.tsx)"
+# In an empty cwd there are no markers, so backend/frontend fall back to file
+# extensions: backend owns frontend-shaped files' opposite (backend), etc.
+assert_block "backend denied a .tsx file"   "$HOOK" "$(payload_file backend Foo.tsx)"  "out of"
+assert_allow "backend allowed a .cs file"   "$HOOK" "$(payload_file backend Foo.cs)"
+# An installed plugin's worker calls tools as `crew:backend`; another plugin's
+# `backend` is not this crew's and gets no lane.
+assert_block "crew:backend denied a .tsx file" "$HOOK" "$(payload_file crew:backend Foo.tsx)" "out of"
+assert_allow "crew:backend allowed a .cs file" "$HOOK" "$(payload_file crew:backend Foo.cs)"
+assert_allow "other:backend has no lane here"  "$HOOK" "$(payload_file other:backend Foo.tsx)"
+assert_block "frontend denied a .cs file" "$HOOK" "$(payload_file frontend Foo.cs)" "out of"
+assert_allow "frontend allowed a .tsx file" "$HOOK" "$(payload_file frontend Foo.tsx)"
 
 # --- Extension regime, the Python/Go/Rust/JVM backends -------------------------
 # These extensions are disjoint from the frontend's, so the stacks need no lane
@@ -32,93 +32,93 @@ for _f in svc.py svc.pyi pyproject.toml requirements.txt setup.py setup.cfg \
           run.sh lib.bash .shellcheckrc \
           pkg/testdata/golden.json src/test/resources/fixture.sql src/test/fixtures/data.json \
           src/main/resources/application.yml svc/src/main/resources/application-prod.properties; do
-  assert_block "trinity denied a backend file ($_f)" "$HOOK" "$(payload_file trinity "$_f")" "out of"
-  assert_allow "tank allowed a backend file ($_f)"   "$HOOK" "$(payload_file tank "$_f")"
+  assert_block "frontend denied a backend file ($_f)" "$HOOK" "$(payload_file frontend "$_f")" "out of"
+  assert_allow "backend allowed a backend file ($_f)"   "$HOOK" "$(payload_file backend "$_f")"
 done
 # The union is per-extension, not per-resolved-stack: a pinned Python backend
-# still denies trinity a .rs file. Pinning a stack must not widen trinity's lane.
+# still denies frontend a .rs file. Pinning a stack must not widen frontend's lane.
 fm_python="$(make_crew_md 'backendStack: python
 frontendStack: react')"
-assert_block "trinity denied .rs under a pinned python backend" \
-  "$HOOK" "$(payload_file trinity svc.rs)" "out of" "$fm_python"
-assert_allow "trinity keeps repo-wide .editorconfig" "$HOOK" "$(payload_file trinity .editorconfig)"
-# The view half of src/main/resources stays trinity's, like .cshtml.
-assert_allow "trinity keeps a Thymeleaf template" \
-  "$HOOK" "$(payload_file trinity src/main/resources/templates/index.html)"
-assert_allow "trinity keeps Spring's static assets" \
-  "$HOOK" "$(payload_file trinity src/main/resources/static/app.css)"
-assert_allow "trinity still allowed a .tsx under a pinned python backend" \
-  "$HOOK" "$(payload_file trinity Foo.tsx)" "$fm_python"
+assert_block "frontend denied .rs under a pinned python backend" \
+  "$HOOK" "$(payload_file frontend svc.rs)" "out of" "$fm_python"
+assert_allow "frontend keeps repo-wide .editorconfig" "$HOOK" "$(payload_file frontend .editorconfig)"
+# The view half of src/main/resources stays frontend's, like .cshtml.
+assert_allow "frontend keeps a Thymeleaf template" \
+  "$HOOK" "$(payload_file frontend src/main/resources/templates/index.html)"
+assert_allow "frontend keeps Spring's static assets" \
+  "$HOOK" "$(payload_file frontend src/main/resources/static/app.css)"
+assert_allow "frontend still allowed a .tsx under a pinned python backend" \
+  "$HOOK" "$(payload_file frontend Foo.tsx)" "$fm_python"
 
-# --- oracle / dozer confined to test paths ------------------------------------
-assert_allow "oracle allowed a unit test"     "$HOOK" "$(payload_file oracle src/foo.test.ts)"
-assert_block "oracle denied a non-test file"  "$HOOK" "$(payload_file oracle src/foo.ts)" "allowed paths"
-assert_block "oracle denied an e2e spec (dozer's lane)" "$HOOK" "$(payload_file oracle e2e/foo.spec.ts)" "e2e lane"
-# One assertion per test convention in oracle's allow list.
+# --- unit-tests / e2e confined to test paths ------------------------------------
+assert_allow "unit-tests allowed a unit test"     "$HOOK" "$(payload_file unit-tests src/foo.test.ts)"
+assert_block "unit-tests denied a non-test file"  "$HOOK" "$(payload_file unit-tests src/foo.ts)" "allowed paths"
+assert_block "unit-tests denied an e2e spec (e2e's lane)" "$HOOK" "$(payload_file unit-tests e2e/foo.spec.ts)" "e2e lane"
+# One assertion per test convention in unit-tests's allow list.
 for _t in pkg/test_svc.py pkg/testservice.py pkg/svc_test.py pkg/conftest.py \
           pkg/svc_test.go pkg/testdata/input.json \
           tests/integration.rs \
           src/test/java/com/example/SvcTest.java app/src/test/resources/fixture.sql \
           tests/guard.bats plugins/crew/tests/lane-guard.test.sh; do
-  assert_allow "oracle allowed a test path ($_t)" "$HOOK" "$(payload_file oracle "$_t")"
+  assert_allow "unit-tests allowed a test path ($_t)" "$HOOK" "$(payload_file unit-tests "$_t")"
 done
 # Every Surefire/Failsafe convention, including outside src/test.
 for _j in SvcTest.java TestSvc.java SvcTests.java SvcTestCase.java SvcIT.java ITSvc.java SvcITCase.java; do
-  assert_allow "oracle allowed a JUnit class ($_j)" "$HOOK" "$(payload_file oracle "$_j")"
+  assert_allow "unit-tests allowed a JUnit class ($_j)" "$HOOK" "$(payload_file unit-tests "$_j")"
 done
-# Production code in those same ecosystems stays out of oracle's lane.
+# Production code in those same ecosystems stays out of unit-tests's lane.
 for _p in pkg/svc.py pkg/svc.go src/lib.rs src/main/java/com/example/Svc.java; do
-  assert_block "oracle denied production code ($_p)" "$HOOK" "$(payload_file oracle "$_p")" "allowed paths"
+  assert_block "unit-tests denied production code ($_p)" "$HOOK" "$(payload_file unit-tests "$_p")" "allowed paths"
 done
-assert_allow "dozer allowed an e2e spec"      "$HOOK" "$(payload_file dozer e2e/foo.spec.ts)"
-assert_block "dozer denied a source file"     "$HOOK" "$(payload_file dozer src/foo.ts)" "allowed paths"
+assert_allow "e2e allowed an e2e spec"      "$HOOK" "$(payload_file e2e e2e/foo.spec.ts)"
+assert_block "e2e denied a source file"     "$HOOK" "$(payload_file e2e src/foo.ts)" "allowed paths"
 
-# --- morpheus writes plans and ledgers only -----------------------------------
+# --- lead writes plans and ledgers only -----------------------------------
 # The orchestrator never edits production code. Its Edit/Write lane is a filename
 # shape at any depth (plan-*.md, debt-*.md, crew.md, agent-memory/**) plus
 # scratch, whether the path is repo-relative or absolute, and whatever the plan
 # directory is configured as -- so there is no directory to anchor or to overlap.
-assert_allow "morpheus allowed a plan file"           "$HOOK" "$(payload_file morpheus .claude/plan-sso.md)"
-assert_allow "morpheus allowed a debt ledger"         "$HOOK" "$(payload_file morpheus .claude/debt-cs8602.md)"
-assert_allow "morpheus allowed a plan in another plan directory" "$HOOK" "$(payload_file morpheus docs/plans/plan-sso.md)"
-assert_allow "morpheus allowed a plan at the repo root" "$HOOK" "$(payload_file morpheus plan-sso.md)"
-assert_allow "morpheus allowed crew config"           "$HOOK" "$(payload_file morpheus .claude/crew.md)"
-assert_allow "morpheus allowed its local agent memory" "$HOOK" "$(payload_file morpheus .claude/agent-memory-local/morpheus/MEMORY.md)"
-assert_allow "morpheus allowed project agent memory (absolute)" "$HOOK" "$(payload_file morpheus /repo/.claude/agent-memory/morpheus/MEMORY.md)"
-assert_allow "morpheus allowed scratch under /tmp"    "$HOOK" "$(payload_file morpheus /tmp/crew/outline.md)"
-assert_block "morpheus denied a source file"          "$HOOK" "$(payload_file morpheus src/app.ts)" "allowed paths"
-assert_block "morpheus denied a test file"            "$HOOK" "$(payload_file morpheus tests/app.test.ts)" "allowed paths"
-assert_block "morpheus denied source under a nested .claude directory" \
-  "$HOOK" "$(payload_file morpheus src/.claude/app.ts)" "allowed paths"
-assert_block "morpheus denied a Markdown file that is not a plan or ledger" \
-  "$HOOK" "$(payload_file morpheus README.md)" "allowed paths"
-assert_block "morpheus denied a plan-named source file" \
-  "$HOOK" "$(payload_file morpheus src/plan-runner.ts)" "allowed paths"
-assert_block "morpheus denied source under a lookalike memory directory" \
-  "$HOOK" "$(payload_file morpheus src/agent-memory-local/app.ts)" "allowed paths"
+assert_allow "lead allowed a plan file"           "$HOOK" "$(payload_file lead .claude/plan-sso.md)"
+assert_allow "lead allowed a debt ledger"         "$HOOK" "$(payload_file lead .claude/debt-cs8602.md)"
+assert_allow "lead allowed a plan in another plan directory" "$HOOK" "$(payload_file lead docs/plans/plan-sso.md)"
+assert_allow "lead allowed a plan at the repo root" "$HOOK" "$(payload_file lead plan-sso.md)"
+assert_allow "lead allowed crew config"           "$HOOK" "$(payload_file lead .claude/crew.md)"
+assert_allow "lead allowed its local agent memory" "$HOOK" "$(payload_file lead .claude/agent-memory-local/lead/MEMORY.md)"
+assert_allow "lead allowed project agent memory (absolute)" "$HOOK" "$(payload_file lead /repo/.claude/agent-memory/lead/MEMORY.md)"
+assert_allow "lead allowed scratch under /tmp"    "$HOOK" "$(payload_file lead /tmp/crew/outline.md)"
+assert_block "lead denied a source file"          "$HOOK" "$(payload_file lead src/app.ts)" "allowed paths"
+assert_block "lead denied a test file"            "$HOOK" "$(payload_file lead tests/app.test.ts)" "allowed paths"
+assert_block "lead denied source under a nested .claude directory" \
+  "$HOOK" "$(payload_file lead src/.claude/app.ts)" "allowed paths"
+assert_block "lead denied a Markdown file that is not a plan or ledger" \
+  "$HOOK" "$(payload_file lead README.md)" "allowed paths"
+assert_block "lead denied a plan-named source file" \
+  "$HOOK" "$(payload_file lead src/plan-runner.ts)" "allowed paths"
+assert_block "lead denied source under a lookalike memory directory" \
+  "$HOOK" "$(payload_file lead src/agent-memory-local/app.ts)" "allowed paths"
 # A configured plan directory changes nothing: the lane is the shape, not the place.
 fm_src="$(make_crew_md 'planDirectory: src')"
-assert_allow "morpheus allowed a plan in a plan directory set to src" \
-  "$HOOK" "$(payload_file morpheus src/plan-sso.md)" "$fm_src"
-assert_block "morpheus denied source in a plan directory set to src" \
-  "$HOOK" "$(payload_file morpheus src/app.ts)" "allowed paths" "$fm_src"
+assert_allow "lead allowed a plan in a plan directory set to src" \
+  "$HOOK" "$(payload_file lead src/plan-sso.md)" "$fm_src"
+assert_block "lead denied source in a plan directory set to src" \
+  "$HOOK" "$(payload_file lead src/app.ts)" "allowed paths" "$fm_src"
 
 # --- A `..` segment is refused for every lane agent -----------------------------
-assert_block "morpheus denied a '..' traversal out of .claude" \
-  "$HOOK" "$(payload_file morpheus .claude/../src/app.ts)" "'..' segment"
-assert_block "oracle denied a '..' traversal out of tests/" \
-  "$HOOK" "$(payload_file oracle tests/../src/foo.ts)" "'..' segment"
-assert_block "tank denied a '..' traversal (checked before any lane regime)" \
-  "$HOOK" "$(payload_file tank src/api/../web/page.ts)" "'..' segment"
-assert_block "morpheus denied a leading '..'" \
-  "$HOOK" "$(payload_file morpheus ../other/.claude/plan-x.md)" "'..' segment"
+assert_block "lead denied a '..' traversal out of .claude" \
+  "$HOOK" "$(payload_file lead .claude/../src/app.ts)" "'..' segment"
+assert_block "unit-tests denied a '..' traversal out of tests/" \
+  "$HOOK" "$(payload_file unit-tests tests/../src/foo.ts)" "'..' segment"
+assert_block "backend denied a '..' traversal (checked before any lane regime)" \
+  "$HOOK" "$(payload_file backend src/api/../web/page.ts)" "'..' segment"
+assert_block "lead denied a leading '..'" \
+  "$HOOK" "$(payload_file lead ../other/.claude/plan-x.md)" "'..' segment"
 assert_allow "'..' inside a filename is not a segment" \
-  "$HOOK" "$(payload_file morpheus .claude/plan-v1..2.md)"
+  "$HOOK" "$(payload_file lead .claude/plan-v1..2.md)"
 
 # --- Agents with no lane ------------------------------------------------------
-assert_allow "keymaker has no Edit/Write tool; the hook never fires for it" "$HOOK" "$(payload_file keymaker Foo.tsx)"
-assert_allow "seraph has no write lane restriction" "$HOOK" "$(payload_file seraph Foo.tsx)"
-assert_allow "neo (express) is unrestricted"        "$HOOK" "$(payload_file neo Foo.tsx)"
+assert_allow "debt-scout has no Edit/Write tool; the hook never fires for it" "$HOOK" "$(payload_file debt-scout Foo.tsx)"
+assert_allow "visual-review has no write lane restriction" "$HOOK" "$(payload_file visual-review Foo.tsx)"
+assert_allow "generalist (express) is unrestricted"        "$HOOK" "$(payload_file generalist Foo.tsx)"
 assert_allow "no agent_type is unrestricted"        "$HOOK" "$(jq -nc --arg f Foo.tsx '{tool_input: {file_path: $f}}')"
 
 # --- Same-language (Node) ambiguity, configured in .claude/crew.md ------------
@@ -128,36 +128,36 @@ frontendStack: nextjs
 backendLanePaths: unset
 frontendLanePaths: unset')"
 assert_block "frontmatter: node backend + frontend, no lane paths → fail closed" \
-  "$HOOK" "$(payload_file tank src/app.ts)" "can't tell them apart" "$fm_node_fe"
+  "$HOOK" "$(payload_file backend src/app.ts)" "can't tell them apart" "$fm_node_fe"
 
 fm_both="$(make_crew_md 'backendStack: node
 frontendStack: nextjs
 backendLanePaths: src/api
 frontendLanePaths: src/web')"
-assert_allow "frontmatter: tank allowed in its backend lane" \
-  "$HOOK" "$(payload_file tank src/api/handler.ts)" "$fm_both"
-assert_block "frontmatter: tank denied in the frontend lane" \
-  "$HOOK" "$(payload_file tank src/web/page.ts)" "out of" "$fm_both"
+assert_allow "frontmatter: backend allowed in its backend lane" \
+  "$HOOK" "$(payload_file backend src/api/handler.ts)" "$fm_both"
+assert_block "frontmatter: backend denied in the frontend lane" \
+  "$HOOK" "$(payload_file backend src/web/page.ts)" "out of" "$fm_both"
 
 fm_one="$(make_crew_md 'backendStack: node
 frontendStack: nextjs
 backendLanePaths: src/api
 frontendLanePaths: unset')"
 assert_block "frontmatter: only one lane path configured → fail closed" \
-  "$HOOK" "$(payload_file tank src/api/handler.ts)" "only one of" "$fm_one"
+  "$HOOK" "$(payload_file backend src/api/handler.ts)" "only one of" "$fm_one"
 
 # A quoted YAML scalar is the same value. Left unstripped it would build the glob
-# `"src/api"/**`, which matches nothing, so tank would be silently unconfined.
+# `"src/api"/**`, which matches nothing, so backend would be silently unconfined.
 fm_quoted="$(make_crew_md 'backendStack: node
 frontendStack: nextjs
 backendLanePaths: "src/api"
 frontendLanePaths: '"'"'src/web'"'"'')"
 # A .cs path is the discriminator here and in the two cases below: the extension
-# regime tank falls back to when a lane path is unreadable leaves .cs alone, so
+# regime backend falls back to when a lane path is unreadable leaves .cs alone, so
 # only a real lane blocks this. An unreadable lane path fails *open* — the glob
 # matches nothing, which reads as no lane at all.
-assert_block "frontmatter: quoted lane paths still confine tank" \
-  "$HOOK" "$(payload_file tank src/web/page.cs)" "out of" "$fm_quoted"
+assert_block "frontmatter: quoted lane paths still confine backend" \
+  "$HOOK" "$(payload_file backend src/web/page.cs)" "out of" "$fm_quoted"
 
 # A YAML inline comment is not part of the value. /crew:init writes none, but the
 # file is hand-editable.
@@ -166,7 +166,7 @@ frontendStack: nextjs
 backendLanePaths: src/api # the service
 frontendLanePaths: "src/web" # the app')"
 assert_block "frontmatter: an inline comment is not part of the lane path" \
-  "$HOOK" "$(payload_file tank src/web/page.cs)" "out of" "$fm_comment"
+  "$HOOK" "$(payload_file backend src/web/page.cs)" "out of" "$fm_comment"
 
 # ...but a `#` with no whitespace before it is an ordinary scalar character, so
 # the comment scan must anchor on the space rather than on the first `#`.
@@ -175,7 +175,7 @@ frontendStack: nextjs
 backendLanePaths: src/api#2
 frontendLanePaths: src/web#2')"
 assert_block "frontmatter: a bare # stays part of the lane path" \
-  "$HOOK" "$(payload_file tank 'src/web#2/page.cs')" "out of" "$fm_hash"
+  "$HOOK" "$(payload_file backend 'src/web#2/page.cs')" "out of" "$fm_hash"
 
 # Every slot at its `unset` placeholder is not configuration: the guard must fall
 # through to marker detection, not treat "unset" as a stack or a lane path.
@@ -184,9 +184,9 @@ frontendStack: unset
 backendLanePaths: unset
 frontendLanePaths: unset')"
 assert_block "frontmatter: unset placeholders fall through to extensions" \
-  "$HOOK" "$(payload_file tank Foo.tsx)" "out of" "$fm_unset"
-assert_allow "frontmatter: unset placeholders leave tank its own extensions" \
-  "$HOOK" "$(payload_file tank Foo.cs)" "$fm_unset"
+  "$HOOK" "$(payload_file backend Foo.tsx)" "out of" "$fm_unset"
+assert_allow "frontmatter: unset placeholders leave backend its own extensions" \
+  "$HOOK" "$(payload_file backend Foo.cs)" "$fm_unset"
 
 # The body below the frontmatter is free prose and may quote an example block —
 # /crew:init's own §1 does. A key matched there is not configuration.
@@ -201,23 +201,23 @@ frontendStack: nextjs
 backendLanePaths: src/api
 frontendLanePaths: src/web
 ```')"
-# Again .cs: a leaked frontendLanePaths would put src/web out of tank's reach,
-# while the extension regime the unset slots really mean leaves .cs to tank.
+# Again .cs: a leaked frontendLanePaths would put src/web out of backend's reach,
+# while the extension regime the unset slots really mean leaves .cs to backend.
 assert_allow "frontmatter: a slot quoted in the body is not read" \
-  "$HOOK" "$(payload_file tank src/web/handler.cs)" "$fm_body"
+  "$HOOK" "$(payload_file backend src/web/handler.cs)" "$fm_body"
 
-# dozer: playwright widens to tests/**, and the frontend lane confines it there.
+# e2e: playwright widens to tests/**, and the frontend lane confines it there.
 fm_dozer="$(make_crew_md 'frontendE2eTool: playwright
 frontendLanePaths: apps/web')"
-assert_allow "frontmatter: dozer allowed an e2e spec inside its frontend lane" \
-  "$HOOK" "$(payload_file dozer apps/web/tests/checkout.spec.ts)" "$fm_dozer"
-assert_block "frontmatter: dozer denied an e2e spec outside its frontend lane" \
-  "$HOOK" "$(payload_file dozer apps/api/tests/checkout.spec.ts)" "outside" "$fm_dozer"
+assert_allow "frontmatter: e2e allowed an e2e spec inside its frontend lane" \
+  "$HOOK" "$(payload_file e2e apps/web/tests/checkout.spec.ts)" "$fm_dozer"
+assert_block "frontmatter: e2e denied an e2e spec outside its frontend lane" \
+  "$HOOK" "$(payload_file e2e apps/api/tests/checkout.spec.ts)" "outside" "$fm_dozer"
 
 # --- Retired config locations are not read (5.0.0, #248) -----------------------
 # A legacy `## Crew configuration` block in CLAUDE.md and the `--local` crew.md in
 # the git dir both used to configure lanes. Neither may: each fixture below puts
-# src/web in tank's lane and src/api out of it, so if it were read tank's .tsx
+# src/web in backend's lane and src/api out of it, so if it were read backend's .tsx
 # under src/web would pass and its .cs under src/api would be blocked. The
 # extension regime's verdicts prove the file was ignored.
 stale_block="$(make_tree 'CLAUDE.md:- **Backend stack:** node
@@ -225,9 +225,9 @@ stale_block="$(make_tree 'CLAUDE.md:- **Backend stack:** node
 - **Backend lane path(s):** src/web
 - **Frontend lane path(s):** src/api')"
 assert_block "a legacy CLAUDE.md block no longer configures lanes" \
-  "$HOOK" "$(payload_file tank src/web/Foo.tsx)" "out of" "$stale_block"
-assert_allow "a legacy CLAUDE.md block no longer confines tank" \
-  "$HOOK" "$(payload_file tank src/api/Foo.cs)" "$stale_block"
+  "$HOOK" "$(payload_file backend src/web/Foo.tsx)" "out of" "$stale_block"
+assert_allow "a legacy CLAUDE.md block no longer confines backend" \
+  "$HOOK" "$(payload_file backend src/api/Foo.cs)" "$stale_block"
 
 local_clone="$(make_git_branch main)"
 printf '%s\n' '---
@@ -236,12 +236,12 @@ frontendStack: nextjs
 backendLanePaths: src/web
 frontendLanePaths: src/api
 ---' > "$local_clone/.git/crew.md"
-assert_allow "a crew.md in the git dir no longer confines tank" \
-  "$HOOK" "$(payload_file tank src/api/Foo.cs)" "$local_clone"
+assert_allow "a crew.md in the git dir no longer confines backend" \
+  "$HOOK" "$(payload_file backend src/api/Foo.cs)" "$local_clone"
 
 # --- Marker detection when the stacks are unset --------------------------------
 # With no .claude/crew.md, the guard walks the repo for markers to decide whether the
-# extension regime can separate tank from trinity at all. A miss there fails
+# extension regime can separate backend from frontend at all. A miss there fails
 # silently — the same-language guard just doesn't fire — so the probe needs its
 # own coverage rather than being inferred from the pinned-stack cases above.
 # "detected a Node backend" appears only in the ambiguity message, so asserting
@@ -249,14 +249,14 @@ assert_allow "a crew.md in the git dir no longer confines tank" \
 
 node_react="$(make_tree 'package.json:{"dependencies":{"express":"^4","react":"^18"}}')"
 assert_block "detected node backend + frontend → fail closed" \
-  "$HOOK" "$(payload_file tank src/app.ts)" "detected a Node backend" "$node_react"
+  "$HOOK" "$(payload_file backend src/app.ts)" "detected a Node backend" "$node_react"
 
-# Backend-only Node repo: tank owns the whole tree, trinity has no lane in it.
+# Backend-only Node repo: backend owns the whole tree, frontend has no lane in it.
 node_only="$(make_tree 'package.json:{"dependencies":{"fastify":"^4"}}')"
-assert_allow "tank owns a detected backend-only Node repo" \
-  "$HOOK" "$(payload_file tank src/app.ts)" "$node_only"
-assert_block "trinity has no lane in a detected backend-only Node repo" \
-  "$HOOK" "$(payload_file trinity src/app.ts)" "backend-only Node repo" "$node_only"
+assert_allow "backend owns a detected backend-only Node repo" \
+  "$HOOK" "$(payload_file backend src/app.ts)" "$node_only"
+assert_block "frontend has no lane in a detected backend-only Node repo" \
+  "$HOOK" "$(payload_file frontend src/app.ts)" "backend-only Node repo" "$node_only"
 
 # The package.json scan is workspace-aware — a nested backend still counts.
 workspace="$(make_tree \
@@ -264,20 +264,20 @@ workspace="$(make_tree \
   'apps/api/package.json:{"dependencies":{"koa":"^2"}}' \
   'apps/web/package.json:{"dependencies":{"next":"^14"}}')"
 assert_block "nested workspace backend + frontend → fail closed" \
-  "$HOOK" "$(payload_file tank apps/api/server.ts)" "detected a Node backend" "$workspace"
+  "$HOOK" "$(payload_file backend apps/api/server.ts)" "detected a Node backend" "$workspace"
 
 # A frontend also registers from a bare JSX/TSX file, with no framework dep.
 tsx_only="$(make_tree 'package.json:{"dependencies":{"hono":"^4"}}' 'src/App.tsx:export default null')"
 assert_block "a TSX file alone counts as a frontend marker" \
-  "$HOOK" "$(payload_file tank src/server.ts)" "detected a Node backend" "$tsx_only"
+  "$HOOK" "$(payload_file backend src/server.ts)" "detected a Node backend" "$tsx_only"
 
 # A .NET project means extensions *can* tell the lanes apart, so the ambiguity
 # guard must stay quiet even with a Node backend alongside it.
 mixed="$(make_tree 'Api.csproj:<Project />' 'package.json:{"dependencies":{"express":"^4","react":"^18"}}')"
-assert_block "dotnet present → extension regime denies tank a .tsx" \
-  "$HOOK" "$(payload_file tank src/App.tsx)" "out of" "$mixed"
-assert_allow "dotnet present → extension regime allows tank a .cs" \
-  "$HOOK" "$(payload_file tank Api/Foo.cs)" "$mixed"
+assert_block "dotnet present → extension regime denies backend a .tsx" \
+  "$HOOK" "$(payload_file backend src/App.tsx)" "out of" "$mixed"
+assert_allow "dotnet present → extension regime allows backend a .cs" \
+  "$HOOK" "$(payload_file backend Api/Foo.cs)" "$mixed"
 
 # One fixture per entry in the hook's framework allowlists: dropping an entry
 # turns a silent detection gap into a failing assertion here.
@@ -285,14 +285,14 @@ for fw in @nestjs/core @nestjs/common express fastify koa @hapi/hapi hapi \
           @feathersjs/feathers restify @adonisjs/core hono elysia @trpc/server; do
   dir="$(make_tree "package.json:{\"dependencies\":{\"$fw\":\"^1\",\"react\":\"^18\"}}")"
   assert_block "backend framework '$fw' is detected" \
-    "$HOOK" "$(payload_file tank src/app.ts)" "detected a Node backend" "$dir"
+    "$HOOK" "$(payload_file backend src/app.ts)" "detected a Node backend" "$dir"
 done
 
 for fw in react react-dom next nuxt vue svelte @sveltejs/kit @angular/core \
           solid-js preact astro gatsby @remix-run/react react-router @builder.io/qwik; do
   dir="$(make_tree "package.json:{\"dependencies\":{\"express\":\"^4\",\"$fw\":\"^1\"}}")"
   assert_block "frontend framework '$fw' is detected" \
-    "$HOOK" "$(payload_file tank src/app.ts)" "alongside a frontend" "$dir"
+    "$HOOK" "$(payload_file backend src/app.ts)" "alongside a frontend" "$dir"
 done
 
 # --- Detection is cached per session_id ----------------------------------------
@@ -310,14 +310,14 @@ payload_session() {
 sid="crew-lane-guard-test-$$"
 
 assert_block "first call probes the tree and caches the verdict" \
-  "$HOOK" "$(payload_session tank Foo.cs "$sid")" "detected a Node backend" "$node_react"
+  "$HOOK" "$(payload_session backend Foo.cs "$sid")" "detected a Node backend" "$node_react"
 # Same session, an empty cwd with no markers of its own: still blocked, which is
 # only possible from the cached verdict.
 assert_block "the cached verdict is reused for the same session" \
-  "$HOOK" "$(payload_session tank Foo.cs "$sid")" "detected a Node backend"
+  "$HOOK" "$(payload_session backend Foo.cs "$sid")" "detected a Node backend"
 # A different session re-probes, so the empty cwd falls back to extensions and
-# .cs is tank's own lane.
+# .cs is backend's own lane.
 assert_allow "a different session re-probes instead of reusing the cache" \
-  "$HOOK" "$(payload_session tank Foo.cs "$sid-other")"
+  "$HOOK" "$(payload_session backend Foo.cs "$sid-other")"
 
 finish

@@ -27,7 +27,7 @@ claude plugin install crew@zion
 
 | Plugin | Status | What it does | Adds to your session |
 |---|---|---|---|
-| **[crew](plugins/crew/README.md)** | Stable | Orchestrated, multi-agent feature delivery: a captain (`morpheus`) plans the work and delegates to backend, client-facing, test, and visual-review specialists across .NET, Node and shell, with a consolidated review gate before anything ships. | `/crew:*` commands, agents, safety hooks, skills |
+| **[crew](plugins/crew/README.md)** | Stable | Orchestrated, multi-agent feature delivery: a captain (`lead`) plans the work and delegates to backend, client-facing, test, and visual-review specialists across .NET, Node and shell, with a consolidated review gate before anything ships. | `/crew:*` commands, agents, safety hooks, skills |
 | **[optimizely](plugins/optimizely/README.md)** | Beta | Optimizely product knowledge, one skill per product: CMS 12 and 13 today; SaaS CMS, Graph, Search & Navigation, Commerce, ODP, OCP, Opal and Experimentation to follow. | Skills |
 
 ## Requirements
@@ -62,7 +62,7 @@ Alternatively, install from the UI: run `/plugin` in Claude Code and browse to
 ### crew — build a feature
 
 ```bash
-claude --agent crew:morpheus     # dedicated orchestration session, just describe the feature
+claude --agent crew:lead     # dedicated orchestration session, just describe the feature
 ```
 
 or, from a normal session:
@@ -76,7 +76,7 @@ or, from a normal session:
 /crew:triage <signal>      # a bug report, trace, or alert -> the code and the suspect commits
 ```
 
-`morpheus` presents its plan before building, commits each verified step to a
+`lead` presents its plan before building, commits each verified step to a
 feature branch, and runs workers in the background so you can keep talking to it
 mid-flight. Nothing is pushed and no PR is opened until you say so.
 
@@ -90,7 +90,7 @@ mid-flight. Nothing is pushed and no PR is opened until you say so.
 /crew:audit <scope>                         # read-only scout: returns ready-to-paste pointers
 ```
 
-In a `claude --agent crew:morpheus` session, just name the pointer.
+In a `claude --agent crew:lead` session, just name the pointer.
 
 Each fix is classified, gated on its blast radius, fixed in verified batches,
 and committed per batch. The deleted suppression makes the analyzer itself the
@@ -128,12 +128,12 @@ Everything here is named from *The Matrix*. **Zion** is humanity's last city —
 that houses the resistance, and a fitting name for a marketplace of crews. The agents are
 mapped loosely to what they do:
 
-- **morpheus** — the captain: plans and leads, writes no code himself (crew orchestrator).
-- **neo** — "The One," not bound to a single role: the generalist who takes the express lane for small fixes.
-- **tank** & **dozer** — the operators: **tank** runs the backend, **dozer** runs the e2e tests.
-- **trinity** — the hacker on point: the client-facing layer.
-- **oracle** — sees what will and won't hold up: the unit tests (backend, plus frontend component tests).
-- **seraph** — the guardian who knows you by testing you ("you do not truly know someone until you fight them"): visual design conformance.
-- **sentinel** — the machines' search unit, hunting through the dark: post-merge triage, tracking a production signal back to the commit that caused it.
+- **lead** — the captain: plans and leads, writes no code himself (crew orchestrator).
+- **generalist** — "The One," not bound to a single role: the generalist who takes the express lane for small fixes.
+- **backend** & **e2e** — the operators: **backend** runs the backend, **e2e** runs the e2e tests.
+- **frontend** — the hacker on point: the client-facing layer.
+- **unit-tests** — sees what will and won't hold up: the unit tests (backend, plus frontend component tests).
+- **visual-review** — the guardian who knows you by testing you ("you do not truly know someone until you fight them"): visual design conformance.
+- **incident-triage** — the machines' search unit, hunting through the dark: post-merge triage, tracking a production signal back to the commit that caused it.
 
 </details>

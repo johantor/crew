@@ -497,8 +497,8 @@ done < <(git ls-files 'plugins/*/.claude-plugin/plugin.json')
 
 while IFS= read -r doc; do
   # A leading delimiter stands in for `\b`, which is a GNU extension (AGENTS.md:
-  # stay BSD/macOS-portable); sed drops it again. Without it, `xcrew:tank` would
-  # match the `crew:tank` inside it.
+  # stay BSD/macOS-portable); sed drops it again. Without it, `xcrew:backend` would
+  # match the `crew:backend` inside it.
   # `|| true`: grep's exit 1 on no match would abort the run under `set -e`.
   refs="$(grep -ohE '(^|[^A-Za-z0-9_-])('"$(echo "$plugin_names" | tr -s ' ' '|' | sed 's/^|//; s/|$//')"'):[a-z][a-z0-9-]*' "$doc" 2>/dev/null \
     | sed 's/^[^A-Za-z]//' | sort -u || true)"
@@ -669,7 +669,7 @@ mcp_connector_only=" claude_ai_Figma Figma claude_ai_GitHub GitHub claude_ai_Lin
 # list the agents here use, or a `  - name` block list. Reading only the inline
 # form would let a list-form `tools:` skip this section silently.
 #
-# `Agent(crew:tank, crew:trinity)` splits across commas too; those fragments
+# `Agent(crew:backend, crew:frontend)` splits across commas too; those fragments
 # aren't MCP entries, and the `mcp__` filter below drops them.
 agent_tools_entries() {
   awk '

@@ -1,6 +1,6 @@
 ---
 name: review-gate
-description: "How the crew runs a build, test or lint gate: one build location with one writer at a time, one-shot bounded commands, full strictness with warnings as findings, contention told from a code failure, findings routed to the implementer. Preloaded by morpheus and loaded by /crew:review, so the rules hold whichever of the two dispatches the gate. Not for standalone use."
+description: "How the crew runs a build, test or lint gate: one build location with one writer at a time, one-shot bounded commands, full strictness with warnings as findings, contention told from a code failure, findings routed to the implementer. Preloaded by lead and loaded by /crew:review, so the rules hold whichever of the two dispatches the gate. Not for standalone use."
 ---
 
 # Review gate rules
@@ -17,7 +17,7 @@ description: "How the crew runs a build, test or lint gate: one build location w
    the tree check and the flags — and stay serial if it cannot be loaded or has no recipe (today
    `backend-dotnet` and `backend-node` have one). When its conditions hold, dispatch the gates
    together, each with what its recipe needs in its handoff (a `<location>/<lane>/<gate>` path,
-   the exact flags, `nocache` on the runner), `oracle`'s included — a worker that did not load
+   the exact flags, `nocache` on the runner), `unit-tests`'s included — a worker that did not load
    the stack skill cannot derive them. Record the tree-check result with the gate's outcome. Require the location **isolated from any running
    app/dev process** so builds can't contend on locked `bin`/`obj`, `dist`, bundler caches; an
    e2e suite's command owns its own server lifecycle instead.

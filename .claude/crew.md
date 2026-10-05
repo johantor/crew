@@ -26,8 +26,8 @@ in the root [AGENTS.md](../AGENTS.md), *Validating changes*: the validator, the 
 the hook tests, and shellcheck.
 
 The stack, mode, and lane-path slots stay `unset` because there is no app stack to resolve; a
-task that genuinely needs one lets `morpheus` resolve it per run, as in any project. `baseBranch`
-and `branchNaming` stay `unset` for the same reason they always were — `morpheus` resolves them
+task that genuinely needs one lets `lead` resolve it per run, as in any project. `baseBranch`
+and `branchNaming` stay `unset` for the same reason they always were — `lead` resolves them
 per session and remembers.
 
 `planDirectory` is `unset`, so plans land in the `.claude/` fallback, which this repo does not
