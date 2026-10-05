@@ -75,9 +75,11 @@ cannot show that `/crew:init` detected a stack or that a worker loaded a skill.
   `optimizely-cms13`; a task to move 12 to 13 also loads `optimizely-cms-upgrade`. (#272: each
   run cited `Site.csproj`'s `EPiServer.CMS` version and loaded only the matching skill; the
   upgrade run's plan followed the upgrade skill's steps.)
-- [ ] **A Graph marker loads the Graph skill** — a dotnet scratch repo with `EPiServer.CMS` `13.*`
+- [x] **A Graph marker loads the Graph skill** — a dotnet scratch repo with `EPiServer.CMS` `13.*`
   and `Optimizely.Graph.Cms` → `backend` loads `optimizely-cms13` and `optimizely-graph`; a
   headless Next.js repo that queries `cg.optimizely.com` → `frontend` loads `optimizely-graph`.
+  (#288: `backend` cited both `Site.csproj` lines; `frontend` cited the gateway URL in
+  `lib/graph.ts`, and skipped the skill before `frontend-headless` named the markers.)
 - [x] **A worker's tool calls arrive namespaced** — a `crew:backend` dispatch's Bash call carries
   `agent_type: crew:backend`, a project agent `.claude/agents/backend.md` carries `backend` and
   runs `git status` unrefused. (#272, observed through a logging `PreToolUse` hook.)
