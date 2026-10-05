@@ -1,7 +1,7 @@
 ---
 frontendMode: unset
-backendStack: unset
-frontendStack: unset
+backendStack: shell
+frontendStack: none
 frontendE2eTool: unset
 frontendUnitTestTool: unset
 backendLanePaths: unset
@@ -13,7 +13,7 @@ frontendBuildCommand: none
 backendLintCommand: none
 frontendLintCommand: none
 formatMatrix: none
-baseBranch: unset
+baseBranch: main
 branchNaming: unset
 runUrl: none
 planDirectory: unset
@@ -25,10 +25,9 @@ slot is `none` and the matching `/crew:review` gates skip rather than fail. `for
 in the root [AGENTS.md](../AGENTS.md), *Validating changes*: the validator, the changelog gate,
 the hook tests, and shellcheck.
 
-The stack, mode, and lane-path slots stay `unset` because there is no app stack to resolve; a
-task that genuinely needs one lets `lead` resolve it per run, as in any project. `baseBranch`
-and `branchNaming` stay `unset` for the same reason they always were — `lead` resolves them
-per session and remembers.
+`backendStack` is `shell` and `frontendStack` is `none`: the hooks and scripts are the
+deliverable, and there is no view. Mode and lane-path slots stay `unset` because nothing needs
+them. `baseBranch` is `main`; `branchNaming` stays `unset`, so `lead` asks once per run.
 
 `planDirectory` is `unset`, so plans land in the `.claude/` fallback, which this repo does not
 track.

@@ -43,21 +43,25 @@ small task.
 ### Stack resolution
 
 These are prompt behavior, so they need a scratch repo and an observed run — a structural check
-cannot show that `lead` resolved a stack or that a worker loaded a skill.
+cannot show that `/crew:init` detected a stack or that a worker loaded a skill.
 
-- [ ] **Each backend stack resolves and loads its pair** — a scratch repo carrying only that
-  stack's marker (`*.csproj` / a `package.json` with a server framework / `*.sh` with no other
-  marker) → `lead` resolves the stack without asking, and the dispatch names
-  `backend-<stack>` for `backend` and the matching `tests-*` for `unit-tests`.
-- [ ] **An unsupported stack stops** — a scratch repo with only `go.mod` → `lead` says the
-  stack is unsupported rather than guessing one. The same for a stale pin
-  (`backendStack: python` in `.claude/crew.md`): `lead` stops and points to `/crew:init`.
-- [ ] **Two backend markers ask** — `*.csproj` **and** a server `package.json` → `lead` asks
-  which is the backend rather than breaking the tie.
+- [ ] **Each backend stack is detected by init and loads its pair** — a scratch repo carrying
+  only that stack's marker (`*.csproj` / a `package.json` with a server framework / `*.sh` with
+  no other marker) → `/crew:init` proposes the stack; after confirming, a `/crew:feature`
+  dispatch names `backend-<stack>` for `backend` and the matching `tests-*` for `unit-tests`.
+- [ ] **An unsupported stack stops** — a scratch repo with only `go.mod` → `/crew:init` says the
+  stack is unsupported rather than proposing one. A stale pin (`backendStack: python`) → init
+  reports it as unsupported, and `lead` stops naming `/crew:init`.
+- [ ] **Two backend markers ask** — `*.csproj` **and** a server `package.json` → `/crew:init`
+  asks which is the backend rather than breaking the tie.
+- [x] **An unset stack stops the run** — no `.claude/crew.md`, `/crew:feature <task>` →
+  `lead` stops with one line naming `/crew:init` before any branch or delegation; a
+  `crew:backend` edit in the same repo is refused by `lane-guard` with the same name. (#269: the
+  run ended on `main` with no branch, plan or worker; the worker's hand-back quoted the
+  refusal and ended `remaining: … blocked until /crew:init has run`.)
 - [ ] **`frontendStack: none` suppresses the frontend half** — a shell or CLI scratch repo with
   `frontendStack: none` in `.claude/crew.md` → `lead` asks nothing about frontend mode, e2e
-  tool or unit test tool, and dispatches only `backend`/`unit-tests`. With the slot **unset** instead it
-  does ask — that difference is the whole point of the value.
+  tool or unit test tool, and dispatches only `backend`/`unit-tests`.
 
 ### Review gate
 

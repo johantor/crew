@@ -5,28 +5,37 @@ All notable changes to the `crew` plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [8.0.0] - 2026-10-05
+## [9.0.0] - 2026-10-05
 
 ### Changed
 
 - **Breaking:** agents use role names: `morpheus` → `lead`, `tank` → `backend`, `trinity` →
   `frontend`, `oracle` → `unit-tests`, `dozer` → `e2e`, `seraph` → `visual-review`, `neo` →
   `generalist`, `sentinel` → `incident-triage`, `keymaker` → `debt-scout`. Start the crew with
-  `claude --agent crew:lead`; agent memory saved under an old name is not carried over.
+  `claude --agent crew:lead`; agent memory saved under an old name is not carried over (#272).
 
-## [7.1.0] - 2026-10-05
+## [8.1.0] - 2026-10-05
 
 ### Changed
 
 - `cms-optimizely` is replaced by full `optimizely-cms12` and `optimizely-cms13` skills, the
-  first of one skill per Optimizely product.
+  first of one skill per Optimizely product (#271).
 
-## [7.0.0] - 2026-10-05
+## [8.0.0] - 2026-10-05
 
 ### Removed
 
 - **Breaking:** the Python, Go, Rust and Java stacks (`backend-*` and `tests-*` skills); the
-  crew now targets .NET with Optimizely, Node and shell, and stops on other stacks.
+  crew now targets .NET with Optimizely, Node and shell, and stops on other stacks (#270).
+
+## [7.0.0] - 2026-10-05
+
+### Changed
+
+- **Breaking:** `/crew:init` is the only detector. `morpheus` reads `.claude/crew.md` and stops
+  on an `unset` slot a step needs, naming `/crew:init`; memory no longer holds config (#269).
+- **Breaking:** `lane-guard.sh` probes no repo markers; `tank`/`trinity` are refused while
+  `backendStack` is `unset`. The framework allowlists and the per-session cache are gone (#269).
 
 ## [6.0.0] - 2026-10-05
 
