@@ -16,6 +16,13 @@ backendLanePaths: unset
 frontendLanePaths: unset')"
 assert_block "tank refused while backendStack is unset" \
   "$HOOK" "$(payload_file tank Foo.cs)" "Run /crew:init" "$fm_unset"
+# Lane paths alone do not stand in for the stack: the refusal comes first.
+fm_paths_only="$(make_crew_md 'backendStack: unset
+frontendStack: unset
+backendLanePaths: src/api
+frontendLanePaths: src/web')"
+assert_block "tank refused with lane paths but no backendStack" \
+  "$HOOK" "$(payload_file tank src/api/Foo.cs)" "Run /crew:init" "$fm_paths_only"
 # oracle's lane is the union of test conventions and needs no stack.
 assert_allow "oracle keeps its lane with no .claude/crew.md" "$HOOK" "$(payload_file oracle src/foo.test.ts)"
 

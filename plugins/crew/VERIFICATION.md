@@ -55,9 +55,11 @@ cannot show that `/crew:init` detected a stack or that a worker loaded a skill.
   since Kotlin, Scala and Android carry the same marker.
 - [ ] **Two backend markers ask** — `pyproject.toml` **and** `go.mod` → `/crew:init` asks which
   is the backend rather than breaking the tie.
-- [ ] **An unset stack stops the run** — no `.claude/crew.md`, `/crew:feature <task>` →
+- [x] **An unset stack stops the run** — no `.claude/crew.md`, `/crew:feature <task>` →
   `morpheus` stops with one line naming `/crew:init` before any branch or delegation; a
-  `crew:tank` edit in the same repo is refused by `lane-guard` with the same name.
+  `crew:tank` edit in the same repo is refused by `lane-guard` with the same name. (#269: the
+  run ended on `main` with no branch, plan or worker; the worker's hand-back quoted the
+  refusal and ended `remaining: … blocked until /crew:init has run`.)
 - [ ] **`frontendStack: none` suppresses the frontend half** — a shell or CLI scratch repo with
   `frontendStack: none` in `.claude/crew.md` → `morpheus` asks nothing about frontend mode, e2e
   tool or unit test tool, and dispatches only `tank`/`oracle`.

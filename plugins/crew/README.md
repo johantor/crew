@@ -332,12 +332,10 @@ Local agent memory is git-ignored (`.claude/agent-memory-local/`).
 **In a git worktree, only committed files outlive the worktree.** Local memory and plans both
 resolve relative to the project directory — memory at `.claude/agent-memory-local/`, plans at the
 **Plan directory** slot or `.claude/` when it is unset — so they sit inside the worktree, and
-`git worktree remove` deletes those copies. Memory is git-ignored by design, so it goes for good:
-the next worktree starts cold and asks you again for settings the last one resolved, where the same
-session in the main checkout would have kept them. Keep what must persist in git: run `/crew:init`
-so the configuration slots live in `.claude/crew.md`, and point **Plan directory** at a tracked path
-(e.g. `docs/plans/`) so a plan you commit lands on the branch instead of in the untracked
-`.claude/` fallback.
+`git worktree remove` deletes those copies. Configuration is never in memory: it lives in
+`.claude/crew.md`, which is committed and travels with the branch. Point **Plan directory** at a
+tracked path (e.g. `docs/plans/`) so a plan you commit lands on the branch instead of in the
+untracked `.claude/` fallback.
 
 ## Contributing
 

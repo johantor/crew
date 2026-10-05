@@ -106,7 +106,10 @@ case "$agent_type" in
     frontend_lane="$(config_slot frontendLanePaths)"
     backend_stack="$(config_slot backendStack)"
     frontend_stack="$(config_slot frontendStack)"
-    if [ -n "$backend_lane" ] && [ -n "$frontend_lane" ]; then
+    if [ -z "$backend_stack" ]; then
+      echo "Blocked: Backend stack is not configured, so ${agent_type} has no lane. Run /crew:init before delegating." >&2
+      exit 2
+    elif [ -n "$backend_lane" ] && [ -n "$frontend_lane" ]; then
       # Route handlers live in the frontend tree but are tank's by concern.
       route_handlers='app/**/route.ts app/**/route.js pages/api/**'
       mode="--deny"
@@ -118,9 +121,6 @@ case "$agent_type" in
       fi
     elif [ -n "$backend_lane" ] || [ -n "$frontend_lane" ]; then
       echo "Blocked: only one of Backend lane path(s) / Frontend lane path(s) is configured. Set both in .claude/crew.md (see /crew:init) before delegating." >&2
-      exit 2
-    elif [ -z "$backend_stack" ]; then
-      echo "Blocked: Backend stack is not configured, so ${agent_type} has no lane. Run /crew:init before delegating." >&2
       exit 2
     elif [ "$backend_stack" = "node" ] && [ -n "$frontend_stack" ]; then
       echo "Blocked: backend stack is node — tank and trinity can both touch .ts/.js files, so extension-based lanes can't tell them apart. Set Backend lane path(s) / Frontend lane path(s) in .claude/crew.md (see /crew:init) before delegating." >&2
