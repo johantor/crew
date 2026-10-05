@@ -7,7 +7,8 @@ description: .NET backend stack conventions — MVC controllers, Razor server-si
 
 You are working in a .NET backend: C#, ASP.NET MVC controllers, and the server-side of Razor
 views. If the project uses Optimizely, load the `optimizely-<product>` skills whose markers it
-carries: `optimizely-cms12` for an `EPiServer.CMS*` reference (plus `optimizely-cms13` at 13.x).
+carries: `optimizely-cms12` or `optimizely-cms13` by the `EPiServer.CMS*` version, plus
+`optimizely-cms-upgrade` when the task is moving 12 to 13.
 Each product skill names its own markers and neighbours.
 
 ## Crew config

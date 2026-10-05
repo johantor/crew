@@ -61,8 +61,8 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
     resolution and dispatches only `backend`/`unit-tests`. That gate sits above the resolution table.
   - Optimizely: one `optimizely-<product>` skill per product, sections in order **Detect**
     (markers and neighbour skills), the product's own patterns, **Security**, **Testing**,
-    **Deploy and verify**, **Sources** (the docs URL). Each states only what differs for its
-    product; `optimizely-cms13` lists changes from 12 and loads with `optimizely-cms12`. Facts
+    **Deploy and verify**, **Sources** (the docs URL). Each product skill stands alone, so one
+    load covers it; a migration between versions is its own skill (`optimizely-cms-upgrade`). Facts
     come from docs.optimizely.com: re-check a skill's sources when you touch it.
 - `hooks/` — wired in `hooks/hooks.json`, the one copy; in this repo they load through
   `claude --plugin-dir plugins/crew`. `bash-safety` and `lane-guard` fail closed; `read-guard`, `format`,
