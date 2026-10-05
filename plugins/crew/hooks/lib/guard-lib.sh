@@ -488,12 +488,9 @@ guard_block_protected_branch_commit() {
 # slot. It is the only location: the `--local` file and the legacy `CLAUDE.md`
 # block went in 5.0.0 (#248). Read by lane-guard (lanes) and format (the matrix).
 
-# guard_config_load -- slurp the frontmatter into $_cfg_text, once, in the
-# PARENT shell. Callers invoke config_slot/config_block as `$(...)`, so a lazy
-# load inside them would happen in a subshell and be discarded before the next
-# call. Narrowed to the frontmatter here: the body below it is free prose and may
-# quote an example block (as /crew:init's own §1 does), and a key read from
-# there is not a value anyone configured.
+# guard_config_load -- the frontmatter into $_cfg_text, once, in the PARENT
+# shell (config_slot runs in `$(...)`, so a lazy load would be discarded). The
+# body is prose and may quote an example block, so only the frontmatter counts.
 guard_config_load() {
   local _cfg_raw="" _cfg_line _cfg_first=1
   _cfg_text=""
@@ -524,11 +521,8 @@ config_slot() {
       *) continue ;;
     esac
     v="${v#"${v%%[![:space:]]*}"}"       # trim leading whitespace
-    # A YAML scalar may be quoted, and an unquoted one ends at a `#` that follows
-    # whitespace (a `#` with no space before it is part of the scalar). Unwrap
-    # before scanning for the comment, so a `#` inside quotes stays in the value.
-    # Left in place, either would build a lane glob matching nothing -- which
-    # reads as "no lane" and widens the agent silently, rather than failing closed.
+    # Unwrap quotes, then drop a ` #` comment: either left in place builds a lane
+    # glob that matches nothing, which reads as "no lane" and widens the agent.
     case "$v" in
       '"'*) v="${v#\"}"; v="${v%%\"*}" ;;
       "'"*) v="${v#\'}"; v="${v%%\'*}" ;;
@@ -545,10 +539,9 @@ config_slot() {
   esac
 }
 
-# config_block <frontmatter-key> -- the lines of a block scalar (`key: |`), one
-# per line with their indentation, blank lines and `#` comments dropped. A scalar
-# value (`none`, `unset`, anything else) is not a block -> nothing. The block
-# ends at the first non-indented line, which is the next key.
+# config_block <frontmatter-key> -- the lines of a block scalar (`key: |`),
+# indentation, blank lines and `#` comments dropped; a scalar value is not a
+# block -> nothing.
 config_block() {
   local line in_block=0
   [ -n "${_cfg_text:-}" ] || return 0
