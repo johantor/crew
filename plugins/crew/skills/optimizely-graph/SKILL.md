@@ -74,10 +74,9 @@ CMS 12. The content model that feeds it belongs to `optimizely-cms12`, `optimize
   `GraphQueryBuilder` (`Optimizely.Graph.Client`: `.ForType<T>().Fields(...).Where(...)
   .GetResultAsync<T>()`); keep it working, but do not add new uses. A query that must survive
   the upgrade to 13 is plain GraphQL, rewritten for the unified schema at that point.
-- Search & Navigation (`EPiServer.Find*`) code maps to the CMS 13 SDK: `Search<T>` →
-  `QueryContent<T>`, `For` → `SearchFor`, `Filter` → `Where`, `Take` → `Limit`, `GetResult()` →
-  `await GetAsContentAsync()`, `TotalMatching` → `Total`. Inside the site, `IContentLoader` is
-  still the way to read a known item.
+- Moving Search & Navigation (`EPiServer.Find*`) code to Graph: `optimizely-search-navigation`
+  has the steps and the API mapping. Inside the site, `IContentLoader` is still the way to read
+  a known item.
 
 ## Headless front ends
 

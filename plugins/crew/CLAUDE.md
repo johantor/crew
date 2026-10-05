@@ -63,7 +63,8 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
   - Optimizely: one `optimizely-<product>` skill per product, sections in order **Detect**
     (markers and neighbour skills), the product's own patterns, **Security**, **Testing**,
     **Deploy and verify**, **Sources** (the docs URL). Each product skill stands alone, so one
-    load covers it; a migration between versions is its own skill (`optimizely-cms-upgrade`). Facts
+    load covers it; a migration between versions is its own skill (`optimizely-cms-upgrade`), a
+    move off a product stays in that product's skill (`optimizely-search-navigation` → Graph). Facts
     come from docs.optimizely.com: re-check a skill's sources when you touch it. Name a
     neighbour skill only once it ships; a missing skill makes the `Skill` call fail.
     `optimizely-graph` and `optimizely-cms-saas` are the ones a non-.NET worker loads:
