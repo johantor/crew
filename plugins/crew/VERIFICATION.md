@@ -67,6 +67,15 @@ cannot show that `morpheus` resolved a stack or that a worker loaded a skill.
   as *lane untouched*; `/crew:review full` forces every gate.
 - [ ] **A zero-file lint is not clean** — a lint command that exits 0 but reports zero files
   checked → the lint gate shows ❌ (*zero files checked*) and the review is **NO-GO**.
+- [x] **Format matrix from init** — a scratch repo with a `.prettierrc` and a fake
+  `node_modules/.bin/prettier` that logs its calls, `/crew:init` → the proposed `formatMatrix`
+  has a `. ts node_modules/.bin/prettier --write {file}` row; after confirming, a `tank` edit
+  of a `.ts` file lands in the fake's log as `--write src/a.ts`. Set the slot to `none` → the
+  same edit logs nothing. (#268: init proposed exactly that row; the `crew:tank` edit logged
+  `--write src/a.ts`. Before the `agent_type` fix in the same PR the hook never ran.)
+- [x] **A stale matrix nudges** — remove `node_modules/.bin/prettier` → `tank`'s hand-back
+  carries `format hook: prettier not found … run /crew:init` verbatim. (#268: the hand-back
+  quoted the line and ended `remaining: … The format matrix still needs /crew:init`.)
 - [ ] **.NET gates in parallel on split paths** — a .NET diff that triggers backend tests, build,
   and lint → the session's first run is serial and passes the tree check; the next run dispatches
   the three together, each handoff (`oracle`'s too) naming its own `<location>/backend/<gate>`

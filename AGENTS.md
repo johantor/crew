@@ -251,7 +251,7 @@ new or renamed skill file before running the validator.
 `plugins/<plugin>/tests/` is a bash suite — `jq` and `git` only, no LLM, no network — exercising
 the hooks' behavior: each guard is a pure `stdin JSON → exit 0/2` function. The harness lives
 once in `tests/hooks/`; `run.sh` discovers every suite and **fails when a plugin ships `hooks/`
-with no suite beside it**. `format.sh` is covered through faked formatters in `node_modules/.bin`. **A change to a guard's logic adds or adjusts a
+with no suite beside it**. `format.sh` is covered through a fixture `formatMatrix` whose rows name faked tools. **A change to a guard's logic adds or adjusts a
 case, covering both the allow and the block side.**
 
 The suite also self-tests the validator: **every section carries a negative fixture and a silent
@@ -380,6 +380,30 @@ was widened once and reverted, and the hooks point here so it is not tried a thi
   `..`), so the rename stays in the tree it was dispatched to (#249, #263). Open gaps: no lane
   guard sees a `git mv`, so `morpheus` checks renames in the staged diff; a cwd a worker moved
   with an earlier `cd` call is not checked.
+
+### Why `format.sh` runs a matrix and detects nothing
+
+Until 6.0.0 the hook decided per edit which formatter a project had chosen: nearest config up
+the tree, a `[tool.ruff.format]` section, a Cargo edition from the owning manifest, gofumpt out
+of golangci YAML, Spotless across build files. That was 340 lines of detection with two awk
+parsers, and every stack added a lane with fixtures. The question it answered is a property of
+the project that a human confirms once, so it moved to `/crew:init`: the stack skills say what
+to propose, init proposes rows, the user confirms, and the hook only runs them. Consequences:
+
+- **No fallback.** A missing slot, `none` or `unset` means per-edit formatting is off and the
+  lint gate catches the result. Keeping detection as a fallback would keep the 340 lines.
+- **Staleness has two signals, neither a scan.** A tool that is gone exits 127, which the hook
+  reports with a `/crew:init` nudge the worker hands back; a config that is new fails the lint
+  gate on formatting alone, which `review-gate` reports as a stale matrix. `morpheus` never
+  walks the tree for formatter configs: that list belongs in `init.md` only.
+- **A row is a command string run from a committed file on every edit.** The same trust posture
+  as the gate's test command slot (`scripts/gate.sh` runs one with `bash -c` too).
+- **Accepted gaps.** Rows are inclusive, so a path black would exclude needs no row rather than a
+  row that reformats it; a Rust edition is a row per crate, so a workspace mixing editions
+  without crate rows formats on the default; only a standalone tool exits 127, so a wrapper
+  whose subcommand is gone (`dotnet csharpier`) reads as a failure and the lint gate carries
+  the stale-matrix report; a directory is single-quoted when it holds a space, and one holding
+  a quote has no row.
 
 ## Recurring review findings — apply proactively
 

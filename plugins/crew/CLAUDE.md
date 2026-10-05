@@ -78,15 +78,18 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
     `plan-*.md`, `debt-*.md`, `crew.md`, `agent-memory-local/*.md` — plus scratch; no directory to
     anchor, no plan-directory slot read (AGENTS.md, "Why `morpheus` is lane-guarded"). The
     four lane workers get their lanes below. A `..` segment is refused for every lane agent.
-    The only hook that reads crew config: `.claude/crew.md` frontmatter by key, nothing else.
-    Loaded once in the parent shell, since `config_slot` runs in `$(...)`.
+    Reads crew config through `guard_config_load` (`.claude/crew.md` frontmatter by key,
+    nothing else), called in the parent shell since `config_slot` runs in `$(...)`.
   - Roster shape: `# crew-roster: <name>` then an `a|b|c)` arm, in `bash-safety.sh` and
     `lane-guard.sh`; §9 keeps both in lockstep with `owns-git`/`lane-guarded` frontmatter.
-  - `format.sh`: six lanes by extension, each under `CREW_FORMAT_TIMEOUT` (default 20s,
-    unbounded without `timeout`/`gtimeout`). `dotnet`/`web` use project tools and root config
-    only (a nested `.prettierrc` is missed); `python`/`go`/`rust`/`java` use `PATH` tools and
-    `find_up` config bounded at the project root. `.sh`/`.bats` are unowned. Single-file
-    formatters only; whole-project ones belong to the review gate.
+  - `format.sh`: a runner over the `formatMatrix` block (`config_block`), no detection. Every
+    row `<dir> <extensions> <command>` matching the edited file runs in order from `<dir>` via
+    `bash -c`, `{file}` single-quoted and relative to `<dir>`, under `CREW_FORMAT_TIMEOUT`
+    (default 20s, unbounded without `timeout`/`gtimeout`). Exit 127 reports the tool as gone
+    with a `/crew:init` nudge, returned as PostToolUse `additionalContext` on stdout since
+    stderr at exit 0 never reaches the model; no matrix, `none` or `unset` is silent. Single-file formatters
+    only; whole-project ones belong to the review gate (AGENTS.md, "Why `format.sh` runs a
+    matrix and detects nothing").
   - `dispatch-denied.sh` (`PermissionDenied`, `Agent|Task`): attempt 1 emits `retry: true`,
     later ones only a `systemMessage`. The JSON is the decision. Counter under
     `CREW_DISPATCH_DENIED_DIR`; a path that cannot count takes the no-retry branch. Gates on the
@@ -94,8 +97,10 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
   - `plan-guard.sh` (`PreToolUse`, `Agent|Task`): in plan mode, refuses a `crew:<worker>` whose
     frontmatter grants `Edit`/`Write`/`NotebookEdit`; `owns-git: true` passes. Reads both
     `tools:` shapes; `CREW_AGENTS_DIR` is the test override.
-  - `lib/guard-lib.sh`: payload plumbing, `guard_normalize`, `GUARD_RE_*`, the `guard_block_*`
-    helpers, quote masking, protected branches, read-guard limits, state files.
+  - `lib/guard-lib.sh`: payload plumbing, `guard_agent_type` (drops the `crew:` prefix the
+    harness puts on an installed plugin's worker, so the bare rosters match), `guard_normalize`,
+    `GUARD_RE_*`, the `guard_block_*` helpers, quote masking, protected branches, read-guard
+    limits, crew config (`guard_config_load`, `config_slot`, `config_block`), state files.
 - `scripts/gate.sh` — the review-gate runner: `start <id> '<cmd>' [nocache]`, `poll <id>`, `stop <id>`,
   state in `/tmp/crew-gate-<id>/`. A green log is cached under `/tmp/crew-gate-cache`
   (`CREW_GATE_CACHE_DIR`; the tests point it at a fixture) by tree hash, physical directory

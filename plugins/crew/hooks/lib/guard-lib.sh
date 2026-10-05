@@ -70,6 +70,12 @@ guard_jq2() {
   guard_trusted="${_fields##*"$GUARD_RS"}"
 }
 
+# guard_agent_type -- sets $agent_type from the trusted field. An installed
+# plugin's agent calls tools as `crew:tank`, the namespaced form; the rosters
+# below and in the hooks hold bare names, so this plugin's prefix is dropped and
+# any other plugin's agent keeps its prefix and matches no roster.
+guard_agent_type() { agent_type="${guard_trusted#crew:}"; }
+
 # guard_normalize <cmd> -- sets $guard_cmd as one line, every newline flattened
 # to a space, so a multi-line command cannot slip a clause past the single-line
 # patterns below. The text as typed is kept in $guard_cmd_raw for the one pattern
@@ -474,6 +480,101 @@ guard_block_protected_branch_commit() {
     echo "Blocked: ${agent_type} may not commit on protected branch '$branch'. ${advice}" >&2
     exit 2
   fi
+}
+
+# ---------------------------------------------------------------- crew config
+#
+# Crew configuration lives in `.claude/crew.md` as YAML frontmatter, one key per
+# slot. It is the only location: the `--local` file and the legacy `CLAUDE.md`
+# block went in 5.0.0 (#248). Read by lane-guard (lanes) and format (the matrix).
+
+# guard_config_load -- slurp the frontmatter into $_cfg_text, once, in the
+# PARENT shell. Callers invoke config_slot/config_block as `$(...)`, so a lazy
+# load inside them would happen in a subshell and be discarded before the next
+# call. Narrowed to the frontmatter here: the body below it is free prose and may
+# quote an example block (as /crew:init's own §1 does), and a key read from
+# there is not a value anyone configured.
+guard_config_load() {
+  local _cfg_raw="" _cfg_line _cfg_first=1
+  _cfg_text=""
+  [ -f .claude/crew.md ] || return 0
+  IFS= read -r -d '' _cfg_raw < .claude/crew.md || :
+  while IFS= read -r _cfg_line; do
+    if [ "$_cfg_first" = 1 ]; then
+      _cfg_first=0
+      # No opening delimiter on line 1 means no frontmatter, so nothing is configured.
+      [ "$_cfg_line" = "---" ] || break
+      continue
+    fi
+    [ "$_cfg_line" = "---" ] && break
+    _cfg_text+="$_cfg_line"$'\n'
+  done <<<"$_cfg_raw"
+}
+
+# config_slot <frontmatter-key> -- a slot's scalar value. Missing file, missing
+# slot, or the unset/none placeholders all mean "not configured" -> empty string.
+config_slot() {
+  local line v=""
+  [ -n "${_cfg_text:-}" ] || return 0
+  while IFS= read -r line; do
+    # Only the key is a literal here; the trailing * is the glob. Slot names are
+    # fixed strings, so a caller cannot turn this into a pattern.
+    case "$line" in
+      "$1:"*) v="${line#"$1:"}" ;;
+      *) continue ;;
+    esac
+    v="${v#"${v%%[![:space:]]*}"}"       # trim leading whitespace
+    # A YAML scalar may be quoted, and an unquoted one ends at a `#` that follows
+    # whitespace (a `#` with no space before it is part of the scalar). Unwrap
+    # before scanning for the comment, so a `#` inside quotes stays in the value.
+    # Left in place, either would build a lane glob matching nothing -- which
+    # reads as "no lane" and widens the agent silently, rather than failing closed.
+    case "$v" in
+      '"'*) v="${v#\"}"; v="${v%%\"*}" ;;
+      "'"*) v="${v#\'}"; v="${v%%\'*}" ;;
+      *[[:space:]]'#'*) v="${v%%[[:space:]]#*}" ;;
+    esac
+    v="${v%"${v##*[![:space:]]}"}"       # trim trailing whitespace
+    break
+  done <<<"$_cfg_text"
+  case "$v" in
+    # The `unset` placeholder, empty, and any value starting with "none" (e.g.
+    # "none (no e2e suite detected)") all mean not configured.
+    unset|none|none[!A-Za-z0-9]*|'') return 0 ;;
+    *) printf '%s' "$v" ;;
+  esac
+}
+
+# config_block <frontmatter-key> -- the lines of a block scalar (`key: |`), one
+# per line with their indentation, blank lines and `#` comments dropped. A scalar
+# value (`none`, `unset`, anything else) is not a block -> nothing. The block
+# ends at the first non-indented line, which is the next key.
+config_block() {
+  local line in_block=0
+  [ -n "${_cfg_text:-}" ] || return 0
+  while IFS= read -r line; do
+    if [ "$in_block" = 0 ]; then
+      case "$line" in
+        "$1:"*) ;;
+        *) continue ;;
+      esac
+      line="${line#"$1:"}"
+      line="${line#"${line%%[![:space:]]*}"}"
+      case "$line" in
+        '|'|'|-'|'|+') in_block=1; continue ;;
+        *) return 0 ;;
+      esac
+    fi
+    case "$line" in
+      '') continue ;;
+      [![:space:]]*) break ;;
+    esac
+    line="${line#"${line%%[![:space:]]*}"}"
+    case "$line" in
+      ''|'#'*) continue ;;
+    esac
+    printf '%s\n' "$line"
+  done <<<"$_cfg_text"
 }
 
 # ---------------------------------------------------------------- state files

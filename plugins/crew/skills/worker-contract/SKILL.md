@@ -22,6 +22,8 @@ to its tool.
   names those commands, the flags that weaken its tool, its lock signature and what a no-op run
   proves. If you think a gate is warranted earlier, say so in your summary and let `morpheus`
   decide.
+- **A `format hook:` line that names `/crew:init` goes in your hand-back**, verbatim: it means
+  the format matrix is stale, which `morpheus` relays to the user and you cannot fix.
 - **Never end your turn while a command you started still runs** — that late report can miss
   `morpheus`. Never `run_in_background` a build or a suite; the gate handoff gives the wait
   recipe.

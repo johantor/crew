@@ -14,7 +14,9 @@ product.
 `/crew:init` proposes: build is the static gate — `shellcheck <globs>`, taking the globs from CI
 since the shell's `*` does not cross directory separators and one pattern usually misses a
 subdirectory, optionally with `bash -n`; test the project's own runner (`bash tests/run.sh`,
-`bats tests/`); lint `shellcheck` plus `shfmt -d` where shfmt is configured.
+`bats tests/`); lint `shellcheck` plus `shfmt -d` where shfmt is configured. No format matrix
+row: shfmt's configuration is `.editorconfig`, whose section globs only shfmt itself resolves,
+so shell formatting belongs to the lint gate.
 
 ## Decide which shell a file may assume
 

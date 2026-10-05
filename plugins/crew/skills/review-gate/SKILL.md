@@ -39,3 +39,6 @@ description: "How the crew runs a build, test or lint gate: one build location w
    likely lock (or hang), ask them to stop the dev server/app or confirm the location, then retry.
 5. Collect the workers' concise findings, synthesize the go/no-go, and route **genuine
    compile/test failures** back to the implementer.
+6. **A lint NO-GO that is formatting only means the format matrix is stale** (a row missing or
+   wrong for the files this run touched): route the findings as usual, and in the same report
+   say so once and name `/crew:init` — never add or edit a row yourself.

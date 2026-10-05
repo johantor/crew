@@ -21,7 +21,12 @@ confirmed absence, not an open question); test `pytest` when the project has it 
 `[tool.pytest.ini_options]` table, a `pytest.ini`, or pytest in the dependencies),
 `python -m unittest discover` for a `unittest`-only project, `none` when neither; lint `ruff check .` / `flake8` plus `black --check .` where configured. Every command is
 prefixed with the project's runner when it has one (`poetry run`, `uv run`, `pdm run`, `pipenv
-run`) — a bare `pytest` resolves against whatever interpreter is active.
+run`) — a bare `pytest` resolves against whatever interpreter is active. Format matrix rows,
+extensions `py,pyi`, from the package that holds the config: `ruff check --force-exclude --fix
+{file}` for a `[tool.ruff]`/`ruff.toml`/`.ruff.toml`; `ruff format --force-exclude {file}` only with an
+explicit `[tool.ruff.format]`/`[format]` (lint config alone is not a formatting choice);
+`black {file}` for a `[tool.black]`. Black ignores `exclude` for an explicit path, so a vendored
+or generated directory gets no row rather than a row that reformats it.
 
 ## Packaging and the environment
 

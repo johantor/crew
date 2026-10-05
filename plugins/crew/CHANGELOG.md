@@ -5,6 +5,22 @@ All notable changes to the `crew` plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.0.0] - 2026-10-05
+
+### Fixed
+
+- The guards read the worker's namespaced `agent_type` (`crew:tank`); bare rosters never
+  matched an installed plugin's worker, so lanes, no-git and formatting failed open (#268).
+
+### Changed
+
+- **Breaking:** `format.sh` runs the `formatMatrix` rows `/crew:init` writes and detects
+  nothing; without the slot per-edit formatting is off until `/crew:init` is re-run (#268).
+- Crew config reading moved to `hooks/lib/guard-lib.sh`, shared by `lane-guard.sh` and
+  `format.sh` (#268).
+- Stack skills name their matrix row; `review-gate` reports a formatting-only NO-GO as a stale
+  matrix; `worker-contract` hands back a `format hook:` line naming `/crew:init` (#268).
+
 ## [5.4.0] - 2026-09-30
 
 ### Added

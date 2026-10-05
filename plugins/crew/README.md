@@ -62,7 +62,7 @@ claude --agent crew:morpheus
 **Or from a normal session**, when you want the crew on tap without it taking over:
 
 ```
-/crew:init                 # once per project: detect and record build/test/lint config
+/crew:init                 # once per project: detect and record build/test/lint/format config
 /crew:feature <task>       # plan, delegate, build, then stop at the gate
 /crew:debt <pointer>       # fix one known debt item in gated, verified batches
 ```
@@ -138,7 +138,7 @@ rather than a per-worker setting.
 
 | Command | What it does |
 |---|---|
-| `/crew:init` | Detect this project's build/test/lint commands, base branch, frontend mode, and stacks, and record them in `.claude/crew.md` (committed, so teammates inherit them). It proposes for `CLAUDE.md` only what a glance at `package.json` would get wrong. Idempotent: re-run to pick up slots a newer version added. |
+| `/crew:init` | Detect this project's build/test/lint commands, per-edit formatters, base branch, frontend mode, and stacks, and record them in `.claude/crew.md` (committed, so teammates inherit them). It proposes for `CLAUDE.md` only what a glance at `package.json` would get wrong. Idempotent: re-run to pick up slots a newer version added. |
 | `/crew:feature <task>` | Plan, delegate, and build the feature, stopping at the review gate. |
 | `/crew:debt <pointer>` | **Beta.** Fix one known debt item: a suppression (`file:line`), a rule (`CS8602`, `eslint no-explicit-any`), a package upgrade (`Newtonsoft.Json 13.x`), or pasted build/lint output. `morpheus` reports the blast radius before any edit, stops at gates that need you, fixes in batches through the lane workers, and commits each batch once its acceptance gate passes. Deleting the suppression makes the analyzer the regression test. .NET and TypeScript/JavaScript today; a platform migration gets a handoff outline instead. `--force` also works justified suppressions. |
 | `/crew:audit <scope>` | **Beta.** Read-only debt scout over a scope you name (a path, `backend`/`frontend`, a rule family, `stale`, `outdated`, `diff`), run by `keymaker`, an agent with no Edit, Write or Bash tool: a ranked report of at most 12 findings, each a ready-to-paste `/crew:debt`, then a pick of the top 3. Suppressions with a meaningful native justification are counted but not listed. |
@@ -217,15 +217,13 @@ intercepted**.
   it closes is the routine path, the one auto mode's own notice recommends. `seraph` has no Bash
   tool, so it needs no entry. Whatever your *resolved* base branch is (`develop`, `trunk`, …), `morpheus` and
   `/crew:pr` keep the crew off it too.
-- **format** runs the project's formatters after an edit, scoped to the changed file and routed
-  by **extension** (not by agent, since `tank`, `trinity`, or `neo` can each touch either lane):
-  `.cs`/`.csproj` → `dotnet format`, plus `dotnet csharpier format` when `.csharpierrc` is
-  present; known web extensions → every tool the project configures (Biome, Prettier, ESLint,
-  Stylelint), each detected by its config file and run only when installed locally, never via an
-  `npx` download; `.py` → ruff or black, `.go` → gofmt/gofumpt, `.rs` → rustfmt, `.java` → a
-  standalone formatter, each run only when found on `PATH`. Single-file formatters only —
-  whole-project tools (`cargo fmt`, Spotless) load the project on every call, so they stay at the
-  review gate. Anything else is skipped cleanly. Best-effort: fails open.
+- **format** runs the project's formatters after an edit by `tank`, `trinity`, `oracle` or `neo`,
+  from the `formatMatrix` slot `/crew:init` writes: one row per `<dir> <extensions> <command>`,
+  every row whose directory and extension match the edited file, in order, from that directory,
+  `{file}` substituted. The hook detects nothing; a file no row covers is left alone, and
+  `none`/`unset` turns per-edit formatting off. A row whose tool is gone is reported with a
+  `/crew:init` nudge that the worker hands back. Single-file formatters only — whole-project
+  tools (`cargo fmt`, Spotless, shfmt) stay at the lint gate. Best-effort: fails open.
 - **dispatch-denied** runs on `PermissionDenied` for `Agent`/`Task` calls and reacts only to a
   `crew:<worker>` dispatch. The first denial of a worker in a session asks for one retry — the
   retried call goes back through the classifier, which still decides — and every later one

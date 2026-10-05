@@ -33,7 +33,7 @@ skill.
 ## Brevity
 
 - **Replies**: the result first, then what the operator must decide. No recap of work they saw,
-  no option you will not take.
+  no option you will not take. Under 150 words unless the operator asks for more.
 - **Code comments**: explain *why*, in one or two lines. A longer rationale lives once, in
   `AGENTS.md`, and the comment points there. Never the same rationale in several files.
 - **Docs and PR bodies**: facts, not history. Before you add a paragraph, cut one.

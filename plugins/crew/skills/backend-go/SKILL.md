@@ -18,7 +18,10 @@ out of `internal/` is an API change, not a tidy-up.
 
 `/crew:init` proposes: build `go build ./...` (with `go vet ./...` when the repo runs it), test
 `go test ./...` (keeping `-race` if a CI workflow uses it), lint `golangci-lint run` when a
-`.golangci.yml` exists, else `gofmt -l .`.
+`.golangci.yml`/`.golangci.yaml` exists, else `gofmt -l .`. Format matrix row, extension `go`:
+`gofmt -w {file}`, or `gofumpt -w {file}` only when that config enables gofumpt or the
+Makefile/CI runs it —
+gofumpt rewrites beyond gofmt, so an installed copy alone is not the project's choice.
 
 ## Idiom
 

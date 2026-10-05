@@ -84,3 +84,8 @@ has a behavior; changed terms agree across the agent, command, README, `CLAUDE.m
 failing input — smallest fix. A Warning should be fixed but does not block merge; a test-only
 issue is a Warning unless it hides a correctness gap. Under Passed, one line per lens applied,
 plus any informational note that asks for nothing.
+
+**Every Blocking or Warning finding is a review thread on its line**, including one in a hunk
+the last review passed over. A finding that exists only in the summary (a "previously missed"
+list, a bullet with no thread) cannot be replied to or resolved, so the author's loop never
+sees it. The summary repeats the threads; it never holds a finding of its own.

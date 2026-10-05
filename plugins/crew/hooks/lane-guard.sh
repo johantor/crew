@@ -28,12 +28,12 @@ guard_read_payload
 # non-lane session never pays even for the field lookup.
 # shellcheck disable=SC2016  # $at is a jq variable, not a shell one
 if ! guard_jq2 \
-  '(.agent_type // "") as $at | (if (["oracle","dozer","tank","trinity","morpheus"] | index($at)) then ((.tool_input.file_path // .tool_input.path) // "") else "" end)' \
+  '((.agent_type // "") | sub("^crew:"; "")) as $at | (if (["oracle","dozer","tank","trinity","morpheus"] | index($at)) then ((.tool_input.file_path // .tool_input.path) // "") else "" end)' \
   '.agent_type // ""'; then
   echo "Blocked: lane-guard could not parse the hook payload." >&2
   exit 2
 fi
-agent_type="$guard_trusted"
+guard_agent_type
 path="$guard_untrusted"
 
 # Bail before any further parsing for the common case: the main session, or any
@@ -58,69 +58,11 @@ case "/$path/" in
     exit 2 ;;
 esac
 
-# Crew configuration lives in `.claude/crew.md` as YAML frontmatter, one key per
-# slot. It is the only location: the `--local` file and the legacy `CLAUDE.md`
-# block went in 5.0.0 (#248).
-#
-# The source is slurped once here in the parent shell and matched in-process: a
-# lane dispatch reads up to four slots, and shelling out per slot cost eight
-# processes before the agent's edit could land. The read must NOT move inside
-# config_slot: callers invoke it as `$(config_slot ...)`, so a lazy load would
-# happen in a subshell and be discarded before the next call.
-_cfg_text=""
-if [ -f .claude/crew.md ]; then
-  _cfg_raw=""
-  IFS= read -r -d '' _cfg_raw < .claude/crew.md || :
-  # Narrow to the frontmatter here, once, rather than per slot: the body below it
-  # is free prose and may quote an example block (as /crew:init's own §1 does), and
-  # a key read from there is not a value anyone configured.
-  _cfg_first=1
-  while IFS= read -r _cfg_line; do
-    if [ "$_cfg_first" = 1 ]; then
-      _cfg_first=0
-      # No opening delimiter on line 1 means no frontmatter, so nothing is configured.
-      [ "$_cfg_line" = "---" ] || break
-      continue
-    fi
-    [ "$_cfg_line" = "---" ] && break
-    _cfg_text+="$_cfg_line"$'\n'
-  done <<<"$_cfg_raw"
-fi
-
-# config_slot <frontmatter-key> -- a slot's configured value. Missing file,
-# missing slot, or the unset/none placeholders all mean "not configured" ->
-# empty string.
-config_slot() {
-  local line v=""
-  [ -n "$_cfg_text" ] || return 0
-  while IFS= read -r line; do
-    # Only the key is a literal here; the trailing * is the glob. Slot names are
-    # fixed strings, so a caller cannot turn this into a pattern.
-    case "$line" in
-      "$1:"*) v="${line#"$1:"}" ;;
-      *) continue ;;
-    esac
-    v="${v#"${v%%[![:space:]]*}"}"       # trim leading whitespace
-    # A YAML scalar may be quoted, and an unquoted one ends at a `#` that follows
-    # whitespace (a `#` with no space before it is part of the scalar). Unwrap
-    # before scanning for the comment, so a `#` inside quotes stays in the value.
-    # Left in place, either would build a lane glob matching nothing -- which
-    # reads as "no lane" and widens the agent silently, rather than failing closed.
-    case "$v" in
-      '"'*) v="${v#\"}"; v="${v%%\"*}" ;;
-      "'"*) v="${v#\'}"; v="${v%%\'*}" ;;
-      *[[:space:]]'#'*) v="${v%%[[:space:]]#*}" ;;
-    esac
-    v="${v%"${v##*[![:space:]]}"}"       # trim trailing whitespace
-    break
-  done <<<"$_cfg_text"
-  case "$v" in
-    # The `unset` placeholder, empty, and any value starting with "none" (e.g.
-    # "none (no e2e suite detected)") all mean not configured.
-    unset|none|none[!A-Za-z0-9]*|'') return 0 ;;
-    *) printf '%s' "$v" ;;
-  esac
-}
+# Crew configuration: the frontmatter is slurped once here in the parent shell
+# (guard_config_load) and matched in-process -- a lane dispatch reads up to four
+# slots, and shelling out per slot cost eight processes before the agent's edit
+# could land.
+guard_config_load
 
 # Comma-separated path config -> space-separated "<path>/**" globs. Split on
 # commas via IFS rather than command substitution, which would word-split and
