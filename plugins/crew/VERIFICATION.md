@@ -46,14 +46,13 @@ These are prompt behavior, so they need a scratch repo and an observed run — a
 cannot show that `morpheus` resolved a stack or that a worker loaded a skill.
 
 - [ ] **Each backend stack resolves and loads its pair** — a scratch repo carrying only that
-  stack's marker (`pyproject.toml` / `go.mod` / `Cargo.toml` / `pom.xml` with `src/main/java` /
-  `*.sh` with no other marker) → `morpheus` resolves the stack without asking, and the dispatch
-  names `backend-<stack>` for `tank` and the matching `tests-*` for `oracle`.
-- [ ] **A Gradle build alone is a question, not an answer** — `build.gradle` with no
-  `src/main/java` and no `java` plugin → `morpheus` **asks** rather than resolving `java`, since
-  Kotlin, Scala and Android carry the same marker.
-- [ ] **Two backend markers ask** — `pyproject.toml` **and** `go.mod` → `morpheus` asks which is
-  the backend rather than breaking the tie.
+  stack's marker (`*.csproj` / a `package.json` with a server framework / `*.sh` with no other
+  marker) → `morpheus` resolves the stack without asking, and the dispatch names
+  `backend-<stack>` for `tank` and the matching `tests-*` for `oracle`.
+- [ ] **An unsupported stack stops** — a scratch repo with only `go.mod` → `morpheus` says the
+  stack is unsupported rather than guessing one.
+- [ ] **Two backend markers ask** — `*.csproj` **and** a server `package.json` → `morpheus` asks
+  which is the backend rather than breaking the tie.
 - [ ] **`frontendStack: none` suppresses the frontend half** — a shell or CLI scratch repo with
   `frontendStack: none` in `.claude/crew.md` → `morpheus` asks nothing about frontend mode, e2e
   tool or unit test tool, and dispatches only `tank`/`oracle`. With the slot **unset** instead it
@@ -88,7 +87,7 @@ cannot show that `morpheus` resolved a stack or that a worker loaded a skill.
   configured, no per-gate path, `nocache` on the runner. A `test` script of `vitest run
   --coverage`, or a `jest.config` whose `cacheDirectory` points into the tree, keeps or sends the
   lane serial; the serial rerun after a failed check builds again rather than hitting the cache.
-- [ ] **One build writer at a time elsewhere** — a Java diff that triggers build, tests and
+- [ ] **One build writer at a time elsewhere** — a .NET diff that triggers build, tests and
   lint → the three run one after another (no Parallel gates recipe for that stack).
 - [ ] **An unchanged tree is not rebuilt** — `/crew:review` run twice with no edit between →
   the second run's build gate hands back at once, its log opening with `crew-gate: cached`,

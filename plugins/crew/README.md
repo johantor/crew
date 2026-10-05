@@ -5,8 +5,8 @@
 
 **Ship a feature like a team, not a single agent.** `crew` turns a Claude Code session into a
 captain that plans and delegates, plus specialists — backend, the client-facing layer, tests,
-visual review — each scoped to its own lane. The backend lane covers .NET, Node, Python, Go,
-Rust, the JVM and shell; the crew is for software delivery, not for websites specifically. A
+visual review — each scoped to its own lane. The backend lane covers .NET (with Optimizely),
+Node and shell; the crew is for software delivery, not for websites specifically. A
 project with no view layer says so with `frontendStack: none`, and the frontend half of the crew
 stays out of the way. You approve the plan, every step is verified and committed as it
 lands, and nothing reaches a pull request until a consolidated review gate returns **GO**.
@@ -198,7 +198,7 @@ intercepted**.
   writes via Bash (`sed -i`, `tee`, redirects) are refused by **bash-safety** instead, so there is
   one enforcement point rather than two lane implementations that can drift.
   Two regimes: extension-based globs by default (correct when the backend and the client-facing
-  layer are different languages — dotnet, Python, Go, Rust or the JVM beside a JS frontend), or
+  layer are different languages — dotnet beside a JS frontend), or
   directory-based paths (the `backendLanePaths` / `frontendLanePaths` slots) when both resolved
   stacks are the same language (e.g. node+nextjs) and an extension alone can't tell the lanes
   apart. Node is the only supported backend that shares its extensions with a frontend, so it is
@@ -223,7 +223,7 @@ intercepted**.
   `{file}` substituted. The hook detects nothing; a file no row covers is left alone, and
   `none`/`unset` turns per-edit formatting off. A row whose tool is gone is reported with a
   `/crew:init` nudge that the worker hands back. Single-file formatters only — whole-project
-  tools (`cargo fmt`, Spotless, shfmt) stay at the lint gate. Best-effort: fails open.
+  tools (`dotnet format`, shfmt) stay at the lint gate. Best-effort: fails open.
 - **dispatch-denied** runs on `PermissionDenied` for `Agent`/`Task` calls and reacts only to a
   `crew:<worker>` dispatch. The first denial of a worker in a session asks for one retry — the
   retried call goes back through the classifier, which still decides — and every later one
@@ -320,10 +320,9 @@ one that isn't installed, so it just reports the server as unavailable.
   For the five workers with a shell: `worker-contract` (the rules every dispatch follows). For
   every worker: `mid-run-direction` (how to treat a steer that arrives mid-run), and
   `design-tokens` for the agent doing design conformance.
-  Loaded once the stack is resolved: per frontend mode, per backend stack (.NET, Node, Python,
-  Go, Rust, JVM, shell — plus Optimizely on top of .NET), per frontend stack (React, Next.js),
-  and per test tool (xUnit, pytest, `go test`, cargo, JUnit, bats, Vitest, Jest, Cypress,
-  Playwright).
+  Loaded once the stack is resolved: per frontend mode, per backend stack (.NET, Node, shell —
+  plus Optimizely on top of .NET), per frontend stack (React, Next.js), and per test tool
+  (xUnit, bats, Vitest, Jest, Cypress, Playwright).
 
 Local agent memory is git-ignored (`.claude/agent-memory-local/`).
 
