@@ -437,8 +437,10 @@ Patterns that showed up more than once in review on this repo. Apply them up fro
 - **Quote every expansion, array subscripts included.**
 - **Keep inline comments short; the rationale lives once, here or in the changelog, with a pointer.**
 - **After merging `main` into a branch, refresh the PR description**: version ranges go stale.
-- **Self-review the diff before opening a PR** (`/code-review` or the `/crew:review` gate);
-  reviewers are the backstop, not the first pass.
+- **Self-review the diff before every PR and every push to one**, with the repo rubric
+  (`.github/skills/code-review/SKILL.md`; the `crew-review` skill runs it with the checks and
+  reproduces each finding). Fix every Blocking and Warning first; Copilot reviews with the same
+  rubric, so what it would find, you find. Reviewers are the backstop, not the first pass.
 - **Behavioral verification means running the scenario**, from the plugin's
   [`VERIFICATION.md`](plugins/crew/VERIFICATION.md), and citing the observed result. "Would pass"
   is not verification.

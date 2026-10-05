@@ -27,8 +27,9 @@ docs, and commit messages keep the repo's own voice.
 
 Every change here follows
 [`engineering-principles`](plugins/crew/skills/engineering-principles/SKILL.md). Read it before
-you write code, and re-read your diff against it before you finish. Review with the `crew-review`
-skill.
+you write code, and re-read your diff against it before you finish. Before you open a PR or push
+to one, run the `crew-review` skill on the diff and fix its Blocking and Warning findings first
+(`AGENTS.md`, *Conventions*).
 
 ## Brevity
 
