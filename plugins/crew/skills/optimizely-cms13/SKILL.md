@@ -11,9 +11,9 @@ the default editing experience.
 
 ## Detect
 
-- `PackageReference`s to `EPiServer.CMS*`/`Optimizely.*` at `13.*`, and
-  `<TargetFramework>net10.0</TargetFramework>`. The version, not the package name, separates 13
-  from 12.
+- A `PackageReference` to `EPiServer.CMS*` at `13.*`, and `<TargetFramework>net10.0</TargetFramework>`.
+  The CMS package version, not the name, separates 13 from 12. Other `Optimizely.*` packages
+  version on their own, so their version says nothing about the CMS.
 - `Optimizely.Graph.Cms` and `EPiServer.Cms.UI.ContentManager` with `AddContentGraph()` /
   `AddContentManager()` in startup.
 - Admin URL: `/ui/CMS` on DXP with Opti ID, `/Optimizely/CMS` when self-hosted.
