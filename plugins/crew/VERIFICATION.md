@@ -14,6 +14,24 @@ block `git` for workers and protected-branch commits. In a throwaway directory: 
 trivial app (or just a README), then point `/crew:feature`, `/crew:review`, or `/crew:loop` at a
 small task.
 
+### Running a row headless
+
+Most rows run in one or two minutes without a person at the keyboard:
+
+- **Session.** In the scratch repo, `claude -p '<prompt>' --plugin-dir <checkout>/plugins/crew
+  --allowedTools <only what the row needs> < /dev/null`. Point `--plugin-dir` at the branch under
+  test (a `git worktree` for another branch). Pin `.claude/crew.md` first, since `/crew:init` is
+  the only detector. Never `--dangerously-skip-permissions`.
+- **One worker.** Ask the main session to call `Agent` with `subagent_type: "crew:<worker>"` and a
+  read-only prompt: "load the skills your role and stack call for, report each name and the
+  marker that made you load it", or "run `<command>`, report the output or the exact refusal".
+- **What a hook receives.** Add a project `PreToolUse` hook in `.claude/settings.json` that runs
+  `jq -c '{agent_type, tool_input}' >> <log>`. A worker's prompt often refuses before its guard
+  runs, so a refusal in the reply is not evidence the guard fired: ask for a harmless command to
+  see the payload, and leave the verdict to the hook's unit tests.
+- **Interactive commands** (`/crew:init`) stop at their question in `-p` mode; read the proposal.
+- **Record** by ticking the row and adding `(#<PR>: <what you observed>)`.
+
 ### Plan checkpoint & durable resume
 
 - [ ] **Checkpoint runs once** — `/crew:feature <task>` → `lead` presents the plan and waits

@@ -443,4 +443,5 @@ Patterns that showed up more than once in review on this repo. Apply them up fro
   rubric, so what it would find, you find. Reviewers are the backstop, not the first pass.
 - **Behavioral verification means running the scenario**, from the plugin's
   [`VERIFICATION.md`](plugins/crew/VERIFICATION.md), and citing the observed result. "Would pass"
-  is not verification.
+  is not verification, and neither is "needs a person": most rows run headless
+  (`VERIFICATION.md`, *Running a row headless*), so run them before asking the maintainer to.
