@@ -10,7 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - `optimizely-graph` skill: detection, sync, querying from .NET and headless front ends, keys,
-  caching, search and facets. The CMS, `backend-*` and `frontend-headless` skills name it (#276).
+  caching, search and facets. The CMS skills, `backend-dotnet`, `backend-node` and
+  `frontend-headless` name its markers (#276).
 
 ## [10.1.0] - 2026-10-05
 
