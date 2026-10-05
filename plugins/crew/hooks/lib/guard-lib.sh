@@ -70,6 +70,12 @@ guard_jq2() {
   guard_trusted="${_fields##*"$GUARD_RS"}"
 }
 
+# guard_agent_type -- sets $agent_type from the trusted field. An installed
+# plugin's agent calls tools as `crew:tank`, the namespaced form; the rosters
+# below and in the hooks hold bare names, so this plugin's prefix is dropped and
+# any other plugin's agent keeps its prefix and matches no roster.
+guard_agent_type() { agent_type="${guard_trusted#crew:}"; }
+
 # guard_normalize <cmd> -- sets $guard_cmd as one line, every newline flattened
 # to a space, so a multi-line command cannot slip a clause past the single-line
 # patterns below. The text as typed is kept in $guard_cmd_raw for the one pattern

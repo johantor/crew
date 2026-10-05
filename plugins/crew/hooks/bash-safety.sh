@@ -27,7 +27,7 @@ if ! guard_jq2 '.tool_input.command // ""' '.agent_type // ""'; then
   echo "Blocked: bash-safety could not parse the hook payload." >&2
   exit 2
 fi
-agent_type="$guard_trusted"
+guard_agent_type
 guard_normalize "$guard_untrusted"
 
 # The floor, in this order. Destructive ops, pagers and `tail -f` are refused for

@@ -65,6 +65,10 @@ assert_reports "oracle's test edits are formatted too" \
   "$(payload_file oracle src/a.test.ts)" "$web" "applied prettier"
 assert_reports "neo gets the same routing as tank/trinity" \
   "$(payload_file neo src/a.ts)" "$web" "applied prettier"
+# An installed plugin's worker calls tools as `crew:tank`.
+assert_reports "crew:tank is formatted like tank" \
+  "$(payload_file crew:tank src/a.ts)" "$web" "applied prettier"
+assert_silent "other:tank is not this crew's worker" "$(payload_file other:tank src/a.ts)" "$web"
 
 # --- No matrix: per-edit formatting is off, silently -------------------------
 assert_silent "no .claude/crew.md is a no-op" "$(payload_file tank src/a.ts)"
@@ -104,6 +108,26 @@ assert_silent "a directory prefix matches whole segments only" \
 # The row's tool is gone: the matrix is stale, and the message names the fix.
 assert_reports "a tool the row names but cannot be found nudges /crew:init" \
   "$(payload_file tank apps/api/Svc.cs)" "$mono" "dotnet-csharpier not found for formatMatrix row 'apps/api cs'; run /crew:init"
+# stderr at exit 0 never reaches the model, so the nudge is also returned as
+# PostToolUse additionalContext; an applied run returns nothing on stdout.
+if [ "$(jq -r '.hookSpecificOutput.additionalContext' <<<"$_stdout" 2>/dev/null)" = \
+     "format hook: dotnet-csharpier not found for formatMatrix row 'apps/api cs'; run /crew:init" ]; then _pass
+else _fail "the nudge must be returned as additionalContext (got stdout: ${_stdout:-<empty>})"; fi
+run_hook "$HOOK" "$(payload_file tank apps/web/src/a.ts)" "$mono"
+if [ -z "$_stdout" ]; then _pass; else _fail "an applied run returns no additionalContext (got: $_stdout)"; fi
+# A wrapper that cannot find its subcommand exits with its own status, not 127,
+# so it is a plain failure here; the lint gate reports the stale matrix instead.
+wrapper="$(matrix_project '. cs dotnet csharpier format {file}')"
+fake_tool "$wrapper" bin/dotnet 'echo "Could not execute because the specified command or file was not found." >&2; exit 1'
+PATH="$wrapper/bin:$PATH" run_hook "$HOOK" "$(payload_file tank Svc.cs)" "$wrapper"
+if [[ "$_stderr" == *"dotnet failed (exit 1) on Svc.cs"* && "$_stderr" != *"/crew:init"* ]]; then _pass
+else _fail "a wrapper's missing subcommand is a failure, not a stale-matrix nudge (got: ${_stderr:-<empty>})"; fi
+# A directory with a space is single-quoted in the row.
+spaced="$(matrix_project "'my service/' java bin/google-java-format --replace {file}")"
+# shellcheck disable=SC2016
+fake_tool "$spaced" 'my service/bin/google-java-format' '[ "$2" = "src/main/java/Svc.java" ] && exit 0; exit 1'
+assert_reports "a quoted directory with a space matches and runs from it" \
+  "$(payload_file tank 'my service/src/main/java/Svc.java')" "$spaced" "applied google-java-format"
 missing_dir="$(matrix_project 'gone/ ts node_modules/.bin/prettier --write {file}')"
 assert_reports "a row whose directory is missing nudges /crew:init" \
   "$(payload_file tank gone/a.ts)" "$missing_dir" "row directory 'gone' is missing; run /crew:init"
@@ -143,7 +167,7 @@ assert_reports "a path with a space and a quote reaches the tool as one argument
 failing="$(matrix_project '. ts node_modules/.bin/prettier --write {file}')"
 fake_tool "$failing" node_modules/.bin/prettier 'exit 1'
 assert_reports "a formatter that rejects the file is reported as failed" \
-  "$(payload_file tank src/a.ts)" "$failing" "prettier failed on src/a.ts"
+  "$(payload_file tank src/a.ts)" "$failing" "prettier failed (exit 1) on src/a.ts"
 
 # Without the bound this call would block for the sleep's full duration on every
 # edit. `timeout` is GNU coreutils and absent on stock macOS/BSD, where the hook

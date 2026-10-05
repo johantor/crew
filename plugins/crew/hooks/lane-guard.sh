@@ -28,12 +28,12 @@ guard_read_payload
 # non-lane session never pays even for the field lookup.
 # shellcheck disable=SC2016  # $at is a jq variable, not a shell one
 if ! guard_jq2 \
-  '(.agent_type // "") as $at | (if (["oracle","dozer","tank","trinity","morpheus"] | index($at)) then ((.tool_input.file_path // .tool_input.path) // "") else "" end)' \
+  '((.agent_type // "") | sub("^crew:"; "")) as $at | (if (["oracle","dozer","tank","trinity","morpheus"] | index($at)) then ((.tool_input.file_path // .tool_input.path) // "") else "" end)' \
   '.agent_type // ""'; then
   echo "Blocked: lane-guard could not parse the hook payload." >&2
   exit 2
 fi
-agent_type="$guard_trusted"
+guard_agent_type
 path="$guard_untrusted"
 
 # Bail before any further parsing for the common case: the main session, or any

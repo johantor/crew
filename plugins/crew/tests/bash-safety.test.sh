@@ -11,6 +11,9 @@ for agent in tank trinity oracle dozer neo; do
   assert_block "worker $agent blocked from git" "$HOOK" "$(payload_bash 'git status' "$agent")" "$nogit"
 done
 assert_allow "git in a no-agent session" "$HOOK" "$(payload_bash 'git status')"
+# An installed plugin's worker calls tools as `crew:tank`.
+assert_block "crew:tank blocked from git" "$HOOK" "$(payload_bash 'git status' crew:tank)" "$nogit"
+assert_allow "other:tank is not this crew's worker" "$HOOK" "$(payload_bash 'git status' other:tank)"
 assert_block "smuggled env git push (tank)" "$HOOK" "$(payload_bash 'env git push' tank)" "$nogit"
 assert_block "smuggled FOO=1 git (tank)" "$HOOK" "$(payload_bash 'FOO=1 git status' tank)" "$nogit"
 

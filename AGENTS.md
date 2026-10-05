@@ -400,7 +400,10 @@ to propose, init proposes rows, the user confirms, and the hook only runs them. 
   as the gate's test command slot (`scripts/gate.sh` runs one with `bash -c` too).
 - **Accepted gaps.** Rows are inclusive, so a path black would exclude needs no row rather than a
   row that reformats it; a Rust edition is a row per crate, so a workspace mixing editions
-  without crate rows formats on the default.
+  without crate rows formats on the default; only a standalone tool exits 127, so a wrapper
+  whose subcommand is gone (`dotnet csharpier`) reads as a failure and the lint gate carries
+  the stale-matrix report; a directory is single-quoted when it holds a space, and one holding
+  a quote has no row.
 
 ## Recurring review findings — apply proactively
 

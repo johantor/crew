@@ -26,9 +26,9 @@ guard_read_payload
 # neo is the cross-lane express-lane generalist, so it gets the same routing as
 # tank/trinity rather than a fixed lane.
 guard_jq2 \
-  '(if ((.agent_type // "") | test("^(tank|trinity|neo|oracle)$")) then ((.tool_input.file_path // .tool_input.path) // "") else "" end)' \
+  '(if ((.agent_type // "") | sub("^crew:"; "") | test("^(tank|trinity|neo|oracle)$")) then ((.tool_input.file_path // .tool_input.path) // "") else "" end)' \
   '.agent_type // ""' || exit 0
-agent_type="$guard_trusted"
+guard_agent_type
 path="$guard_untrusted"
 
 case "$agent_type" in
@@ -76,14 +76,24 @@ run_bounded() {
   return "$_st"
 }
 
+# stderr at exit 0 reaches only the debug log, never the model. A stale-matrix
+# nudge has to reach the worker (it hands the line back, `worker-contract`), so
+# those lines are also returned as PostToolUse `additionalContext` below.
+nudge() { echo "format hook: $1" >&2; nudges="${nudges:+$nudges$'\n'}format hook: $1"; }
+
 ran=""
+nudges=""
 sq="'"
 while IFS= read -r row; do
   [ -n "$row" ] || continue
-  # Two controlled fields first, the command (which may hold spaces) last.
-  read -r dir exts cmd <<<"$row"
+  # Two controlled fields first, the command (which may hold spaces) last. A
+  # directory with a space is single-quoted: `'my service/' java ...`.
+  case "$row" in
+    \'*) rest="${row#\'}"; dir="${rest%%\'*}"; read -r exts cmd <<<"${rest#*\'}" ;;
+    *)   read -r dir exts cmd <<<"$row" ;;
+  esac
   if [ -z "$cmd" ]; then
-    echo "format hook: formatMatrix row '$row' is not '<dir> <extensions> <command>'; run /crew:init" >&2
+    nudge "formatMatrix row '$row' is not '<dir> <extensions> <command>'; run /crew:init"
     continue
   fi
   dir="${dir%/}"
@@ -101,7 +111,7 @@ while IFS= read -r row; do
   esac
   tool="${cmd%% *}"; tool="${tool##*/}"
   if [ ! -d "$dir" ]; then
-    echo "format hook: formatMatrix row directory '$dir' is missing; run /crew:init" >&2
+    nudge "formatMatrix row directory '$dir' is missing; run /crew:init"
     continue
   fi
   # {file} is single-quoted so a space or a quote in the path stays one argument.
@@ -115,12 +125,17 @@ while IFS= read -r row; do
     # 124 is `timeout`'s convention; no formatter here exits it of its own accord.
     echo "format hook: $tool timed out after ${FORMAT_TIMEOUT}s on $path" >&2
   elif [ "$st" = 127 ]; then
-    # The tool the row names is gone: the matrix is stale, not the file.
-    echo "format hook: $tool not found for formatMatrix row '$dir $exts'; run /crew:init" >&2
+    # The tool the row names is gone: the matrix is stale, not the file. Only a
+    # standalone tool exits 127; a wrapper (`dotnet csharpier`) that cannot find
+    # its subcommand fails with its own status and lands below, and the lint gate
+    # reports the stale matrix instead (AGENTS.md, accepted gaps).
+    nudge "$tool not found for formatMatrix row '$dir $exts'; run /crew:init"
   else
-    echo "format hook: $tool failed on $path" >&2
+    echo "format hook: $tool failed (exit $st) on $path" >&2
   fi
 done <<<"$rows"
 
 [ -n "$ran" ] && echo "format hook: applied$ran on $path" >&2
+[ -n "$nudges" ] && jq -nc --arg m "$nudges" \
+  '{hookSpecificOutput: {hookEventName: "PostToolUse", additionalContext: $m}}'
 exit 0

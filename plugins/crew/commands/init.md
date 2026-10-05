@@ -58,7 +58,8 @@ with this repo's own `.claude/crew.md`. Every slot marked *pin-only* is optional
   with one row per line: `<dir> <extensions> <command>`. `format.sh` runs every row whose
   directory prefix (`.` for the whole project) and comma-separated extension list match the
   edited file, in order, from that directory, with `{file}` replaced by the file's path relative
-  to it. A file no row covers is left alone. `none` when the project has no single-file
+  to it; a directory holding a space is single-quoted (`'my service/' java …`). A file no row
+  covers is left alone. `none` when the project has no single-file
   formatter; whole-project formatters (`cargo fmt`, Spotless, shfmt via `.editorconfig`) stay
   at the lint gate and get no row.
 - **Base branch** (`baseBranch`) — the branch `morpheus` branches off (`main` / `develop` / trunk).

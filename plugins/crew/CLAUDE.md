@@ -86,7 +86,8 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
     row `<dir> <extensions> <command>` matching the edited file runs in order from `<dir>` via
     `bash -c`, `{file}` single-quoted and relative to `<dir>`, under `CREW_FORMAT_TIMEOUT`
     (default 20s, unbounded without `timeout`/`gtimeout`). Exit 127 reports the tool as gone
-    with a `/crew:init` nudge; no matrix, `none` or `unset` is silent. Single-file formatters
+    with a `/crew:init` nudge, returned as PostToolUse `additionalContext` on stdout since
+    stderr at exit 0 never reaches the model; no matrix, `none` or `unset` is silent. Single-file formatters
     only; whole-project ones belong to the review gate (AGENTS.md, "Why `format.sh` runs a
     matrix and detects nothing").
   - `dispatch-denied.sh` (`PermissionDenied`, `Agent|Task`): attempt 1 emits `retry: true`,
@@ -96,9 +97,10 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
   - `plan-guard.sh` (`PreToolUse`, `Agent|Task`): in plan mode, refuses a `crew:<worker>` whose
     frontmatter grants `Edit`/`Write`/`NotebookEdit`; `owns-git: true` passes. Reads both
     `tools:` shapes; `CREW_AGENTS_DIR` is the test override.
-  - `lib/guard-lib.sh`: payload plumbing, `guard_normalize`, `GUARD_RE_*`, the `guard_block_*`
-    helpers, quote masking, protected branches, read-guard limits, crew config
-    (`guard_config_load`, `config_slot`, `config_block`), state files.
+  - `lib/guard-lib.sh`: payload plumbing, `guard_agent_type` (drops the `crew:` prefix the
+    harness puts on an installed plugin's worker, so the bare rosters match), `guard_normalize`,
+    `GUARD_RE_*`, the `guard_block_*` helpers, quote masking, protected branches, read-guard
+    limits, crew config (`guard_config_load`, `config_slot`, `config_block`), state files.
 - `scripts/gate.sh` — the review-gate runner: `start <id> '<cmd>' [nocache]`, `poll <id>`, `stop <id>`,
   state in `/tmp/crew-gate-<id>/`. A green log is cached under `/tmp/crew-gate-cache`
   (`CREW_GATE_CACHE_DIR`; the tests point it at a fixture) by tree hash, physical directory

@@ -10,6 +10,11 @@ HOOK="lane-guard.sh"
 # extensions: tank owns frontend-shaped files' opposite (backend), etc.
 assert_block "tank denied a .tsx file"   "$HOOK" "$(payload_file tank Foo.tsx)"  "out of"
 assert_allow "tank allowed a .cs file"   "$HOOK" "$(payload_file tank Foo.cs)"
+# An installed plugin's worker calls tools as `crew:tank`; another plugin's
+# `tank` is not this crew's and gets no lane.
+assert_block "crew:tank denied a .tsx file" "$HOOK" "$(payload_file crew:tank Foo.tsx)" "out of"
+assert_allow "crew:tank allowed a .cs file" "$HOOK" "$(payload_file crew:tank Foo.cs)"
+assert_allow "other:tank has no lane here"  "$HOOK" "$(payload_file other:tank Foo.tsx)"
 assert_block "trinity denied a .cs file" "$HOOK" "$(payload_file trinity Foo.cs)" "out of"
 assert_allow "trinity allowed a .tsx file" "$HOOK" "$(payload_file trinity Foo.tsx)"
 
