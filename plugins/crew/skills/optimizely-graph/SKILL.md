@@ -7,7 +7,8 @@ description: Optimizely Graph (GraphQL delivery and search for Optimizely CMS) c
 
 Optimizely Graph is a hosted GraphQL service. The CMS pushes content to it, and sites, front
 ends and other services read and search it there. It is mandatory on CMS 13 and an add-on on
-CMS 12. The content model that feeds it belongs to `optimizely-cms12` or `optimizely-cms13`.
+CMS 12. The content model that feeds it belongs to `optimizely-cms12`, `optimizely-cms13` or
+`optimizely-cms-saas`.
 
 ## Detect
 
