@@ -28,7 +28,6 @@ claude plugin install crew@zion
 | Plugin | Status | What it does | Adds to your session |
 |---|---|---|---|
 | **[crew](plugins/crew/README.md)** | Stable | Orchestrated, multi-agent feature delivery: a captain (`lead`) plans the work and delegates to backend, client-facing, test, and visual-review specialists across .NET, Node and shell, with a consolidated review gate before anything ships. | `/crew:*` commands, agents, safety hooks, skills |
-| **[optimizely](plugins/optimizely/README.md)** | Beta | Optimizely product knowledge, one skill per product: CMS 12 and 13 today; SaaS CMS, Graph, Search & Navigation, Commerce, ODP, OCP, Opal and Experimentation to follow. | Skills |
 
 ## Requirements
 
@@ -51,7 +50,6 @@ Then install the plugin:
 
 ```bash
 claude plugin install crew@zion
-claude plugin install optimizely@zion    # optional: Optimizely product skills
 ```
 
 Alternatively, install from the UI: run `/plugin` in Claude Code and browse to

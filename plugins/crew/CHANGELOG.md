@@ -5,12 +5,21 @@ All notable changes to the `crew` plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.0.0] - 2026-10-05
+
+### Changed
+
+- **Breaking:** agents use role names: `morpheus` → `lead`, `tank` → `backend`, `trinity` →
+  `frontend`, `oracle` → `unit-tests`, `dozer` → `e2e`, `seraph` → `visual-review`, `neo` →
+  `generalist`, `sentinel` → `incident-triage`, `keymaker` → `debt-scout`. Start the crew with
+  `claude --agent crew:lead`; agent memory saved under an old name is not carried over.
+
 ## [7.1.0] - 2026-10-05
 
 ### Changed
 
-- `cms-optimizely` moved to the new `optimizely` plugin as `optimizely-cms12`/`-cms13`;
-  `backend-dotnet` and `tank` point at the `optimizely:` product skills.
+- `cms-optimizely` is replaced by full `optimizely-cms12` and `optimizely-cms13` skills, the
+  first of one skill per Optimizely product.
 
 ## [7.0.0] - 2026-10-05
 

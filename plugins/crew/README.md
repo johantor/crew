@@ -306,11 +306,10 @@ one that isn't installed, so it just reports the server as unavailable.
 
 ## What's included
 
-- **Agents:** `lead` (captain) and the workers `backend` (backend), `frontend` (client-facing
-  layer),
-  `unit-tests` (unit tests), `e2e` (e2e), `visual-review` (visual review), `generalist` (express generalist),
-  `incident-triage` (post-merge triage), `debt-scout` (read-only debt scout). Workers stay idle until
-  `lead` or a command delegates.
+- **Agents:** `lead` (captain) and the workers `backend`, `frontend` (client-facing layer),
+  `unit-tests`, `e2e`, `visual-review`, `generalist` (express path), `incident-triage`
+  (post-merge, read-only) and `debt-scout` (read-only). Workers stay idle until `lead` or a
+  command delegates.
 - **Commands:** `/crew:init`, `/crew:feature`, `/crew:debt`, `/crew:audit`, `/crew:review`,
   `/crew:pr`, `/crew:address`, `/crew:triage`, `/crew:loop`, `/crew:notify`.
 - **Hooks:** lane guard, read guard, bash safety, formatter entrypoint,
@@ -321,7 +320,7 @@ one that isn't installed, so it just reports the server as unavailable.
   every worker: `mid-run-direction` (how to treat a steer that arrives mid-run), and
   `design-tokens` for the agent doing design conformance.
   Loaded once the stack is resolved: per frontend mode, per backend stack (.NET, Node, shell —
-  plus Optimizely on top of .NET), per frontend stack (React, Next.js), and per test tool
+  plus one skill per Optimizely product on top, today CMS 12 and CMS 13), per frontend stack (React, Next.js), and per test tool
   (xUnit, bats, Vitest, Jest, Cypress, Playwright).
 
 Local agent memory is git-ignored (`.claude/agent-memory-local/`).
