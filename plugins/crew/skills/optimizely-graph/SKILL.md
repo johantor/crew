@@ -95,7 +95,7 @@ CMS 12. The content model that feeds it belongs to `optimizely-cms12`, `optimize
 ## Caching and limits
 
 - Graph sits behind a CDN. Cache hits do not count against the rate limit: 1,500 requests per
-  10 seconds by default; above it Graph returns 429 with `Retry-After`. Honour it; do not retry
+  10 seconds by default; above it Graph returns 429 with `Retry-After`. Honor it; do not retry
   in a tight loop.
 - Stored (cached) templates: send `?stored=true` with the header `cg-stored-query: template`
   and pass every changing value as a variable, so one template serves all of them.

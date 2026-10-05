@@ -66,7 +66,7 @@ that blocks the upgrade (`optimizely-cms-upgrade` lists them).
 
 - Scheduled job: a `ScheduledJobBase` subclass with
   `[ScheduledPlugIn(DisplayName = "...", GUID = "...")]`. Return a status string from
-  `Execute()`, report progress with `OnStatusChanged`, honour `Stop()` when `IsStoppable`.
+  `Execute()`, report progress with `OnStatusChanged`, honor `Stop()` when `IsStoppable`.
   Jobs run without an HTTP context and as an anonymous user unless the job sets one.
 - Init: prefer `IServiceCollection` registration in `Startup`. An `[InitializableModule]` with
   `[ModuleDependency(typeof(EPiServer.Web.InitializationModule))]` is for event wiring that needs
