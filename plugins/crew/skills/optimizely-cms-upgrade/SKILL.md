@@ -19,12 +19,25 @@ described in `optimizely-cms13`.
 
   | CMS 12 | CMS 13 |
   |---|---|
-  | `ISiteDefinitionResolver` | `IApplicationResolver` (`EPiServer.Applications`) |
+  | `ISiteDefinitionResolver`, `ISiteDefinitionRepository` | `IApplicationResolver`, `IApplicationRepository` (`EPiServer.Applications`) |
+  | `SiteDefinition.Current.StartPage` | `IApplicationResolver.GetByContext()?.EntryPoint` |
   | `SiteDefinition.Current.RootPage` | `ContentReference.RootPage` |
   | `PageReference`, `.PageLink` | `ContentReference`, `.ContentLink` |
-  | `ContentArea.FilteredItems` | `ContentArea.Items` |
-  | `IContentTypeRepository<ContentType>` | `IContentTypeRepository` |
-  | `ServiceLocator`, `Locate.Advanced` | constructor injection |
+  | `ContentArea.FilteredItems` | `ContentArea.Items` (or `IContentAreaItemsRenderingFilter`) |
+  | `IContentAreaLoader.Get()` | `IContentAreaLoader.LoadContent()` |
+  | `PageTypeRepository`, `BlockTypeRepository`, `IContentTypeRepository<ContentType>` | `IContentTypeRepository` |
+  | `[ScheduledPlugIn]` (`EPiServer.PlugIn`) | `[ScheduledJob]` (`EPiServer.Scheduler`); the class must inherit `ScheduledJobBase` |
+  | `PrincipalInfo.IsPermitted()` | `PermissionService.IsPermitted()` |
+  | `IContentRouteEvents.CreatingVirtualPath` / `.RoutedContent` | `IContentUrlGeneratorEvents.GeneratingUrl` / `IContentUrlResolverEvents.ResolvedUrl` |
+  | `EPiServer.CacheManager` | `ISynchronizedObjectInstanceCache` |
+  | `ServiceLocator`, `Locate.Advanced`, `.Instance` singletons | constructor injection |
+
+- **Extracted packages** now need an explicit `PackageReference`: `EPiServer.CMS.UI.AspNetIdentity`,
+  `EPiServer.CMS.UI.VisitorGroups` (call `AddVisitorGroupsMvc()` and `AddVisitorGroupsUI()`),
+  `EPiServer.Blobs`, `EPiServer.Cache`, `EPiServer.Geolocation`,
+  `EPiServer.Events.ChangeNotification`.
+- **Scheduled jobs:** an unset `InitialTime` now gets a random start time, and the
+  `IntervalLength` default is 1; check every job's schedule after the upgrade.
 
 - **Changed behavior:** validation, `SaveAction`, versioning, `ContentProvider`, `XhtmlString`,
   `UriSupport`, routing and URL segments. Read each against the breaking-changes page before
@@ -38,7 +51,8 @@ described in `optimizely-cms13`.
    `[Obsolete]` warning. List third-party packages and confirm each has a 13 release; this is
    usually the largest part of the work.
 2. **Search** for the removed features above and plan a replacement for each. Search &
-   Navigation moves to Optimizely Graph (`optimizely-search-navigation`, *Migrate to Graph*).
+   Navigation moves to Optimizely Graph (Optimizely's *Migrate from Search & Navigation to
+   Graph* guide).
 3. **Bump.** Set `net10.0`, update every `EPiServer.*`/`Optimizely.*` package to `13.*`
    together, then `dotnet restore`.
 4. **Startup.** Fix the registrations (`AddCms()`, identity, visitor groups), then add
@@ -61,5 +75,6 @@ described in `optimizely-cms13`.
 
 ## Sources
 
-https://docs.optimizely.com/cms-13/docs/breaking-changes-in-cms-13 and
-https://docs.optimizely.com/cms-13/docs/upgrade-to-cms-13; both are updated per release.
+https://docs.optimizely.com/cms-13/docs/breaking-changes-in-cms-13,
+https://docs.optimizely.com/cms-13/docs/api-replacement-map and
+https://docs.optimizely.com/cms-13/docs/upgrade-to-cms-13; all are updated per release.

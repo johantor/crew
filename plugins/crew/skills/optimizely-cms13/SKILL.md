@@ -17,8 +17,8 @@ the default editing experience.
 - `Optimizely.Graph.Cms` and `EPiServer.Cms.UI.ContentManager` with `AddContentGraph()` /
   `AddContentManager()` in startup.
 - Admin URL: `/ui/CMS` on DXP with Opti ID, `/Optimizely/CMS` when self-hosted.
-- Neighbours: `EPiServer.Commerce` → `optimizely-commerce-customized`; Graph queries →
-  `optimizely-graph`. `EPiServer.Find*` here is a leftover from 12: Search & Navigation is not
+- Neighbours with no crew skill yet: `EPiServer.Commerce` (Customized Commerce) and Graph query
+  work; use their docs. `EPiServer.Find*` here is a leftover from 12: Search & Navigation is not
   supported on 13 (`optimizely-cms-upgrade`).
 
 ## Startup
@@ -75,13 +75,16 @@ the default editing experience.
   works.
 - `XhtmlString` is editor HTML: render it through `PropertyFor`, never `Html.Raw` on visitor
   input.
-- A headless front end reads from Graph; see `optimizely-graph` and the frontend stack skill.
+- A headless front end reads from Graph through the frontend stack skill. The Graph schema is
+  unified: `_Content`, `_Page`, `_Component`, `_Media`, with metadata under `_metadata`.
 
 ## Background work
 
-- Scheduled job: a `ScheduledJobBase` subclass (`EPiServer.Scheduler`) with
-  `[ScheduledPlugIn(DisplayName = "...", GUID = "...")]`; set `Restartable = true` when a job
-  must resume after a failure. Jobs run in the site's process and in an anonymous context.
+- Scheduled job: a `ScheduledJobBase` subclass with `[ScheduledJob(DisplayName = "...",
+  GUID = "...")]`, both from `EPiServer.Scheduler`. `ScheduledPlugIn` and the
+  `EPiServer.PlugIn` namespace are gone, and a job must inherit `ScheduledJobBase` (custom
+  methods are not supported). An unset `InitialTime` gets a random start time, so set it when
+  the time matters. Jobs run in the site's process and in an anonymous context.
 - Init: register in startup. Event wiring that needs the CMS started goes in an initializable
   module; keep its teardown symmetric.
 
