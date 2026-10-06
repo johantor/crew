@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - `/crew:init` asks on the first run whether to commit its output or keep it local:
-  `.claude/crew.md` and `CLAUDE.local.md`, excluded through `.git/info/exclude`.
+  `.claude/crew.md` and `CLAUDE.local.md`, excluded through `.git/info/exclude` (#294).
 
 ## [10.5.0] - 2026-10-06
 
