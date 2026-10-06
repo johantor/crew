@@ -1,6 +1,6 @@
 ---
 name: frontend-server-rendered
-description: Conventions for server-rendered frontends — a server template renders the page shell, with a client-side framework layered in as islands/widgets rather than a full SPA. The template language has its own skill (Razor: `frontend-razor`). Next.js/RSC is not covered here — crew's mode vocabulary treats Next.js as headless (see frontend-nextjs) even though it server-renders. Load when the repo's frontend mode is "server-rendered".
+description: Conventions for server-rendered frontends — a server template renders the page shell, with a client-side framework layered in as islands/widgets rather than a full SPA. The template language has its own skill (`frontend-razor` for Razor). Next.js/RSC is not covered here — crew's mode vocabulary treats Next.js as headless (see frontend-nextjs) even though it server-renders. Load when the repo's frontend mode is "server-rendered".
 ---
 
 # Server-rendered frontend conventions
