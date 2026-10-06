@@ -12,6 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `optimizely-search-navigation` skill: indexing, typed and unified search, facets, limits, and
   the migration to Graph that CMS 13 requires (#278).
 
+### Fixed
+
+- `optimizely-graph` and `optimizely-cms-saas` facts, checked against the packages and docs:
+  the Graph config section name, CMS 13 sync exclusions, tracking setup, SDK imports (#291).
+
 ## [10.3.0] - 2026-10-05
 
 ### Added

@@ -19,8 +19,10 @@ CMS 12. The content model that feeds it belongs to `optimizely-cms12`, `optimize
   restore without that source fails.
 - **Front end:** `@optimizely/cms-sdk` (official), `@remkoj/optimizely-graph-client`
   (community), or a GraphQL client pointed at `https://cg.optimizely.com/content/v2`.
-- Config: `Optimizely:ContentGraph` on CMS 12, `Optimizely:Graph` on CMS 13 (`GatewayAddress`,
-  `AppKey`, `Secret`, `SingleKey`). On DXP the platform sets it; the section is for local runs.
+- Config: an `Optimizely:ContentGraph` section (`GatewayAddress`, `AppKey`, `Secret`,
+  `SingleKey`); the 13.x packages bind the same name. Some CMS 13 docs show `Optimizely:Graph`:
+  check the name the installed package binds before you rename a section. On DXP the platform
+  sets it; the section is for local runs.
 
 ## Startup and sync
 
@@ -28,13 +30,14 @@ CMS 12. The content model that feeds it belongs to `optimizely-cms12`, `optimize
 - **CMS 12:** `services.AddContentDeliveryApi()` **before** `services.AddContentGraph()`.
   Options go in `AddContentGraph(options => ...)` or the config section.
 - Sync is event-driven: a publish, update or delete reaches Graph in seconds. Scheduled jobs
-  cover the rest: a full sync (types and content) and, on CMS 12, a delta sync.
+  cover the rest: a full sync (types and content) and a delta sync.
 - `ContentVersionSyncMode` decides what is sent: `DraftAndPublishedOnly` (default),
   `PublishedOnly`, or `All`. Keep drafts out unless the site needs preview.
 - A content type change changes the schema. Run the full sync and allow 5–10 minutes before
   queries see the new fields.
-- Keep content that must not leave the CMS out of Graph with the `Include` allowlist (by
-  content type or content ID), not with a front-end filter.
+- Keep content that must not leave the CMS out of Graph at sync, not with a front-end filter:
+  on CMS 12 with the `Include` allowlist (content types or content IDs), on CMS 13 with the
+  sync conventions (`ExcludeContentType<T>()`, excluded content types and properties).
 - An item over about 1 MB times out on sync; split it.
 
 ## Schema
@@ -68,8 +71,11 @@ CMS 12. The content model that feeds it belongs to `optimizely-cms12`, `optimize
 - **CMS 13:** `services.AddGraphContentClient()`, then inject `IGraphContentClient`. Build with
   `QueryContent<T>()`, `.SearchFor(...)`, `.Where(x => ...)`, `.OrderBy(...)`, `.Skip()`/
   `.Limit()`, `.Facet(...)`, `.IncludeTotal()`, and run with `.GetAsync()` or
-  `.GetAsContentAsync()`. `.ToGraphQL()` returns the query text. Search tracking (`.Track()`,
-  with `.SearchFor()` only) needs `Optimizely.Graph.AspNetCore` and `app.UseGraphTrackingScripts()`.
+  `.GetAsContentAsync()`. `.ToGraphQL()` returns the query text.
+- Search tracking (`.Track()`, with `.SearchFor()` only) needs `Optimizely.Graph.AspNetCore`,
+  `app.UseGraphTrackingScripts()`, the `@addTagHelper *, Optimizely.Graph.AspNetCore` line,
+  `<graph-tracking-setup />` in `<head>`, and result links rendered with `data-track-url` or
+  `<graph-trackable-link>`; without them clicks are not recorded.
 - **CMS 12:** the CMS 13 SDK does not support 12. Existing code may use the deprecated
   `GraphQueryBuilder` (`Optimizely.Graph.Client`: `.ForType<T>().Fields(...).Where(...)
   .GetResultAsync<T>()`); keep it working, but do not add new uses. A query that must survive
@@ -80,16 +86,20 @@ CMS 12. The content model that feeds it belongs to `optimizely-cms12`, `optimize
 
 ## Headless front ends
 
-- `@optimizely/cms-sdk`: `new GraphClient(singleKey, { graphUrl })`, `getContentByPath()`,
-  `getPreviewContent()`. Configuration comes from `OPTIMIZELY_GRAPH_SINGLE_KEY` and
-  `OPTIMIZELY_GRAPH_GATEWAY`.
+- `@optimizely/cms-sdk` (CMS 13 and SaaS only: it queries the unified schema):
+  `new GraphClient(singleKey, { graphUrl })`, `getContentByPath()`, `getPreviewContent()`. The
+  SDK reads no environment variables; the app passes the key and URL in, by convention from
+  `OPTIMIZELY_GRAPH_SINGLE_KEY` and `OPTIMIZELY_GRAPH_GATEWAY`. An empty key throws.
 - Generate types from the live schema (GraphQL Code Generator against the endpoint with the
   single key) rather than writing response types by hand; regenerate after a content type
   change.
-- **Preview:** the CMS opens the preview URL with a `preview_token`. Query Graph with
-  `Authorization: Bearer <token>`, server-side; the token lives 5 minutes. Load
+- **Preview (CMS 13, SaaS):** the CMS opens the preview URL with a `preview_token`. Query Graph
+  with `Authorization: Bearer <token>`; the token lives 5 minutes. Load
   `/util/javascript/communicationinjector.js` from the CMS so on-page editing works, and refetch on
   its `optimizely:cms:contentSaved` event.
+- **Preview (CMS 12):** set `EnablePreviewTokens = true` and sync drafts
+  (`AllowSyncDraftContent`), and subscribe with `epi.subscribe('contentSaved', ...)`; follow
+  Optimizely's *Live preview with Next.js headless* guide.
 - Never cache a preview response, and never render a preview route statically.
 
 ## Caching and limits
@@ -98,7 +108,10 @@ CMS 12. The content model that feeds it belongs to `optimizely-cms12`, `optimize
   10 seconds by default; above it Graph returns 429 with `Retry-After`. Honor it; do not retry
   in a tight loop.
 - Stored (cached) templates: send `?stored=true` with the header `cg-stored-query: template`
-  and pass every changing value as a variable, so one template serves all of them.
+  and pass every changing value as a variable, so one template serves all of them. Variables
+  may be `Boolean`, `Date`, `DateTime`, `String`, `Int`, `Float` or `Locales` (named `locale`);
+  a query with any other variable type (such as `ID`) silently falls back to a plain cached
+  query.
 - In a front end, cache published responses with `s-maxage` and `stale-while-revalidate`, and
   purge on a Graph webhook (`POST https://cg.optimizely.com/api/webhooks`, topics such as
   `doc.updated`, `bulk.completed`). Never put a user identity in a shared cache key.
