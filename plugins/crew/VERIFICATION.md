@@ -97,10 +97,11 @@ cannot show that `/crew:init` detected a stack or that a worker loaded a skill.
   `frontend-server-rendered` and `frontend-razor`; `backend` asked to change a view model
   loads `frontend-razor` too. (#293: `frontend` cited the `.cshtml` target; `backend` cited
   `backend-dotnet`'s rule and also loaded `optimizely-cms12` from `Site.csproj`.)
-- [ ] **An Opal SDK loads the Opal skills** — a python scratch repo whose `pyproject.toml`
+- [x] **An Opal SDK loads the Opal skills** — a python scratch repo whose `pyproject.toml`
   depends on `optimizely-opal.opal-tools-sdk` → `backend` loads `backend-python`,
   `optimizely-opal` and `optimizely-opal-tools-python`; a dotnet repo with
-  `Optimizely.Opal.Tools` → `optimizely-opal` and `optimizely-opal-tools-dotnet`.
+  `Optimizely.Opal.Tools` → `optimizely-opal` and `optimizely-opal-tools-dotnet`. (#296:
+  both cited the dependency line; python also the `opal_tools_sdk` import.)
 - [x] **A worker's tool calls arrive namespaced** — a `crew:backend` dispatch's Bash call carries
   `agent_type: crew:backend`, a project agent `.claude/agents/backend.md` carries `backend` and
   runs `git status` unrefused. (#272, observed through a logging `PreToolUse` hook.)
