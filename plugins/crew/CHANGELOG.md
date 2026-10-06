@@ -10,11 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - `frontend-razor` skill: Razor view rules for ASP.NET Core, plus the Optimizely CMS 12/13 view
-  rules (`epi-property`, ContentArea, client resources); both halves of a view load it.
+  rules (`epi-property`, ContentArea, client resources); both halves of a view load it (#293).
 
 ### Removed
 
-- The Blade (Laravel) section of `frontend-server-rendered`: the crew supports no PHP stack.
+- The Blade (Laravel) section of `frontend-server-rendered`: the crew supports no PHP stack
+  (#293).
 
 ## [10.5.0] - 2026-10-06
 

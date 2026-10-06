@@ -28,8 +28,9 @@ flow over data) are `backend`'s; change the view-model contract together, not ea
   `@await Html.PartialAsync(...)`. Never `Html.Partial` or `Html.RenderPartial`: they can
   deadlock and are slated for removal. A partial gets a copy of the parent's `ViewData` and no
   `_ViewStart`.
-- A view component pairs logic with a view: `InvokeAsync` returns the view, which lives at
-  `Views/Shared/Components/<Name>/Default.cshtml`. Call it with
+- A view component pairs logic with a view: `InvokeAsync` returns the view. MVC looks in
+  `Views/<Controller>/Components/<Name>/` first, then `Views/Shared/Components/<Name>/`
+  (`Default.cshtml` unless named): edit the one the project already uses. Call it with
   `@await Component.InvokeAsync("Name", new { ... })` or `<vc:name-in-kebab-case />`, which
   needs `@addTagHelper *, <the component's assembly>`.
 
