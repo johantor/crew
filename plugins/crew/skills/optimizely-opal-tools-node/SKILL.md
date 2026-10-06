@@ -40,7 +40,7 @@ import { z } from "zod";   // on zod 3.25.x: from "zod/v4" (the SDK reads v4 sch
 
 const getEventsInput = {
   date: z.string().describe("Day to list, ISO 8601 date"),
-  limit: z.number().int().optional().describe("Max events, 1-50"),
+  limit: z.number().int().min(1).max(50).optional().describe("Max events, 1-50"),
 };
 
 registerTool("get_events", {

@@ -47,9 +47,16 @@ public class CalendarTools(ICalendarClient calendar)
     [OpalTool(Name = "get_events")]
     [Description("Lists the user's calendar events for one day.")]
     public async Task<object> GetEvents(GetEventsParameters p, OpalToolContext context)
-        => await calendar.ListAsync(p.Date, p.Limit ?? 10);
+    {
+        if (p.Limit is < 1 or > 50)
+            return new { error = "limit must be between 1 and 50" };
+        return await calendar.ListAsync(p.Date, p.Limit ?? 10);
+    }
 }
 ```
+
+- Check ranges and formats in the method: `[Required]` is enforced (400), but do not assume the
+  SDK runs other validation attributes such as `[Range]`.
 
 - Set `Name` explicitly: without it the method name becomes the tool name. The endpoint always
   turns `_` into `-` (`get_events` is served at `/tools/get-events`; `/tools/get_events` is a

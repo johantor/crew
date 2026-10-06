@@ -42,7 +42,7 @@ from pydantic import BaseModel, Field
 
 class GetEventsParameters(BaseModel):
     date: str = Field(description="Day to list, ISO 8601 date")
-    limit: Optional[int] = Field(default=None, description="Max events, 1-50")
+    limit: Optional[int] = Field(default=None, ge=1, le=50, description="Max events, 1-50")
 
 @tool("get_events", "Lists the user's calendar events for one day.")
 async def get_events(parameters: GetEventsParameters):
