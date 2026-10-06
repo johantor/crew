@@ -18,7 +18,8 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
     Write/Edit/Bash — `Grep`/`Glob` only, so `/crew:audit` hands it `diff` and `outdated`
     results as data).
 - `commands/` — namespaced `crew:*` when installed.
-  - `init` writes `.claude/crew.md`, one frontmatter key per slot, the only config location.
+  - `init` writes `.claude/crew.md`, one frontmatter key per slot, the only config location;
+    §4 asks on bootstrap whether to commit it or git-exclude it via `info/exclude`.
     Its §1 slot keys are validator §11's source of truth (the `- **Slot** (`key`) —` bullet
     shape is what §11 parses); §2 takes each backend's commands from its `backend-<stack>`
     skill's *Crew config* section; §3 owns what may go in `CLAUDE.md` (auto mode's classifier

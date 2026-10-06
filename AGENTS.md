@@ -95,7 +95,9 @@ is the only detector: a slot reads `unset` when unresolved (the orchestrator sto
 (the gate skips). Configuration does **not** live in a project's `CLAUDE.md`; what stays
 there is the `## Crew orchestration` prose, whose reader — auto mode's permission classifier —
 sees only `CLAUDE.md`. It is the one location: the `--local` file and the legacy `CLAUDE.md`
-block went in 5.0.0 (#248), each stated in seven places and read by one hook.
+block went in 5.0.0 (#248), each stated in seven places and read by one hook. To keep the
+configuration out of the repo, `/crew:init` git-excludes the same file rather than move it, so
+no reader changes; a new worktree then has no configuration.
 
 ## How we review code (the crew reviewer)
 

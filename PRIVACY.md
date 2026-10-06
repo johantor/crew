@@ -36,7 +36,8 @@ system and the plugins' guard hooks.
 
 The plugins write only inside your repository:
 
-- `.claude/crew.md` — the configuration `/crew:init` detects and records.
+- `.claude/crew.md` — the configuration `/crew:init` detects and records; when you keep it
+  local, one line in `.git/info/exclude`.
 - `<plan-dir>/plan-<feature>.md` — the orchestrator's working plan, in `.claude/`
   unless you configure another directory.
 - Ordinary git commits on the feature branch the orchestrator creates.

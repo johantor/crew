@@ -10,10 +10,10 @@ slots introduced by a newer plugin version **without overwriting values you've a
 
 Two destinations, split by **audience** — not by tool:
 
-- **`.claude/crew.md`** — every slot in §1. Committed, so a teammate who installs the plugin
-  inherits them, and reviewable in a pull request. This is machine configuration for a
-  dispatcher: it is read on demand, not auto-loaded into every session. It is the only place
-  the crew reads configuration from.
+- **`.claude/crew.md`** — every slot in §1. Committed by default, so a teammate who installs
+  the plugin inherits them, and reviewable in a pull request; or kept local, git-excluded (§4).
+  This is machine configuration for a dispatcher: it is read on demand, not auto-loaded into
+  every session. It is the only place the crew reads configuration from.
 - **`CLAUDE.md`** — the `## Crew orchestration` prose (§3, which has a reader that sees only
   `CLAUDE.md`) plus the few repo conventions a careful reader would get **wrong** (§3's bar),
   in tool-neutral wording. Slot values never go here. A `## Crew configuration` section left
@@ -198,12 +198,23 @@ anyone working in the repo, including teammates who have never installed this pl
 
 Show two tables — the §1 slots (slot · proposed value · source) and any proposed `CLAUDE.md` lines
 (line · why a glance misleads) — and let the user confirm or edit each before anything is written.
-Say plainly where the slots go: `.claude/crew.md` is committed and shared with the repo.
+
+When `.claude/crew.md` does not exist yet, also ask where it lives:
+
+- **Committed** (default) — shared with the repo, so teammates inherit it.
+- **Local** — never checked in: `/.claude/crew.md` is added to the file
+  `git rev-parse --git-path info/exclude` names. Say the cost: a git worktree holds only tracked
+  files, so a worker in one finds no configuration and `backend`/`frontend` are refused there.
+
+Skip the question when `git check-ignore -q .claude/crew.md` already succeeds, and say the file
+stays local. On reconcile, don't ask: report whether the file is tracked or ignored.
 
 ## 5. Write and reconcile
 
 - **Nothing yet** → create `.claude/crew.md` with every slot from §1 and the confirmed values,
-  and apply the confirmed `CLAUDE.md` additions from §3.
+  and apply the confirmed `CLAUDE.md` additions from §3. For **Local**, first add
+  `/.claude/crew.md` to the exclude file with `Edit` (`Write` if it is missing), unless the line
+  is there.
 - **`.claude/crew.md` exists (reconcile)** → for each slot in §1: add its key if missing; fill it
   if present but still a placeholder (`unset` / `none`) and a value was detected and confirmed.
   **Never overwrite a key the user has set to a real value** — show those as "kept" rather than
