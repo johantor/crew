@@ -12,8 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `optimizely-commerce-customized` (Commerce Connect 14 and 15) and `optimizely-commerce-configured`
   (Configured Commerce, Spire) skills (#279).
 - `optimizely-experimentation` skill: Feature and Web Experimentation, Performance Edge (#280).
-- `optimizely-ocp` skill: Connect Platform apps; the stack, frontend and CMS skills name the
-  new skills' markers (#282).
+- `optimizely-ocp` skill: Connect Platform apps (#282).
+- The stack, frontend and CMS skills name the markers of the four new skills.
 
 ## [10.11.0] - 2026-10-06
 

@@ -78,10 +78,11 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
     move off a product stays in that product's skill (`optimizely-search-navigation` → Graph). Facts
     come from docs.optimizely.com: re-check a skill's sources when you touch it. Name a
     neighbour skill only once it ships; a missing skill makes the `Skill` call fail.
-    `optimizely-graph`, `optimizely-cms-saas` and `optimizely-odp` are the ones a non-.NET
-    worker loads: `frontend-headless` names the markers of all three, `backend-node` those of
-    Graph and ODP, `frontend-server-rendered` the ODP web tag, and the worker greps for them
-    itself. Opal is one concepts skill (`optimizely-opal`) plus one skill per tools SDK
+    A non-.NET worker loads `optimizely-graph`, `optimizely-cms-saas`, `optimizely-odp`,
+    `optimizely-experimentation`, `optimizely-ocp` and (Spire) `optimizely-commerce-configured`:
+    `frontend-headless` names the markers of the first four, `backend-node` those of Graph, ODP,
+    Experimentation and OCP, `frontend-server-rendered` the ODP and Experimentation tags, and the
+    worker greps for them itself. Opal is one concepts skill (`optimizely-opal`) plus one skill per tools SDK
     (`optimizely-opal-tools-dotnet`, `-node`, `-python`); each backend stack skill names its
     SDK's package and both get loaded; a tool written without an SDK loads the concepts skill
     alone. Commerce is two skills, since the products are different codebases:
