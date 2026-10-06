@@ -222,17 +222,26 @@ frontendLanePaths: unset')"
 assert_block "frontmatter: only one lane path configured → fail closed" \
   "$HOOK" "$(payload_file crew:backend src/api/handler.ts)" "only one of" "$fm_one"
 
-# --- frontendStack: other beside a dotnet backend: extensions still split them ---
+# --- frontendStack: other: no extension list covers it, so it needs lane paths ---
+# A .cs file for backend and a .styl file for frontend are the discriminators:
+# the extension regime would allow both.
 fm_fe_other="$(make_crew_md 'backendStack: dotnet
 frontendStack: other')"
-for f in src/App.vue src/Card.svelte src/pages/index.astro src/site.less src/site.sass; do
-  assert_block "dotnet + frontend other: backend denied $f" \
-    "$HOOK" "$(payload_file crew:backend "$f")" "out of" "$fm_fe_other"
-  assert_allow "dotnet + frontend other: frontend allowed $f" \
-    "$HOOK" "$(payload_file crew:frontend "$f")" "$fm_fe_other"
-done
-assert_block "dotnet + frontend other: frontend denied a .cs file" \
-  "$HOOK" "$(payload_file crew:frontend Foo.cs)" "out of" "$fm_fe_other"
+assert_block "dotnet + frontend other, no lane paths: backend fails closed" \
+  "$HOOK" "$(payload_file crew:backend Foo.cs)" "knows no file extensions" "$fm_fe_other"
+assert_block "dotnet + frontend other, no lane paths: frontend fails closed" \
+  "$HOOK" "$(payload_file crew:frontend web/theme.styl)" "knows no file extensions" "$fm_fe_other"
+
+fm_fe_other_paths="$(make_crew_md 'backendStack: dotnet
+frontendStack: other
+backendLanePaths: src/
+frontendLanePaths: web/')"
+assert_allow "dotnet + frontend other + lane paths: backend allowed in its lane" \
+  "$HOOK" "$(payload_file crew:backend src/Foo.cs)" "$fm_fe_other_paths"
+assert_block "dotnet + frontend other + lane paths: backend denied a .styl file" \
+  "$HOOK" "$(payload_file crew:backend web/theme.styl)" "out of" "$fm_fe_other_paths"
+assert_allow "dotnet + frontend other + lane paths: frontend allowed its .styl file" \
+  "$HOOK" "$(payload_file crew:frontend web/theme.styl)" "$fm_fe_other_paths"
 
 # --- backendStack: other (a stack the crew ships no skill for) ----------------
 # No extension list covers it, so a frontend needs lane paths; an Elixir .ex file

@@ -65,9 +65,9 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
     skill, the project's own via `backendSkill`; the hooks keep their Go/Rust/JVM patterns for
     mixed repos. Node and `other` need lane paths beside a frontend (node's extensions collide
     with a frontend's; `other` has none the guard knows), and `other` widens `unit-tests` to
-    `test/`, `spec/`, `*_test.*` and `*_spec.*`. `frontendStack: other` (Vue, Svelte, a TUI, …)
-    is the same with `frontendSkill`; the mode skill still loads, and `backend`'s extension deny
-    list carries `.vue`/`.svelte`/`.astro`/`.less`/`.sass` so a dotnet backend needs no paths.
+    `test/`, `spec/`, `*_test.*` and `*_spec.*`. `frontendStack: other` (Vue, Svelte, …) is the
+    same with `frontendSkill`: lane paths always, since no extension list covers every view
+    file; the mode skill still loads. A TUI stays unsupported (`frontend-headless` is web-only).
     `frontendStack: none` is a stated absence: `lead` skips frontend, e2e and unit-tool
     resolution and dispatches only `backend`/`unit-tests`. That gate sits above the resolution table.
   - Optimizely: one `optimizely-<product>` skill per product, sections in order **Detect**

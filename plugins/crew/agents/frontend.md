@@ -25,7 +25,7 @@ Rules:
 - Use the frontend stack `lead` provides in the delegation (it resolves it) and load the
   matching stack skill via the Skill tool — e.g. `frontend-react`, `frontend-nextjs`. For stack
   `other` there is no crew skill: load the project skill the delegation names, if any, and
-  follow the repo's own conventions.
+  follow the repo's own conventions, which win over the mode skill's React defaults.
 - A shared server template is **mode-dependent** and **concern-split**:
   - **server-rendered mode:** you may edit the *markup/DOM* of the shared server template —
     element structure, classes, ARIA, presentation. Leave the server-side parts to backend

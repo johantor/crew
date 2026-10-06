@@ -2,7 +2,7 @@
 # Per-agent file-write lanes for PreToolUse(Edit|Write), routed on the payload's
 # `agent_type` since plugin agents cannot carry their own hooks. Lane paths win
 # when configured, else extension globs; a same-language pair or an `other`
-# backend beside a frontend with no paths, or an unset backend stack, fails
+# stack beside a frontend with no paths, or an unset backend stack, fails
 # closed. The guard reads slots and detects nothing (AGENTS.md, "Init is the only
 # detector").
 
@@ -134,16 +134,16 @@ case "$agent_type" in
     elif [ -n "$backend_lane" ] || [ -n "$frontend_lane" ]; then
       echo "Blocked: only one of Backend lane path(s) / Frontend lane path(s) is configured. Set both in .claude/crew.md (see /crew:init) before delegating." >&2
       exit 2
-    elif [ "$backend_stack" = "node" ] || [ "$backend_stack" = "other" ]; then
+    elif [ "$backend_stack" = "node" ] || [ "$backend_stack" = "other" ] || [ "$frontend_stack" = "other" ]; then
       # No extension list tells these lanes apart: node shares the frontend's, and
-      # `other` has none the crew knows.
+      # an `other` stack has none the crew knows.
       if [ -n "$frontend_stack" ]; then
-        if [ "$backend_stack" = "node" ]; then
-          why="backend and frontend can both touch .ts/.js files"
+        if [ "$backend_stack" = "node" ] && [ "$frontend_stack" != "other" ]; then
+          why="backend stack is node — backend and frontend can both touch .ts/.js files"
         else
-          why="the crew knows no file extensions for it"
+          why="a stack is other — the crew knows no file extensions for it"
         fi
-        echo "Blocked: backend stack is ${backend_stack} — ${why}, so extension-based lanes can't tell them apart. Set Backend lane path(s) / Frontend lane path(s) in .claude/crew.md (see /crew:init) before delegating." >&2
+        echo "Blocked: ${why}, so extension-based lanes can't tell them apart. Set Backend lane path(s) / Frontend lane path(s) in .claude/crew.md (see /crew:init) before delegating." >&2
         exit 2
       fi
       # Backend only: backend owns the tree; frontend has no lane to scope to.
@@ -157,7 +157,6 @@ case "$agent_type" in
       mode="--deny"
       if [ "$agent_type" = "backend" ]; then
         patterns='*.ts *.tsx *.jsx *.js *.mjs *.scss *.css *.html'
-        patterns+=' *.vue *.svelte *.astro *.less *.sass'    # a frontend `other`
       else
         patterns='*.cs *.csproj'                                     # dotnet
         patterns+=' *.py *.pyi pyproject.toml requirements*.txt setup.py setup.cfg'

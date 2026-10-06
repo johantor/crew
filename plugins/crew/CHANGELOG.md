@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- `frontendStack: other`, best effort, for a view with no crew skill (Vue, Svelte, Angular, a
-  TUI); the new `frontendSkill` slot names the project's own skill.
-- `lane-guard` keeps `backend` out of `.vue`, `.svelte`, `.astro`, `.less` and `.sass` files.
+- `frontendStack: other`, best effort, for a web view with no crew skill (Vue, Svelte, Angular);
+  the new `frontendSkill` slot names the project's own skill.
+- `lane-guard` refuses a frontend `other` until both lane paths are set.
 
 ## [10.10.0] - 2026-10-06
 
