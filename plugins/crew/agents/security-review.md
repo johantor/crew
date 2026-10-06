@@ -32,8 +32,10 @@ Read each changed file, and follow each changed input to where it is used.
   open redirects, file uploads without a type and size check.
 - **Transport and headers**: CORS `*` with credentials, cookies without `Secure`/`HttpOnly`/
   `SameSite`, a removed CSP or HSTS header.
-- **Dependencies**: a new or upgraded package with a known advisory, or from an unexpected
-  source.
+- **Dependencies**: a new or upgraded package from an unexpected source, or with an advisory
+  you know of. You have no current advisory feed, so never list dependencies under `## Passed`:
+  name each new or upgraded package under `## Warnings` as *not checked against current
+  advisories* (`dotnet list package --vulnerable`, `npm audit`, `pip-audit`).
 - **Platform**: load the stack and product skills in play (`backend-dotnet`,
   `optimizely-<product>`, …) and check their **Security** section: Optimizely access rights
   and preview modes, Graph keys in client code, Commerce price and order tampering.
