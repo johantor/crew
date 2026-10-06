@@ -7,7 +7,9 @@ Behavioral scenarios for changes to crew's orchestration. Referenced from
 When a PR changes crew's orchestration behavior, exercise the relevant scenario below in a
 scratch repo and cite the observed result — this is what *behavioral verification* means for crew
 (see `AGENTS.md`). Each row is one scenario: a minimal setup and the behavior that counts as a
-pass. A checklist item that reads "would pass" is not verification — run it.
+pass. A checklist item that reads "would pass" is not verification — run it. A change that only
+repeats a pattern a ticked row already proves (one more marker line to a product skill) names
+that row instead of running it (`AGENTS.md`, *Validating changes*).
 
 Build the scratch repo **in your own terminal, not inside a crew agent session** — the hooks
 block `git` for workers and protected-branch commits. In a throwaway directory: `git init`, add a
