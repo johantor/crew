@@ -31,6 +31,15 @@ check "no temp exit file remains" "absent" "$([ -e "/tmp/crew-gate-$id/exit.tmp"
 
 bash "$GATE" start "$id" 'true' >/dev/null 2>&1
 check "a reused id is refused" "3" "$?"
+# Git Bash's mkdir creates the directory, then fails `-m`; start must not need it.
+gitbash="$(new_tmpdir)"; real_mkdir="$(command -v mkdir)"
+# shellcheck disable=SC2016  # $a and $@ belong to the fake script
+printf '#!/bin/sh\nfor a; do case "$a" in -m*) %s "$@"; exit 1 ;; esac; done\nexec %s "$@"\n' \
+  "$real_mkdir" "$real_mkdir" >"$gitbash/mkdir"
+chmod +x "$gitbash/mkdir"
+check "start works where mkdir -m fails after creating" "/tmp/crew-gate-$id-gb" \
+  "$(PATH="$gitbash:$PATH" bash "$GATE" start "$id-gb" 'true' 2>&1)"
+check "the gate directory is private" "" "$(find "/tmp/crew-gate-$id-gb" -maxdepth 0 -perm -g=r -o -maxdepth 0 -perm -o=r)"
 bash "$GATE" start 'Bad_Id' 'true' >/dev/null 2>&1
 check "a malformed id is refused" "2" "$?"
 bash "$GATE" poll "$id-missing" >/dev/null 2>&1
