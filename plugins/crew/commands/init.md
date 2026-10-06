@@ -10,15 +10,15 @@ slots introduced by a newer plugin version **without overwriting values you've a
 
 Two destinations, split by **audience** — not by tool:
 
-- **`.claude/crew.md`** — every slot in §1. Committed, so a teammate who installs the plugin
-  inherits them, and reviewable in a pull request. This is machine configuration for a
-  dispatcher: it is read on demand, not auto-loaded into every session. It is the only place
-  the crew reads configuration from.
+- **`.claude/crew.md`** — every slot in §1. Committed by default, so a teammate who installs
+  the plugin inherits them, and reviewable in a pull request; or kept local, git-excluded (§4).
+  This is machine configuration for a dispatcher: it is read on demand, not auto-loaded into
+  every session. It is the only place the crew reads configuration from.
 - **`CLAUDE.md`** — the `## Crew orchestration` prose (§3, which has a reader that sees only
   `CLAUDE.md`) plus the few repo conventions a careful reader would get **wrong** (§3's bar),
   in tool-neutral wording. Slot values never go here. A `## Crew configuration` section left
   by a plugin older than 3.21.0 is not read: say so, and propose removing it once its values
-  are in `.claude/crew.md`.
+  are in `.claude/crew.md`. For **Local** (§4), these go to `CLAUDE.local.md` instead.
 
 Do the detection read-only first, then confirm with the user before writing anything.
 
@@ -145,7 +145,8 @@ version added is visibly unadopted rather than merely missing. Don't guess to fi
 
 Two things, and no slot values.
 
-**First, the `## Crew orchestration` prose.** Ensure that section exists. It carries no slots and
+**First, the `## Crew orchestration` prose.** Ensure that section exists (for **Local**, in
+`CLAUDE.md` or `CLAUDE.local.md`). It carries no slots and
 nothing detects into it — it is fixed prose, added once and left alone on reconcile if the user has
 edited it. Its audience is anything that reads `CLAUDE.md` to understand this repo, including auto
 mode's permission classifier: the classifier reads the same `CLAUDE.md` Claude does, and without
@@ -198,9 +199,26 @@ anyone working in the repo, including teammates who have never installed this pl
 
 Show two tables — the §1 slots (slot · proposed value · source) and any proposed `CLAUDE.md` lines
 (line · why a glance misleads) — and let the user confirm or edit each before anything is written.
-Say plainly where the slots go: `.claude/crew.md` is committed and shared with the repo.
+
+When `.claude/crew.md` does not exist yet, also ask where init writes:
+
+- **Committed** (default) — `.claude/crew.md` and `CLAUDE.md`, shared with the repo, so
+  teammates inherit them.
+- **Local** — nothing checked in: `.claude/crew.md`, and `CLAUDE.local.md` in place of
+  `CLAUDE.md`, which Claude Code loads alongside it. Both are added to the file
+  `git rev-parse --git-path info/exclude` names. Say the cost: a git worktree holds only tracked
+  files, so a worker in one finds no configuration and `backend`/`frontend` are refused there.
+
+Skip the question when `git check-ignore -q .claude/crew.md` already succeeds: the run is
+**Local**. On reconcile, don't ask: the same check decides, so report it. Local needs both files
+untracked: if `git ls-files .claude/crew.md CLAUDE.local.md` lists one, stop and tell the user to
+untrack it (`git rm --cached`) or choose Committed.
 
 ## 5. Write and reconcile
+
+Every **Local** run, bootstrap or reconcile, first adds the lines `/.claude/crew.md` and
+`/CLAUDE.local.md` to the exclude file with `Edit` (`Write` if it is missing), skipping a line
+already there. Until that write succeeds, write nothing else: if it fails, stop and report it.
 
 - **Nothing yet** → create `.claude/crew.md` with every slot from §1 and the confirmed values,
   and apply the confirmed `CLAUDE.md` additions from §3.

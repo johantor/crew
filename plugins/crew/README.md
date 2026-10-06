@@ -88,7 +88,8 @@ every permission mode.
 - **`/crew:init` writes a `## Crew orchestration` section** into `CLAUDE.md`. The classifier reads
   `CLAUDE.md`, so this is the lever that ships with the plugin: it describes what a worker dispatch
   is, instead of leaving the classifier a bare label to judge. It is the one thing the command puts
-  there by default — the configuration slots live in `.claude/crew.md`.
+  there by default — the configuration slots live in `.claude/crew.md`. In local mode the section
+  goes to `CLAUDE.local.md`, which Claude Code loads alongside `CLAUDE.md`.
 - **Describe your project in `autoMode.environment`** in `~/.claude/settings.json`, keeping the
   `"$defaults"` entry. It has to be user-level — the classifier deliberately ignores `autoMode` in
   project `.claude/settings.json`.
@@ -139,7 +140,7 @@ rather than a per-worker setting.
 
 | Command | What it does |
 |---|---|
-| `/crew:init` | Detect this project's build/test/lint commands, per-edit formatters, base branch, frontend mode, and stacks, and record them in `.claude/crew.md` (committed, so teammates inherit them). It proposes for `CLAUDE.md` only what a glance at `package.json` would get wrong. Idempotent: re-run to pick up slots a newer version added. |
+| `/crew:init` | Detect this project's build/test/lint commands, per-edit formatters, base branch, frontend mode, and stacks, and record them in `.claude/crew.md` (committed, so teammates inherit them, or kept local and git-excluded, with the `CLAUDE.md` part in `CLAUDE.local.md`: it asks on the first run). It proposes for `CLAUDE.md` only what a glance at `package.json` would get wrong. Idempotent: re-run to pick up slots a newer version added. |
 | `/crew:feature <task>` | Plan, delegate, and build the feature, stopping at the review gate. |
 | `/crew:debt <pointer>` | **Beta.** Fix one known debt item: a suppression (`file:line`), a rule (`CS8602`, `eslint no-explicit-any`), a package upgrade (`Newtonsoft.Json 13.x`), or pasted build/lint output. `lead` reports the blast radius before any edit, stops at gates that need you, fixes in batches through the lane workers, and commits each batch once its acceptance gate passes. Deleting the suppression makes the analyzer the regression test. .NET and TypeScript/JavaScript today; a platform migration gets a handoff outline instead. `--force` also works justified suppressions. |
 | `/crew:audit <scope>` | **Beta.** Read-only debt scout over a scope you name (a path, `backend`/`frontend`, a rule family, `stale`, `outdated`, `diff`), run by `debt-scout`, an agent with no Edit, Write or Bash tool: a ranked report of at most 12 findings, each a ready-to-paste `/crew:debt`, then a pick of the top 3. Suppressions with a meaningful native justification are counted but not listed. |
@@ -332,7 +333,8 @@ Local agent memory is git-ignored (`.claude/agent-memory-local/`).
 resolve relative to the project directory — memory at `.claude/agent-memory-local/`, plans at the
 **Plan directory** slot or `.claude/` when it is unset — so they sit inside the worktree, and
 `git worktree remove` deletes those copies. Configuration is never in memory: it lives in
-`.claude/crew.md`, which is committed and travels with the branch. Point **Plan directory** at a
+`.claude/crew.md`, which travels with the branch when committed. A local, git-excluded
+`.claude/crew.md` is not in a new worktree, so `backend` and `frontend` are refused there. Point **Plan directory** at a
 tracked path (e.g. `docs/plans/`) so a plan you commit lands on the branch instead of in the
 untracked `.claude/` fallback.
 
