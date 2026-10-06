@@ -88,7 +88,8 @@ every permission mode.
 - **`/crew:init` writes a `## Crew orchestration` section** into `CLAUDE.md`. The classifier reads
   `CLAUDE.md`, so this is the lever that ships with the plugin: it describes what a worker dispatch
   is, instead of leaving the classifier a bare label to judge. It is the one thing the command puts
-  there by default — the configuration slots live in `.claude/crew.md`.
+  there by default — the configuration slots live in `.claude/crew.md`. In local mode the section
+  goes to `CLAUDE.local.md`, which Claude Code loads alongside `CLAUDE.md`.
 - **Describe your project in `autoMode.environment`** in `~/.claude/settings.json`, keeping the
   `"$defaults"` entry. It has to be user-level — the classifier deliberately ignores `autoMode` in
   project `.claude/settings.json`.

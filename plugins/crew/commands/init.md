@@ -210,14 +210,18 @@ When `.claude/crew.md` does not exist yet, also ask where init writes:
   files, so a worker in one finds no configuration and `backend`/`frontend` are refused there.
 
 Skip the question when `git check-ignore -q .claude/crew.md` already succeeds: the run is
-**Local**. On reconcile, don't ask: the same check decides, so report it.
+**Local**. On reconcile, don't ask: the same check decides, so report it. Local needs both files
+untracked: if `git ls-files .claude/crew.md CLAUDE.local.md` lists one, stop and tell the user to
+untrack it (`git rm --cached`) or choose Committed.
 
 ## 5. Write and reconcile
 
+Every **Local** run, bootstrap or reconcile, first adds the lines `/.claude/crew.md` and
+`/CLAUDE.local.md` to the exclude file with `Edit` (`Write` if it is missing), skipping a line
+already there. Until that write succeeds, write nothing else: if it fails, stop and report it.
+
 - **Nothing yet** → create `.claude/crew.md` with every slot from §1 and the confirmed values,
-  and apply the confirmed `CLAUDE.md` additions from §3. For **Local**, first add the lines
-  `/.claude/crew.md` and `/CLAUDE.local.md` to the exclude file with `Edit` (`Write` if it is
-  missing), skipping a line already there.
+  and apply the confirmed `CLAUDE.md` additions from §3.
 - **`.claude/crew.md` exists (reconcile)** → for each slot in §1: add its key if missing; fill it
   if present but still a placeholder (`unset` / `none`) and a value was detected and confirmed.
   **Never overwrite a key the user has set to a real value** — show those as "kept" rather than
