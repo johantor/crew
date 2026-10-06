@@ -28,7 +28,9 @@ if ! guard_jq2 \
   exit 2
 fi
 guard_agent_type
-path="$guard_untrusted"
+# The globs below and the `..` check use `/`; Windows hands over `D:\x\y`.
+guard_posix_path "$guard_untrusted"
+path="$guard_path"
 
 # The main session and `generalist` (the express lane) have no lane and bail here.
 # crew-roster: lane-guarded -- validator §9 keeps the arm below in lockstep with
@@ -47,6 +49,12 @@ case "/$path/" in
     echo "Blocked: $path has a '..' segment — name the file by its plain path." >&2
     exit 2 ;;
 esac
+# A drive-relative `C:x` resolves against that drive's current directory, which
+# the guard cannot see; the harness itself always sends a full path.
+if guard_is_windows && [[ $path =~ ^[A-Za-z]:([^/]|$) ]]; then
+  echo "Blocked: $path is drive-relative — name the file by its full path." >&2
+  exit 2
+fi
 
 # Loaded once in the parent shell: config_slot runs in `$(...)`.
 guard_config_load

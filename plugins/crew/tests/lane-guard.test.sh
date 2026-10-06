@@ -149,6 +149,26 @@ assert_allow "lead allowed a Windows temp scratchpad" \
   "$HOOK" "$(payload_file crew:lead 'C:\Users\dev\AppData\Local\Temp\claude\description.html')"
 assert_block "lead denied a Windows path in the project" \
   "$HOOK" "$(payload_file crew:lead 'C:\work\proj\src\App.cs')" "allowed paths"
+# The harness hands a Windows hook backslash paths; the lane globs use `/`.
+assert_allow "lead allowed a Windows plan path in the project" \
+  "$HOOK" "$(payload_file crew:lead 'C:\work\proj\.claude\plan-sso.md')"
+assert_allow "lead allowed a Windows agent-memory path in the project" \
+  "$HOOK" "$(payload_file crew:lead 'C:\work\proj\.claude\agent-memory-local\lead\notes.md')"
+assert_allow "lead allowed a relative Windows plan path" \
+  "$HOOK" "$(payload_file crew:lead '.claude\plan-sso.md')"
+assert_block "lead denied a Windows '..' traversal" \
+  "$HOOK" "$(payload_file crew:lead 'C:\work\proj\.claude\..\src\plan-x.md')" "'..' segment"
+assert_allow "unit-tests allowed a Windows test path" \
+  "$HOOK" "$(payload_file crew:unit-tests 'C:\work\proj\tests\Foo.Tests\FooTests.cs')"
+# A drive-relative path resolves against a directory the guard cannot see.
+assert_block "unit-tests denied a drive-relative '..' path" \
+  "$HOOK" "$(payload_file crew:unit-tests 'C:..\tests\Foo.test.ts')" "drive-relative"
+assert_block "unit-tests denied a drive-relative path" \
+  "$HOOK" "$(payload_file crew:unit-tests 'C:tests\Foo.test.ts')" "drive-relative"
+# Cygwin spells the project root `/cygdrive/c/...`; a native path is still inside it.
+CLAUDE_PROJECT_DIR=/cygdrive/c/work/proj CREW_OSTYPE=cygwin
+assert_block "lead denied a Windows path inside a Cygwin project root" \
+  "$HOOK" "$(payload_file crew:lead 'C:\work\proj\src\App.cs')" "allowed paths"
 unset CLAUDE_PROJECT_DIR CREW_OSTYPE
 assert_block "lead denied an absolute path with no project dir" \
   "$HOOK" "$(payload_file crew:lead /home/dev/scratch/description.html)" "allowed paths"
@@ -188,6 +208,10 @@ assert_allow "frontmatter: backend allowed in its backend lane" \
   "$HOOK" "$(payload_file crew:backend src/api/handler.ts)" "$fm_both"
 assert_block "frontmatter: backend denied in the frontend lane" \
   "$HOOK" "$(payload_file crew:backend src/web/page.ts)" "out of" "$fm_both"
+export CREW_OSTYPE=msys
+assert_block "frontmatter: backend denied a Windows path in the frontend lane" \
+  "$HOOK" "$(payload_file crew:backend 'C:\work\proj\src\web\page.ts')" "out of" "$fm_both"
+unset CREW_OSTYPE
 
 fm_one="$(make_crew_md 'backendStack: node
 frontendStack: nextjs

@@ -62,7 +62,8 @@ cache_ok() {
 case "$op" in
   start)
     case "$#:${4-}" in 3:|4:nocache) ;; *) usage ;; esac
-    mkdir -m 700 "$d" 2>/dev/null || { echo "gate.sh: $d already exists; mint a new <id>" >&2; exit 3; }
+    # umask, not `mkdir -m`: Git Bash's mkdir creates the directory, then fails the mode.
+    (umask 077 && mkdir "$d") 2>/dev/null || { echo "gate.sh: $d already exists; mint a new <id>" >&2; exit 3; }
     # An empty key is a run outside the cache, on both the read and the write.
     key=''; [ "${4-}" = nocache ] || key="$(cache_key "$3")"
     # A hit needs the whole cached log; a copy that fails runs the gate instead.
@@ -81,7 +82,7 @@ case "$op" in
     (
       bash -c "$3" >"$d/log" 2>&1; rc=$?
       if [ "$rc" -eq 0 ] && [ -n "$key" ] && [ "$(cache_key "$3")" = "$key" ]; then
-        [ -n "$cache" ] && mkdir -m 700 "$cache" 2>/dev/null
+        [ -n "$cache" ] && (umask 077 && mkdir "$cache") 2>/dev/null
         cache_ok && cp "$d/log" "$cache/$key.$id" && mv "$cache/$key.$id" "$cache/$key"
       fi
       echo "$rc" >"$d/exit.tmp"; mv "$d/exit.tmp" "$d/exit"

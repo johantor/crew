@@ -310,8 +310,8 @@ guard_write_sink_exempt() {
 guard_outside_project() {
   local p root inside=1 had_nocase=0
   [ -n "${CLAUDE_PROJECT_DIR:-}" ] || return 1
-  _guard_posix_path "$1"; p="$_guard_path"
-  _guard_posix_path "$CLAUDE_PROJECT_DIR"; root="${_guard_path%/}"
+  guard_posix_path "$1"; p="$guard_path"
+  guard_posix_path "$CLAUDE_PROJECT_DIR"; root="${guard_path%/}"
   [[ $p =~ ^(/[A-Za-z0-9_-][A-Za-z0-9._-]*)+$ ]] || return 1
   [ -n "$root" ] || return 1
   shopt -q nocasematch && had_nocase=1
@@ -321,17 +321,26 @@ guard_outside_project() {
   [ "$inside" -eq 0 ]
 }
 
-# _guard_posix_path <path> -- sets $_guard_path. On a Windows shell only,
-# backslashes become slashes and `X:/` becomes `/X/`; a drive-relative `X:foo`
-# stays relative. Elsewhere the path is unchanged: there `D:/x` and `a\b` are
-# relative names. CREW_OSTYPE is a test override. Assigns rather than echoing,
-# so a caller pays no `$(...)` fork.
-_guard_posix_path() {
-  _guard_path="$1"
-  case "${CREW_OSTYPE:-${OSTYPE:-}}" in msys*|cygwin*|win*) ;; *) return 0 ;; esac
-  _guard_path="${_guard_path//\\//}"
-  if [[ $_guard_path =~ ^([A-Za-z]):(/.*)$ ]]; then
-    _guard_path="/${BASH_REMATCH[1]}${BASH_REMATCH[2]}"
+# guard_is_windows -- true on a Windows shell (Git Bash, MSYS, Cygwin).
+# CREW_OSTYPE is a test override.
+guard_is_windows() {
+  case "${CREW_OSTYPE:-${OSTYPE:-}}" in msys*|cygwin*|win*) return 0 ;; esac
+  return 1
+}
+
+# guard_posix_path <path> -- sets $guard_path. On a Windows shell only,
+# backslashes become slashes, and `X:/` and Cygwin's `/cygdrive/x/` become `/X/`
+# and `/x/`; a drive-relative `X:foo` stays relative. Elsewhere the path is
+# unchanged: there `D:/x` and `a\b` are relative names. Each caller picks its own
+# case rule. Assigns rather than echoing, so a caller pays no `$(...)` fork.
+guard_posix_path() {
+  guard_path="$1"
+  guard_is_windows || return 0
+  guard_path="${guard_path//\\//}"
+  if [[ $guard_path =~ ^([A-Za-z]):(/.*)$ ]]; then
+    guard_path="/${BASH_REMATCH[1]}${BASH_REMATCH[2]}"
+  elif [[ $guard_path =~ ^/cygdrive(/[A-Za-z](/.*)?)$ ]]; then
+    guard_path="${BASH_REMATCH[1]}"
   fi
 }
 
