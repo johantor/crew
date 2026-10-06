@@ -35,7 +35,7 @@ Part of the [`johantor`](../../README.md) marketplace.
   delegates. Background workers can't prompt, so a step that still needs a decision has to get one
   from you first.
 - **The lane guards will refuse things.** They fail closed and detect nothing: an unset backend
-  stack, or a same-language or `other` backend beside a client-facing layer with no lane paths, gets a refusal
+  stack, or a Node backend beside a client-facing layer with no lane paths, gets a refusal
   naming `/crew:init` rather than a guess. `/crew:init` is not optional; it is the only place the
   crew learns what the project is.
 - **Nothing ships on its own.** No push, no PR, not even in loop mode. If you wanted
@@ -203,10 +203,10 @@ intercepted**.
   layer are different languages — dotnet beside a JS frontend), or
   directory-based paths (the `backendLanePaths` / `frontendLanePaths` slots) when both resolved
   stacks are the same language (e.g. node+nextjs) and an extension alone can't tell the lanes
-  apart. Node shares its extensions with a frontend, and `backendStack: other` has none the guard
-  knows, so beside a frontend both need the paths; without them they fail closed rather than
-  guessing. The
-  regime comes from the `backendStack` slot alone: while it is `unset`, `backend` and `frontend`
+  apart. Node shares its extensions with a frontend, so beside one it needs the paths; without
+  them it fails closed rather than guessing. An `other` stack (backend or frontend) has no
+  extensions the guard knows: without lane paths both agents may write anywhere, and `lead`'s
+  plan keeps them apart. The regime comes from the stack slots alone: while it is `unset`, `backend` and `frontend`
   are refused with a line naming `/crew:init`. The guard never probes the tree.
 - **read-guard** blocks raw reads of files over 64 KiB (65536 bytes); an explicit `limit` of
   ≤ 2000 lines passes. See the `context-discipline` skill.
@@ -325,7 +325,7 @@ one that isn't installed, so it just reports the server as unavailable.
   every worker: `mid-run-direction` (how to treat a steer that arrives mid-run), and
   `design-tokens` for the agent doing design conformance.
   Loaded once the stack is resolved: per frontend mode (plus `frontend-razor` for `.cshtml` views), per backend stack (.NET, Node, Python, shell —
-  plus one skill per Optimizely product on top, today CMS 12, CMS 13, SaaS CMS, Graph, Search & Navigation, ODP, and Opal with a tools skill per SDK; any other backend runs best effort as `other`, with the project's own skill), per frontend stack (React, Next.js), and per test tool
+  plus one skill per Optimizely product on top, today CMS 12, CMS 13, SaaS CMS, Graph, Search & Navigation, ODP, and Opal with a tools skill per SDK; any other backend runs best effort as `other`, with the project's own skill), per frontend stack (React, Next.js; any other view runs best effort as `other`), and per test tool
   (xUnit, pytest, bats, Vitest, Jest, Cypress, Playwright).
 
 Local agent memory is git-ignored (`.claude/agent-memory-local/`).

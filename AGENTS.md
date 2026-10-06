@@ -34,6 +34,7 @@ entry.
   the repo's own skills, never shipped: `code-review` (the one review rubric, which Copilot reads
   through `copilot-instructions.md`) and `writing-style`. Each has a thin wrapper in
   `.claude/skills/` for Claude Code (`crew-review` adds the shell steps).
+  `.claude/skills/steward/` says how a session drives a PR.
 - `CONTRIBUTING.md` points here; `CODE_OF_CONDUCT.md` is the Contributor Covenant 2.1;
   `SECURITY.md` covers guard bypasses.
 
@@ -47,8 +48,9 @@ entry.
   or any delegation (the plan checkpoint); a standing "just build it" counts as the go-ahead.
 - Each worker has a lane (the plugin map lists them). `lane-guard.sh` enforces the write lane by
   extension where the stacks' languages differ, or by the configured lane paths where they are
-  the same (Node + Next.js, or `backendStack: other` beside a frontend). With `backendStack`
-  unset it refuses `backend`/`frontend`. `generalist` has no lane guard; `visual-review`,
+  the same (Node + Next.js); an `other` stack without lane paths has open lanes (*Why an `other`
+  stack has open lanes*). With `backendStack` unset it refuses `backend`/`frontend`.
+  `generalist` has no lane guard; `visual-review`,
   `incident-triage` and `debt-scout` are read-only.
 - `lead` **right-sizes by task size**: small, low-risk work takes the express lane (`generalist`,
   no plan or full gate, a quick self-review, commit) and escalates on evidence; features take the
@@ -292,12 +294,34 @@ line, two at most: *what changed*, with the PR as `(#N)`. The why belongs in the
   description: version ranges go stale.
 - **Every review comment gets a reply, then the thread is resolved.** Fixed: name the commit.
   Declining: say why. Duplicate: say which.
+- **A correct finding is fixed and pushed now**, whatever its label (nit, low, optional). Never
+  defer it to "the next code push": the PR can merge before one comes, and the wrong line ships.
+  Decline only a finding that is wrong, and say why.
 - A PR that resolves an issue links it with a closing keyword (`Closes #N`).
 - One branch and PR per issue, from the latest `main`: `git fetch origin main && git checkout -B
   <branch> origin/main`. A merged PR's branch is deleted; reusing the name leaves a stale tracking
   ref until pruned.
 - READMEs, changelogs, PR bodies and issues follow the `writing-style` skill
   (`.github/skills/writing-style/SKILL.md`).
+
+### Open up before you lock down
+
+Fail closed is for **safety**: git, destructive and file-mutating Bash, secrets, pushes. It is not
+for division of labour. When a guard cannot know the answer (which agent owns a file in a stack
+the crew knows nothing about), open it and let `lead`'s plan or the agent's prompt hold the rule,
+rather than add mechanism to refuse. The signs you are locking down the wrong thing: the fix needs
+a list that will always miss a case, a parser, a new required slot, or a config shape some real
+layout cannot express; or a second review round finds a new edge case of the same mechanism.
+Opening up removes code; locking down adds it and still leaks. The worked example is the next
+section. Reviewers: an opening documented here is not a fail-open finding.
+
+### Why an `other` stack has open lanes
+
+No extension list can split `backend`'s files from `frontend`'s for a stack the crew knows
+nothing about (#301 found `.styl` past one), and required lane paths cannot express a root-level
+backend. So with an `other` stack and no lane paths, `lane-guard` lets both write anywhere and
+`lead`'s plan gives each step its own files. Every safety guard is unchanged, as are the
+`unit-tests`, `e2e` and `lead` lanes; lane paths, when set, restore the directory split.
 
 ### The Bash guards are floors, not sandboxes
 

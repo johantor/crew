@@ -30,6 +30,9 @@ output format; Copilot reads it directly and Claude Code's `crew-review` skill l
 - **Prefer less code.** When a fix grows a parser (quotes, heredocs, escapes) to close an edge
   case, say so and suggest removing the rule or accepting the documented gap. A partial tokenizer
   always has a next edge case; #226 and #231 both reverted one.
+- **Open up before you lock down.** Fail closed is for safety, not division of labour: do not ask
+  a guard to refuse what it cannot know, and do not flag an opening `AGENTS.md` documents
+  ("Open up before you lock down").
 - Style-only notes are not findings unless they break a written convention.
 
 ## Guard hooks (`plugins/*/hooks/**/*.sh`)
@@ -79,7 +82,7 @@ lens before they push.
 
 - **Security pass, always:** untrusted input (a command, a payload, a PR comment an agent reads)
   validated at the boundary; no injection into a shell, regex or prompt; no secrets in files,
-  logs or prompts; no guard that fails open where it should fail closed; a new dependency named
+  logs or prompts; no safety guard that fails open where it should fail closed; a new dependency named
   and justified.
 - **Design conformance** only when UI changes: layout, spacing, color, typography and component
   states against the design reference.

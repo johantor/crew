@@ -5,6 +5,18 @@ All notable changes to the `crew` plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.11.0] - 2026-10-06
+
+### Added
+
+- `frontendStack: other`, best effort, for a web view with no crew skill (Vue, Svelte, Angular);
+  the new `frontendSkill` slot names the project's own skill.
+
+### Changed
+
+- With an `other` stack and no lane paths, `lane-guard` lets `backend` and `frontend` write
+  anywhere and `lead`'s plan keeps them apart; `/crew:init` no longer asks for lane paths there.
+
 ## [10.10.0] - 2026-10-06
 
 ### Added

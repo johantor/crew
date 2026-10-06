@@ -63,8 +63,11 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
     (+ the `optimizely-<product>` skills), `-node`, `-python` (Opal tools), `-shell`, each paired
     with a `tests-*` skill. Any other language is `backendStack: other`, best effort: no crew
     skill, the project's own via `backendSkill`; the hooks keep their Go/Rust/JVM patterns for
-    mixed repos. Node and `other` need lane paths beside a frontend (node's extensions collide
-    with a frontend's; `other` has none the guard knows), and `other` widens `unit-tests` to
+    mixed repos. Node needs lane paths beside a frontend (its extensions collide with a
+    frontend's). `frontendStack: other` (Vue, Svelte, …) is the same with `frontendSkill`; the
+    mode skill still loads, and a TUI stays unsupported (`frontend-headless` is web-only). An
+    `other` stack on either side has open `backend`/`frontend` lanes unless lane paths are set
+    (AGENTS.md, "Why an `other` stack has open lanes"); a backend `other` widens `unit-tests` to
     `test/`, `spec/`, `*_test.*` and `*_spec.*`.
     `frontendStack: none` is a stated absence: `lead` skips frontend, e2e and unit-tool
     resolution and dispatches only `backend`/`unit-tests`. That gate sits above the resolution table.

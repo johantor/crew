@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # Per-agent file-write lanes for PreToolUse(Edit|Write), routed on the payload's
 # `agent_type` since plugin agents cannot carry their own hooks. Lane paths win
-# when configured, else extension globs; a same-language pair or an `other` stack
-# with no paths, or an unset backend stack, fails closed. The guard reads slots and detects nothing
-# (AGENTS.md, "Init is the only detector").
+# when configured, else extension globs; a same-language pair with no paths, or
+# an unset backend stack, fails closed, and an `other` stack with no paths is
+# open to both. The guard reads slots and detects nothing (AGENTS.md, "Init is the only
+# detector").
 
 # Fail closed: a guard that can't read its input must block, not allow.
 _lib="${BASH_SOURCE[0]%/*}/lib/guard-lib.sh"
@@ -133,21 +134,17 @@ case "$agent_type" in
     elif [ -n "$backend_lane" ] || [ -n "$frontend_lane" ]; then
       echo "Blocked: only one of Backend lane path(s) / Frontend lane path(s) is configured. Set both in .claude/crew.md (see /crew:init) before delegating." >&2
       exit 2
-    elif [ "$backend_stack" = "node" ] || [ "$backend_stack" = "other" ]; then
-      # No extension list tells these lanes apart: node shares the frontend's, and
-      # `other` has none the crew knows.
-      if [ -n "$frontend_stack" ]; then
-        if [ "$backend_stack" = "node" ]; then
-          why="backend and frontend can both touch .ts/.js files"
-        else
-          why="the crew knows no file extensions for it"
-        fi
-        echo "Blocked: backend stack is ${backend_stack} — ${why}, so extension-based lanes can't tell them apart. Set Backend lane path(s) / Frontend lane path(s) in .claude/crew.md (see /crew:init) before delegating." >&2
-        exit 2
-      fi
-      # Backend only: backend owns the tree; frontend has no lane to scope to.
+    elif [ "$backend_stack" = "other" ] || [ "$frontend_stack" = "other" ]; then
+      # No extension list covers an `other` stack: lead's plan holds the split
+      # (AGENTS.md, "Why an `other` stack has open lanes").
+      exit 0
+    elif [ "$backend_stack" = "node" ] && [ -n "$frontend_stack" ]; then
+      echo "Blocked: backend stack is node — backend and frontend can both touch .ts/.js files, so extension-based lanes can't tell them apart. Set Backend lane path(s) / Frontend lane path(s) in .claude/crew.md (see /crew:init) before delegating." >&2
+      exit 2
+    elif [ "$backend_stack" = "node" ]; then
+      # Backend-only Node: backend owns the tree; frontend has no lane to scope to.
       [ "$agent_type" = "backend" ] && exit 0
-      echo "Blocked: backend stack is ${backend_stack} with no frontend configured — frontend has no frontend lane here. Set a Frontend stack / Frontend lane path(s) in .claude/crew.md (see /crew:init) before delegating frontend work." >&2
+      echo "Blocked: backend stack is node with no frontend configured — frontend has no frontend lane here. Set a Frontend stack / Frontend lane path(s) in .claude/crew.md (see /crew:init) before delegating frontend work." >&2
       exit 2
     else
       # Extension regime. .cshtml is shared by concern, so neither agent is denied

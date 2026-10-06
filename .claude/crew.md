@@ -3,6 +3,7 @@ frontendMode: unset
 backendStack: shell
 backendSkill: unset
 frontendStack: none
+frontendSkill: unset
 frontendE2eTool: unset
 frontendUnitTestTool: unset
 backendLanePaths: unset
