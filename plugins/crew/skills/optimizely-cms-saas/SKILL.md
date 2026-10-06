@@ -47,14 +47,15 @@ caching, sync) is `optimizely-graph`.
 - An experience (`_experience`) holds a composition: render it with
   `<OptimizelyComposition nodes={content.composition.nodes ?? []} />`. A section (`_section`)
   renders its grid with `<OptimizelyGridSection nodes={content.nodes} />`.
-- Register types with `initContentTypeRegistry([...])` and components with
-  `initReactComponentRegistry({ resolver: { Key: Component } })`; render any content with
-  `<OptimizelyComponent content={...} />` (`@optimizely/cms-sdk/react/server`). One registry, one
-  mapping per key.
+- Register types with `initContentTypeRegistry([...])` and templates with
+  `initDisplayTemplateRegistry([...])` (both from `@optimizely/cms-sdk`), and components with
+  `initReactComponentRegistry({ resolver: { Key: Component, 'Key:tag': Variant } })` from
+  `@optimizely/cms-sdk/react/server`, which also exports `<OptimizelyComponent content={...} />`.
+  Keep one resolver for the app.
 - **Display templates** (`displayTemplate({ key, displayName, isDefault, baseType | contentType |
-  nodeType, settings })`; `isDefault` is required) carry editor choices such as alignment or
-  color. Read them from
-  `displaySettings`; do not add content properties for the same choice.
+  nodeType, settings, tag })`; `isDefault` is required) carry editor choices such as alignment or
+  color. Read them from `displaySettings`; do not add content properties for the same choice. A
+  template's `tag` picks the `Key:tag` component variant.
 - Keep sections and elements self-contained. Layout belongs to the grid, not to fields.
 
 ## Preview and on-page editing
@@ -62,12 +63,15 @@ caching, sync) is `optimizely-graph`.
 - In the CMS, *Settings > Applications*: set the host name and the live preview URL, and select
   *Use Preview Tokens*. Preview URL tokens include `{key}`, `{version}`, `{locale}`,
   `{context}`.
-- A preview route (`app/preview/page.tsx`) calls `client.getPreviewContent(searchParams)`, which
-  reads `preview_token`, `key`, `ver`, `loc` and `ctx`. The token lives 5 minutes and stays
-  server-side.
+- A preview route (`app/preview/page.tsx`) calls
+  `client.getPreviewContent((await searchParams) as PreviewParams)` (`searchParams` is a Promise
+  in Next.js 15+), which reads `preview_token`, `key`, `ver`, `loc` and `ctx`, and exports the
+  page wrapped in `withAppContext(Page)`.
+- The preview token lives 5 minutes. It reaches the browser by design (the iframe URL, image
+  URLs in edit mode), so never log, cache or store it.
 - Load `/util/javascript/communicationinjector.js` from `OPTIMIZELY_CMS_URL` and render
-  `<PreviewComponent />` (or `<NextPreviewComponent />`), so the page refreshes on
-  `optimizely:cms:contentSaved`.
+  `<PreviewComponent />` (`@optimizely/cms-sdk/react/client`) or `<NextPreviewComponent />`
+  (`@optimizely/cms-sdk/react/nextjs`), so the page refreshes on `optimizely:cms:contentSaved`.
 - Mark editable output with `getPreviewUtils(content).pa('property')`; it emits the
   `data-epi-edit` attributes in edit mode only.
 - The preview route is always dynamic and never cached.
@@ -76,9 +80,9 @@ caching, sync) is `optimizely-graph`.
 
 - Register a Graph webhook (`POST https://cg.optimizely.com/api/webhooks`, Basic or HMAC auth)
   for `doc.updated`, `doc.expired` and `bulk.completed`, pointing to an API route.
-- On `doc.updated`, resolve the item's URL from Graph and `revalidatePath` it; on a bulk delete,
-  revalidate the layout. Put an unguessable segment or a check in the webhook URL, since anyone
-  can POST to the route.
+- On `doc.updated`, resolve the item's URL from Graph and `revalidatePath` it. A
+  `bulk.completed` payload names no items, so revalidate broadly (the layout). Put an
+  unguessable segment or a check in the webhook URL, since anyone can POST to the route.
 - `next dev` does not cache: test revalidation against a production build.
 
 ## Environments
@@ -90,24 +94,30 @@ caching, sync) is `optimizely-graph`.
 
 ## Security
 
-- Public: the Graph single key (published content only). Everything else is server-side: the
-  Graph secret, the CMS client ID and secret, the webhook secret, the preview token.
+- Public: the Graph single key (published content only). Server-side only: the Graph secret, the
+  CMS client ID and secret, the webhook secret. The preview token reaches the editor's browser;
+  keep it out of logs and caches.
 - The SDK refuses HMAC auth in a browser; do not work around it.
 - The management API is rate-limited (100 requests per 10 seconds per IP). A script that pushes
   or deletes in bulk waits on a 429.
 
 ## Testing
 
-- Unit-test components with fixed content objects of the generated types; render through
-  `OptimizelyComponent` with the real registry, so a missing mapping fails the test.
-- Run `config push --dryRun` in CI: it validates the model locally (keys, constraints) and sends
-  nothing, so it cannot show what the server would drop. A breaking change shows up only on a
-  real push, without `--force`, to a development instance.
+- Unit-test components with fixed content objects of the generated types. An unmapped key
+  renders nothing outside development (no error), so assert on the rendered output, not on the
+  absence of an exception. `OptimizelyComponent` is an async server component: test the mapped
+  component directly, or use a renderer that awaits server components.
+- `config push --dryRun` validates the model locally (keys, constraints) but still needs the CMS
+  client ID and secret, since it fetches a token first; it does not send the manifest, so it
+  cannot show what the server would drop. A breaking change shows up only on a real push,
+  without `--force`, to a development instance.
 
 ## Deploy and verify
 
 - Targets: Optimizely Frontend Hosting (Next.js or Astro, deployed with the EpiCloud PowerShell
-  module as a `<name>.head.app.<version>.zip` with exactly one lock file), Vercel or Netlify.
+  module as a `<name>.head.app.<version>.zip` holding exactly one `package-lock.json` or
+  `yarn.lock`, without `node_modules` or build output; a pnpm project does not deploy there),
+  Vercel or Netlify.
 - Push content types to an instance before the front end that needs them deploys there.
 - After a deploy, open a page in the CMS preview, change a field, and confirm the edit
   appears; then publish and confirm the public page updates through the webhook.
