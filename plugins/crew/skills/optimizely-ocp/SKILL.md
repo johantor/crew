@@ -53,8 +53,8 @@ CMP, ODP) and third parties. The Zaius name remains: `@zaiusinc/*` packages, `fu
   work to `jobs.trigger(name, params)`, and change shared state with `patch`, never `get` + `put`.
 - **Opal tools:** `opal_tool: true` and a class extending `ToolFunction` or `GlobalToolFunction`
   (`@optimizely-opal/opal-tool-ocp-sdk`) with `@tool(...)` methods. The SDK checks parameters and
-  the Opti ID token, not a custom `authRequirements` provider: check that in the handler. The tool
-  contract is in `optimizely-opal`.
+  the Opti ID token, not a custom `authRequirements` provider: check it in the handler. Contract:
+  `optimizely-opal`.
 
 ## Jobs
 
@@ -98,9 +98,8 @@ CMP, ODP) and third parties. The Zaius name remains: `@zaiusinc/*` packages, `fu
 
 ## Data sync sources and destinations
 
-- **Source:** `sources: { <name>: { description, schema } }`, then
-  `await sources.emit(name, { data })` from any function or job; a delete emits the primary key
-  with `_isDeleted: true`.
+- **Source:** a `sources:` entry (`description`, `schema`), then `await sources.emit(name, { data })`
+  from any function or job; a delete emits the primary key with `_isDeleted: true`.
 - **Destination:** `destinations: { <name>: { entry_point, schema, supports_delete } }` and a
   `Destination<T>` class: `ready()`, and `deliver(batch)` returning `{ success, retryable }` (the
   typings' spelling; the docs' samples say `retriable`). OCP retries a retryable batch up to three
