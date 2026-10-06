@@ -84,7 +84,6 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
     commands refused; file-mutating Bash refused for agent sessions (in-place
     `sed`/`perl`/`ruby`/`awk`, `tee`, `patch`, `cp`/`mv`, a redirect to a non-exempt sink; #192).
     Exempt sinks include an unquoted absolute path outside `$CLAUDE_PROJECT_DIR` (#240).
-    Heredoc bodies are skipped (`_guard_strip_heredocs`): they are data, not commands.
     One carve-out: a plain `git mv`, for any agent, matched on the raw command so a later line
     counts; `-f`/`--force` stays refused. The no-git arm lets a worker run only what
     `guard_is_plain_git_mv` accepts: one `git mv` alone in the command, relative paths, no

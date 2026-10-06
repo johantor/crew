@@ -378,10 +378,10 @@ was widened once and reverted, and the hooks point here so it is not tried a thi
   reason about what bash would expand and leaked three rounds running. Open gaps: a symlink
   outside the project that points into it (as with `/tmp` before), and a main checkout written
   from a worktree session.
-- **The write scan skips heredoc bodies**: a body is stdin data, and HTML or prose in it
-  (`<h3>`, "apply the patch") read as writes. The skip reads lines and strips a body only after
-  an unambiguous operator line: one `<<`, no `\"`, no `#`. Anything else is scanned whole.
-  Open gap: `bash <<EOF` runs its body, as `bash -c '…'` runs its string.
+- **The write scan reads heredoc bodies too**, so HTML or prose in one (`<h3>`, "apply the
+  patch") is refused as a write. Write the text with `Write` to a scratch path and pass the file
+  instead (`--description @file`). #295 tried a heredoc reader; two review rounds each found a
+  bypass, so it was dropped.
 - **`rm -rf` refuses every target starting with `/`, `~` or `*`**, build dirs included. A
   whole-token match let `/*/` and `/tmp/../*` through (#264). Out-of-tree cleanup is `rm -r`.
 - **The `git mv` carve-out reads line starts because it is an allowance**: a false separator can

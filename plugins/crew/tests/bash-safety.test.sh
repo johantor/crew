@@ -213,22 +213,6 @@ assert_block "redirect into a file named -" "$HOOK" "$(payload_bash 'echo x > -'
 assert_block "redirect after a bracketed exempt target" "$HOOK" "$(payload_bash 'cmd > /tmp/out[1] > src/Foo.cs' crew:backend)" "$gap"
 assert_block "redirect after a starred exempt target"   "$HOOK" "$(payload_bash 'cmd > /tmp/a*b > src/Foo.cs' crew:backend)"    "$gap"
 assert_allow "bracketed exempt target alone"            "$HOOK" "$(payload_bash 'cmd > /tmp/out[1] > /dev/null' crew:backend)"
-# A heredoc body is stdin data: HTML tags and prose ("apply the patch") in a
-# ticket draft are no write. The operator line and every line after the
-# delimiter are still scanned.
-assert_allow "HTML in a quoted heredoc to /tmp" "$HOOK" "$(payload_bash $'cat > /tmp/d.html <<\'EOF\'\n<h3>Refinement</h3>\n<p>Apply the patch, then cp the file.</p>\nEOF' crew:lead)"
-assert_allow "HTML in an unquoted heredoc"      "$HOOK" "$(payload_bash $'cat > /tmp/d.html <<EOF\n<p>x</p>\nEOF' crew:lead)"
-assert_allow "tab-stripped <<- heredoc"         "$HOOK" "$(payload_bash $'cat > /tmp/d <<-EOF\n\t<p>x</p>\n\tEOF' crew:lead)"
-assert_block "heredoc into the tree"            "$HOOK" "$(payload_bash $'cat > src/Foo.cs <<\'EOF\'\nclass Foo {}\nEOF' crew:lead)" "$gap"
-assert_block "redirect after the heredoc ends"  "$HOOK" "$(payload_bash $'cat > /tmp/d <<EOF\n<p>x</p>\nEOF\necho x > src/Foo.cs' crew:lead)" "$gap"
-assert_block "redirect after a <<- body ends"   "$HOOK" "$(payload_bash $'cat > /tmp/d <<-EOF\n\t<p>x</p>\n\tEOF\necho x > src/Foo.cs' crew:lead)" "$gap"
-assert_block "a quoted << opens no body"        "$HOOK" "$(payload_bash $'echo "<<EOF"\necho x > src/Foo.cs\nEOF' crew:lead)" "$gap"
-# An operator line the reader cannot read for certain opens no body.
-assert_block "a quoted << before a real one"    "$HOOK" "$(payload_bash $'echo " <<FAKE"; cat <<REAL\n<h3>x</h3>\nREAL\necho x > src/Foo.cs' crew:lead)" "$gap"
-assert_block "a << after an escaped quote"      "$HOOK" "$(payload_bash $'echo "a \\" <<EOF \\""\necho x > src/Foo.cs\nEOF' crew:lead)" "$gap"
-assert_block "a << in a comment"                "$HOOK" "$(payload_bash $'echo hi # <<EOF\necho x > src/Foo.cs\nEOF' crew:lead)" "$gap"
-assert_block "a here-string opens no body"      "$HOOK" "$(payload_bash $'cat <<<EOF\necho x > src/Foo.cs\nEOF' crew:lead)" "$gap"
-assert_block "a bit shift opens no body"        "$HOOK" "$(payload_bash $'echo $((1<<2))\necho x > src/Foo.cs\n2' crew:lead)" "$gap"
 assert_block "tee into a file"        "$HOOK" "$(payload_bash 'cat t | tee src/Foo.cs' crew:backend)" "$gap"
 assert_block "cp into the tree"       "$HOOK" "$(payload_bash 'cp /tmp/x src/Foo.cs' crew:backend)"  "$gap"
 assert_block "mv inside the tree"     "$HOOK" "$(payload_bash 'mv src/a.cs src/b.cs' crew:backend)"  "$gap"

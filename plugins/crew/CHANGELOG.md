@@ -12,11 +12,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `lead` may write ticket drafts (`tickets/*.md` at any depth) and any path outside the project,
   such as a session scratchpad (#295).
 
-### Fixed
-
-- `bash-safety` no longer reads a heredoc body as a file write, so HTML such as `<h3>` in a
-  ticket draft passes (#295).
-
 ## [10.7.0] - 2026-10-06
 
 ### Added
