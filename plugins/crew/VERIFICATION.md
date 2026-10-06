@@ -88,6 +88,9 @@ cannot show that `/crew:init` detected a stack or that a worker loaded a skill.
   `12.*` and `EPiServer.Find.Cms` → `backend` loads `optimizely-cms12` and
   `optimizely-search-navigation`, and not `optimizely-graph`. (#291: `backend` cited both
   `Site.csproj` lines and loaded nothing else.)
+- [ ] **An ODP marker loads the ODP skill** — a dotnet scratch repo with `EPiServer.CMS` `12.*`
+  and `Optimizely.Cms.Odp` → `backend` loads `optimizely-cms12` and `optimizely-odp`; a
+  server-rendered layout with the `zaius` web tag → `frontend` loads `optimizely-odp`.
 - [x] **A worker's tool calls arrive namespaced** — a `crew:backend` dispatch's Bash call carries
   `agent_type: crew:backend`, a project agent `.claude/agents/backend.md` carries `backend` and
   runs `git status` unrefused. (#272, observed through a logging `PreToolUse` hook.)

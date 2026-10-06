@@ -12,7 +12,9 @@ carries:
 - `optimizely-cms12` or `optimizely-cms13` by the `EPiServer.CMS*` version, plus
   `optimizely-cms-upgrade` when the task is moving 12 to 13;
 - `optimizely-graph` for `Optimizely.Graph.*` or `Optimizely.ContentGraph.*`;
-- `optimizely-search-navigation` for `EPiServer.Find*`.
+- `optimizely-search-navigation` for `EPiServer.Find*`;
+- `optimizely-odp` for `Optimizely.Cms.Odp`, `UNRVLD.ODP.VisitorGroups` or
+  `EPiServer.Commerce.ODP`.
 
 Each product skill names its own markers and neighbours.
 
