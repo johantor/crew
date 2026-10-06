@@ -96,10 +96,10 @@ done
 assert_allow "e2e allowed an e2e spec"      "$HOOK" "$(payload_file crew:e2e e2e/foo.spec.ts)"
 assert_block "e2e denied a source file"     "$HOOK" "$(payload_file crew:e2e src/foo.ts)" "allowed paths"
 
-# --- lead writes plans and ledgers only -----------------------------------
+# --- lead writes plans, ledgers and tickets only ----------------------------
 # The orchestrator never edits production code. Its Edit/Write lane is a filename
-# shape at any depth (plan-*.md, debt-*.md, crew.md, agent-memory/**) plus
-# scratch, whether the path is repo-relative or absolute, and whatever the plan
+# shape at any depth (plan-*.md, debt-*.md, crew.md, agent-memory/**,
+# tickets/*.md) plus scratch, whether the path is repo-relative or absolute, and whatever the plan
 # directory is configured as -- so there is no directory to anchor or to overlap.
 assert_allow "lead allowed a plan file"           "$HOOK" "$(payload_file crew:lead .claude/plan-sso.md)"
 assert_allow "lead allowed a debt ledger"         "$HOOK" "$(payload_file crew:lead .claude/debt-cs8602.md)"
@@ -125,6 +125,33 @@ assert_allow "lead allowed a plan in a plan directory set to src" \
   "$HOOK" "$(payload_file crew:lead src/plan-sso.md)" "$fm_src"
 assert_block "lead denied source in a plan directory set to src" \
   "$HOOK" "$(payload_file crew:lead src/app.ts)" "allowed paths" "$fm_src"
+# Ticket drafts are Markdown under a tickets/ directory, at any depth.
+assert_allow "lead allowed a ticket draft" "$HOOK" "$(payload_file crew:lead .azuredevops/tickets/21132.md)"
+assert_allow "lead allowed a root ticket"  "$HOOK" "$(payload_file crew:lead tickets/21132.md)"
+assert_block "lead denied a non-Markdown file under tickets/" \
+  "$HOOK" "$(payload_file crew:lead src/tickets/Ticket.cs)" "allowed paths"
+assert_block "lead denied a lookalike tickets directory" \
+  "$HOOK" "$(payload_file crew:lead src/mytickets/x.md)" "allowed paths"
+# Outside the project, lead writes anything (a session scratchpad, an az input
+# file); the check is bash-safety's guard_outside_project, so it fails closed.
+export CLAUDE_PROJECT_DIR=/home/dev/proj
+assert_allow "lead allowed a scratchpad outside the project" \
+  "$HOOK" "$(payload_file crew:lead /home/dev/scratch/session/description.html)"
+assert_block "lead denied an absolute source path in the project" \
+  "$HOOK" "$(payload_file crew:lead /home/dev/proj/src/app.ts)" "allowed paths"
+assert_block "lead denied an absolute path in the project, other case" \
+  "$HOOK" "$(payload_file crew:lead /HOME/dev/Proj/src/app.ts)" "allowed paths"
+assert_block "lead denied a hidden segment outside the project" \
+  "$HOOK" "$(payload_file crew:lead /home/dev/.ssh/config)" "allowed paths"
+CLAUDE_PROJECT_DIR='C:\work\proj'
+export CREW_OSTYPE=msys
+assert_allow "lead allowed a Windows temp scratchpad" \
+  "$HOOK" "$(payload_file crew:lead 'C:\Users\dev\AppData\Local\Temp\claude\description.html')"
+assert_block "lead denied a Windows path in the project" \
+  "$HOOK" "$(payload_file crew:lead 'C:\work\proj\src\App.cs')" "allowed paths"
+unset CLAUDE_PROJECT_DIR CREW_OSTYPE
+assert_block "lead denied an absolute path with no project dir" \
+  "$HOOK" "$(payload_file crew:lead /home/dev/scratch/description.html)" "allowed paths"
 
 # --- A `..` segment is refused for every lane agent -----------------------------
 assert_block "lead denied a '..' traversal out of .claude" \

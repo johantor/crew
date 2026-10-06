@@ -215,7 +215,8 @@ intercepted**.
   redirect whose target is not an exempt sink (`/dev/null`, an fd dup, the temp directories, an
   unquoted absolute path of plain segments outside the project, such as an out-of-tree build
   root) — and
-  names `Edit`/`Write` instead. That half is a floor, not a sandbox: a build's own code generator
+  names `Edit`/`Write` instead. A heredoc body is data, so HTML or prose in it is not read as a
+  write. That half is a floor, not a sandbox: a build's own code generator
   still writes files, and a write hidden inside a quoted `bash -c` string is not read as one. What
   it closes is the routine path, the one auto mode's own notice recommends. `visual-review` has no Bash
   tool, so it needs no entry. Whatever your *resolved* base branch is (`develop`, `trunk`, …), `lead` and

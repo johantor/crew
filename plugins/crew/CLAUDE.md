@@ -79,6 +79,7 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
     commands refused; file-mutating Bash refused for agent sessions (in-place
     `sed`/`perl`/`ruby`/`awk`, `tee`, `patch`, `cp`/`mv`, a redirect to a non-exempt sink; #192).
     Exempt sinks include an unquoted absolute path outside `$CLAUDE_PROJECT_DIR` (#240).
+    Heredoc bodies are skipped (`_guard_strip_heredocs`): they are data, not commands.
     One carve-out: a plain `git mv`, for any agent, matched on the raw command so a later line
     counts; `-f`/`--force` stays refused. The no-git arm lets a worker run only what
     `guard_is_plain_git_mv` accepts: one `git mv` alone in the command, relative paths, no
@@ -87,8 +88,9 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
     Pagers and `tail -f` are refused for every session, since they never end.
   - `read-guard.sh`: raw reads over 64 KiB; an explicit `limit` ≤ 2000 lines passes.
   - `lane-guard.sh`: Edit/Write lanes. `lead` is `--allow` on a filename shape at any depth —
-    `plan-*.md`, `debt-*.md`, `crew.md`, `agent-memory-local/*.md` — plus scratch; no directory to
-    anchor, no plan-directory slot read (AGENTS.md, "Why `lead` is lane-guarded"). The
+    `plan-*.md`, `debt-*.md`, `crew.md`, `agent-memory-local/*.md`, `tickets/*.md` — plus scratch
+    and any path `guard_outside_project` accepts; no directory to anchor, no plan-directory slot
+    read (AGENTS.md, "Why `lead` is lane-guarded"). The
     four lane workers get their lanes below. A `..` segment is refused for every lane agent.
     `backend`/`frontend` are refused while `backendStack` is `unset`; the guard probes no markers.
     Reads crew config through `guard_config_load` (`.claude/crew.md` frontmatter by key,
