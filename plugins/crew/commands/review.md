@@ -1,9 +1,9 @@
 ---
-description: Run the diff-aware pre-PR review gate (code/security/design + build/test/lint) and return a go/no-go summary
+description: Run the diff-aware pre-PR review gate (code/security/design/web + build/test/lint) and return a go/no-go summary
 ---
 
 Run the pre-PR **review gate** and return a single **GO** / **NO-GO** summary. The gate is
-both the consolidated review (code quality, security, design conformance) **and** the
+both the consolidated review (code quality, security, design conformance, web) **and** the
 executable checks (build, tests, lint) — one gate, run before `/crew:pr`. Load the
 `review-gate` skill with the Skill tool first: its rules govern every executable gate below,
 whether `lead` or this command dispatches it.
@@ -144,13 +144,24 @@ mode overrides: unconditional in `full` mode, and still lane-scoped (off step 1'
 classification) in `quick` mode.
 
 1. **Code quality** — check against `engineering-principles`: YAGNI, KISS, naming, error handling, test coverage, minimal-scope diff.
-2. **Security** — scan for: injection risks, unvalidated inputs, secrets in code, unsafe deserialization, missing auth checks, open redirects, insecure dependencies.
+2. **Security** — delegate to `crew:security-review` with the changed files, their diff hunks
+   (`git diff $(git merge-base <base> HEAD)`, unscoped: it covers every changed tracked file,
+   uncommitted edits included; it has no git) and the resolved stacks; fold its `## Blocking` / `## Warnings` / `## Passed` into yours, each item marked
+   *security*.
 3. **Design conformance** — *only if the frontend lane changed* (per step 1), or always in `full`
    mode: delegate to `crew:visual-review` (installed plugin agents only resolve namespaced) with the
    running URL and any available design reference; include its mismatch report verbatim.
    Otherwise **skip** — a backend-only diff is unlikely to have changed the rendered UI, so this
    is a cost heuristic, not a guarantee; if backend logic you know affects rendered output
    changed, run `full` or note it for a manual visual-review pass.
+4. **Web review** — SEO, accessibility and performance, *when either lane changed* (server
+   caching, redirects and Graph queries live in the backend), or always in `full` mode; never
+   when **Frontend stack** is `none`: delegate to `crew:web-review` with the changed files,
+   their diff hunks, the resolved stacks and the running URL when there is one; fold its
+   findings in as in item 2, each marked *web*.
+
+Delegate items 2–4 in one message, each with its own `steer-token:`: they are read-only and
+run side by side. If one cannot be launched, stop and report the exact error.
 
 ## 4. Output
 
@@ -159,7 +170,7 @@ First the review judgment, under these exact headings:
 - `## Warnings` — should fix, not blocking
 - `## Passed` — explicitly confirmed clean areas
 
-Then the gate summary. Every executable gate — plus design conformance — appears with its
+Then the gate summary. Every executable gate — plus design conformance and web review — appears with its
 status — **never skip silently**:
 
 - ✅ passed · ❌ failed · ⏭️ skipped (with reason: *lane untouched* or *no command configured*).

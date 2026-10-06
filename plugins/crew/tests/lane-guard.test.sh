@@ -175,6 +175,30 @@ unset CLAUDE_PROJECT_DIR CREW_OSTYPE
 assert_block "lead denied an absolute path with no project dir" \
   "$HOOK" "$(payload_file crew:lead /home/dev/scratch/description.html)" "allowed paths"
 
+# --- copywriter writes copy and resource files only --------------------------
+# No stack needed: the lane is the same in every stack, so no crew.md either.
+for f in src/Web/Resources/Labels.sv.resx src/Web/lang/ContentTypes.xml lang/en.xml \
+         src/locales/en/common.json public/locales/sv.yaml messages/de.json \
+         src/i18n/fr.json translations/nb.po locale/app.pot src/l10n/app.xlf; do
+  assert_allow "copywriter may write $f" "$HOOK" "$(payload_file crew:copywriter "$f")"
+done
+for f in src/i18n/config.ts src/Web/Startup.cs src/components/Hero.tsx package.json \
+         src/locales/index.ts README.md; do
+  assert_block "copywriter denied $f" "$HOOK" "$(payload_file crew:copywriter "$f")" "allowed paths"
+done
+assert_block "copywriter denied a '..' traversal" \
+  "$HOOK" "$(payload_file crew:copywriter locales/../src/app.ts)" "'..' segment"
+
+# --- designer writes tokens and design specs only ----------------------------
+for f in design/components/Button.md docs/design/hero.md packages/ui/design-tokens/color.css \
+         src/tokens/color.json tokens/space.yaml theme/brand.tokens.json; do
+  assert_allow "designer may write $f" "$HOOK" "$(payload_file crew:designer "$f")"
+done
+for f in src/components/Button.tsx src/styles/main.scss tailwind.config.ts src/Web/Startup.cs \
+         src/tokens/index.ts docs/README.md; do
+  assert_block "designer denied $f" "$HOOK" "$(payload_file crew:designer "$f")" "allowed paths"
+done
+
 # --- A `..` segment is refused for every lane agent -----------------------------
 assert_block "lead denied a '..' traversal out of .claude" \
   "$HOOK" "$(payload_file crew:lead .claude/../src/app.ts)" "'..' segment"
@@ -190,6 +214,9 @@ assert_allow "'..' inside a filename is not a segment" \
 # --- Agents with no lane ------------------------------------------------------
 assert_allow "debt-scout has no Edit/Write tool; the hook never fires for it" "$HOOK" "$(payload_file crew:debt-scout Foo.tsx)"
 assert_allow "visual-review has no write lane restriction" "$HOOK" "$(payload_file crew:visual-review Foo.tsx)"
+for a in architect analyst security-review web-review; do
+  assert_allow "$a has no Edit/Write tool; the hook never fires for it" "$HOOK" "$(payload_file "crew:$a" Foo.tsx)"
+done
 assert_allow "generalist (express) is unrestricted"        "$HOOK" "$(payload_file crew:generalist Foo.tsx)"
 assert_allow "no agent_type is unrestricted"        "$HOOK" "$(jq -nc --arg f Foo.tsx '{tool_input: {file_path: $f}}')"
 

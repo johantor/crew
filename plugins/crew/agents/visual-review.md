@@ -62,7 +62,8 @@ you and no other.
 
 1. **Get the reference.** With a Figma MCP and a link/node in the delegation, pull the canonical
    spec for that node (frame geometry, spacing, colors, type). Without one, use the export/image/
-   spec the delegation provides, exactly as given — don't invent design intent.
+   spec the delegation provides — a `designer` spec file included — exactly as given; don't
+   invent design intent.
 2. **Read the token table once** (`design-tokens`), so findings can name tokens and not just
    pixels.
 3. **Render and look.** Navigate to the URL and screenshot it. Anything from *What only the

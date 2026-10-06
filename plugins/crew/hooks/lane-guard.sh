@@ -23,7 +23,7 @@ guard_read_payload
 # One jq pass; the path is only computed for a lane agent (see guard_jq2).
 # shellcheck disable=SC2016  # $at is a jq variable, not a shell one
 if ! guard_jq2 \
-  '((.agent_type // "") | if startswith("crew:") then .[5:] else "" end) as $at | (if (["unit-tests","e2e","backend","frontend","lead"] | index($at)) then ((.tool_input.file_path // .tool_input.path) // "") else "" end)' \
+  '((.agent_type // "") | if startswith("crew:") then .[5:] else "" end) as $at | (if (["unit-tests","e2e","backend","frontend","copywriter","designer","lead"] | index($at)) then ((.tool_input.file_path // .tool_input.path) // "") else "" end)' \
   '.agent_type // ""'; then
   echo "Blocked: lane-guard could not parse the hook payload." >&2
   exit 2
@@ -38,7 +38,7 @@ path="$guard_path"
 # the agents' frontmatter `lane-guarded`. Load-bearing shape: this marker, then
 # the `case` header, then the `a|b|c)` arm on the very next line.
 case "$agent_type" in
-  unit-tests|e2e|backend|frontend|lead) ;;
+  unit-tests|e2e|backend|frontend|copywriter|designer|lead) ;;
   *) exit 0 ;;
 esac
 [ -z "$path" ] && exit 0
@@ -173,6 +173,18 @@ case "$agent_type" in
       fi
     fi
     ;;
+  # Copy and design lanes need no stack: their files are the same in every stack.
+  # Inside a locale directory, only data files: an i18n/config.ts is code.
+  copywriter) mode="--allow"
+          patterns='**/*.resx **/*.po **/*.pot **/*.xlf **/*.xliff'
+          for d in locales locale i18n lang translations messages; do
+            for e in json yml yaml xml po; do
+              patterns+=" $d/*.$e **/$d/*.$e"
+            done
+          done ;;
+  designer) mode="--allow"
+          patterns='design/** docs/design/** **/design-tokens/** **/*.tokens.json'
+          patterns+=' **/tokens/*.json **/tokens/*.yml **/tokens/*.yaml' ;;
   # lead writes plans, ledgers, tickets, config, memory and scratch: a filename
   # shape at any depth, never a directory root, plus anything outside the project
   # (AGENTS.md, "Why `lead` is lane-guarded").

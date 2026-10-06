@@ -59,6 +59,12 @@ front end.
 | `generalist` | The express lane for small, low-risk changes. |
 | `incident-triage` | Traces a production signal to the code and the suspect commits (read-only). |
 | `debt-scout` | Scouts a scope for tech debt and returns pointers (read-only). |
+| `analyst` | Turns a ticket into requirements, acceptance criteria, content needs and a tracking plan (read-only). |
+| `architect` | Designs content models, Graph schemas, catalogs and integration boundaries before the plan (read-only). |
+| `designer` | Writes design tokens and component specs that `frontend` builds to. |
+| `copywriter` | Writes UI and editor copy, resource and locale files, and SEO text. |
+| `security-review` | The security part of `/crew:review` (read-only). |
+| `web-review` | SEO, accessibility and performance in `/crew:review` (read-only). |
 
 ## Quick start
 

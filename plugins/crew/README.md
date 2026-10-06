@@ -182,7 +182,9 @@ it allows.
   git owner, enforced in code. Every agent, `lead` included, is refused
   `git commit` while HEAD is `main`/`master`/`develop`.
 - **Each worker's edits stay in its lane.** `backend` and `frontend` are denied the other side's
-  files; `unit-tests`/`e2e` are restricted to their test paths; `visual-review` is read-only (`generalist` is
+  files; `unit-tests`/`e2e` are restricted to their test paths, `copywriter` to copy and
+  resource files, `designer` to tokens and design specs; the review and planning agents are
+  read-only (`generalist` is
   unrestricted by design; that's the express lane). This guards `Edit`/`Write` — and file-mutating
   Bash (`sed -i`, `tee`, a `>` redirect, `cp`/`mv`) is refused outright, so a write cannot route
   around the lane or skip formatting.
@@ -258,8 +260,8 @@ frontmatter for security.
 
 | Purpose | MCP server | Used by | Without it |
 | --- | --- | --- | --- |
-| Browser automation & visual checks | [Playwright](https://github.com/microsoft/playwright-mcp) or [Chrome DevTools](https://github.com/ChromeDevTools/chrome-devtools-mcp) | `frontend`, `visual-review` | `visual-review` reports a browser MCP is needed — it measures the rendered UI through this, so without one there is nothing to compare; `frontend` skips its browser loop-checks |
-| Design reference | [Figma MCP](https://developers.figma.com/docs/figma-mcp-server/) — Dev Mode (local) or the hosted `claude.ai Figma` connector | `frontend`, `visual-review` | both fall back to the design reference passed in the delegation |
+| Browser automation & visual checks | [Playwright](https://github.com/microsoft/playwright-mcp) or [Chrome DevTools](https://github.com/ChromeDevTools/chrome-devtools-mcp) | `frontend`, `visual-review`, `web-review` | `visual-review` reports a browser MCP is needed — it measures the rendered UI through this, so without one there is nothing to compare; `web-review` reviews the code only; `frontend` skips its browser loop-checks |
+| Design reference | [Figma MCP](https://developers.figma.com/docs/figma-mcp-server/) — Dev Mode (local) or the hosted `claude.ai Figma` connector | `frontend`, `visual-review`, `designer` | all fall back to the design reference passed in the delegation |
 | Library & framework docs | [Context7](https://github.com/upstash/context7) | `backend`, `frontend` | implementers code from memory instead of current, version-specific API docs |
 | Issue tracking (ticket-in) | [Atlassian (Jira/Confluence)](https://www.atlassian.com/platform/remote-mcp-server) or [Linear](https://linear.app/docs/mcp) | `lead` | `lead` plans from the prompt alone; paste ticket details in by hand |
 | Git hosting (ticket-in / PR-out) | [GitHub](https://github.com/github/github-mcp-server) or [Azure DevOps](https://github.com/microsoft/azure-devops-mcp) | `lead` | crew stops at the local **GO/NO-GO** gate; open the PR with `/crew:pr` |
@@ -313,7 +315,8 @@ one that isn't installed, so it just reports the server as unavailable.
 
 - **Agents:** `lead` (captain) and the workers `backend`, `frontend` (client-facing layer),
   `unit-tests`, `e2e`, `visual-review`, `generalist` (express path), `incident-triage`
-  (post-merge, read-only) and `debt-scout` (read-only). Workers stay idle until `lead` or a
+  (post-merge, read-only), `debt-scout`, `analyst`, `architect`, `security-review` and
+  `web-review` (read-only), `designer` and `copywriter`. Workers stay idle until `lead` or a
   command delegates.
 - **Commands:** `/crew:init`, `/crew:feature`, `/crew:debt`, `/crew:audit`, `/crew:review`,
   `/crew:pr`, `/crew:address`, `/crew:triage`, `/crew:loop`, `/crew:notify`.

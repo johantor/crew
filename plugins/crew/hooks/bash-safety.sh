@@ -44,8 +44,8 @@ guard_block_raw_reads
 
 # Workers run no git but a plain `git mv` -- lead is the sole git owner (see
 # AGENTS.md, "How the crew works"). A rename lands in lead's commit, where it
-# is reviewed. visual-review, incident-triage and debt-scout carry no Bash tool, so they need no
-# entry.
+# is reviewed. An agent with no Bash tool (the read-only agents, copywriter,
+# designer) needs no entry.
 # crew-roster: no-git -- every Bash-capable agent that doesn't own git belongs in
 # the arm below; validator §9 keeps it in lockstep with the agents' frontmatter
 # `owns-git`, and parses exactly this shape: the marker, the `case` header, then

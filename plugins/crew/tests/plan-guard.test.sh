@@ -24,12 +24,12 @@ hook=plan-guard.sh
 msg="plan mode"
 
 # --- Shipped agents: the writers wait, the readers and the orchestrator run ----
-for w in backend frontend unit-tests e2e generalist; do
+for w in backend frontend unit-tests e2e generalist copywriter designer; do
   assert_block "plan mode refuses crew:$w (edits files)" "$hook" "$(payload_dispatch "crew:$w" plan)" "$msg"
 done
 run_hook "$hook" "$(payload_dispatch crew:backend plan)"
 if [[ "$_stderr" == *"crew:backend"* ]]; then _pass; else _fail "refusal should name the worker (got: $_stderr)"; fi
-for w in incident-triage visual-review debt-scout; do
+for w in incident-triage visual-review debt-scout architect analyst security-review web-review; do
   assert_allow "plan mode lets crew:$w through (no Edit/Write)" "$hook" "$(payload_dispatch "crew:$w" plan)"
 done
 assert_allow "plan mode lets crew:lead through (owns git; it plans there)" "$hook" "$(payload_dispatch crew:lead plan)"

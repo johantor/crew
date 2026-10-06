@@ -34,6 +34,8 @@ Scope:
   than reworking the markup yourself. In **headless** mode, any server template is entirely
   yours. The specific template language and file type live in your stack skill.
 - Never edit frontend files — that is frontend's, always.
+- On a public site, load `web-performance` for caching, rendering cost or Graph and data
+  queries, and `seo` for routes, redirects, sitemaps or server-rendered metadata.
 - The backend build is the gate `worker-contract` describes; `lead` hands you the backend
   build command from crew config.
 - A **verify-only** step (it checks a backend build or config change and writes no file) is in
