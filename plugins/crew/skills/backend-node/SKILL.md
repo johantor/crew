@@ -12,7 +12,8 @@ an npm/pnpm/yarn workspace. Search the repo for Optimizely Graph markers yoursel
 present, also load `optimizely-graph`. `@zaiusinc/node-sdk` or an ODP API host
 (`api.zaius.com`, `*.odp.optimizely.com`) means Optimizely Data Platform: load `optimizely-odp`.
 `@optimizely-opal/opal-tools-sdk` means an Opal custom tool: load `optimizely-opal` and
-`optimizely-opal-tools-node`.
+`optimizely-opal-tools-node`. An Opal tool written without the SDK (a `/discovery` route that
+returns `functions` with `endpoint` and `http_method`) loads `optimizely-opal` alone.
 
 In a SaaS-headless project shape, the "backend" may be thin — a BFF layer or a handful of API
 routes wrapping Graph queries. Don't invent backend surface area the project doesn't have; a

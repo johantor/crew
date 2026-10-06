@@ -1,6 +1,6 @@
 ---
 name: optimizely-opal
-description: Optimizely Opal concepts and the custom-tool contract that does not depend on an SDK — agents, specialized and workflow agents, skills (formerly instructions), tool types, the discovery endpoint and its JSON, the call and response shapes, registering a tool registry, the registry bearer token and user OAuth, hosting, naming, limits, testing, and the SDK table. Load when a project builds or changes an Opal custom tool (`Optimizely.Opal.Tools`, `@optimizely-opal/opal-tools-sdk`, `optimizely-opal.opal-tools-sdk`, or a hand-written `/discovery` endpoint); load the SDK skill too.
+description: Optimizely Opal concepts and the custom-tool contract that does not depend on an SDK — agents, specialized and workflow agents, skills (formerly instructions), tool types, the discovery endpoint and its JSON, the call and response shapes, registering a tool registry, the registry bearer token and user OAuth, hosting, naming, limits, testing, and the SDK table. Load when a project builds or changes an Opal custom tool (`Optimizely.Opal.Tools`, `@optimizely-opal/opal-tools-sdk`, `optimizely-opal.opal-tools-sdk`, or a hand-written `/discovery` endpoint); when an SDK is used, load its skill too.
 ---
 
 # Optimizely Opal
@@ -72,8 +72,9 @@ read the installed package's README before you rely on an API. A tool built on O
 
 - **Registry token:** Opal sends `Authorization: Bearer <token>` on calls. **Every SDK is open
   by default:** with no auth mode configured, any call runs. Turn the token check on as the SDK
-  skill says, and test that a call without the token gets 401. `/discovery` stays public; every
-  other path is gated, health checks included, so give the deploy probe `/discovery`.
+  skill says, and test that a call without the token gets 401. `/discovery` stays public; the
+  other SDK routes are gated, health checks included, so give the deploy probe `/discovery`.
+  Exception: the Python SDK's `/debug-routes` stays public, so block it at the proxy.
 - **User auth:** a tool declares `auth_requirements` (`provider`, `scope_bundle`, `required`);
   Opal then sends `auth: { provider, credentials: { access_token, ... } }` in the body. **No SDK
   enforces `required`:** the handler runs without it, so refuse the call yourself when `auth` is

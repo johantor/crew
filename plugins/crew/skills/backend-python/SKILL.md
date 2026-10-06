@@ -15,7 +15,8 @@ that is there rather than importing a layout from another project.
 
 Search the dependencies yourself for `optimizely-opal.opal-tools-sdk` (or `opal_tools_sdk`
 imports): it means an Opal custom tool, so also load `optimizely-opal` and
-`optimizely-opal-tools-python`.
+`optimizely-opal-tools-python`. An Opal tool written without the SDK (a `/discovery` route that
+returns `functions` with `endpoint` and `http_method`) loads `optimizely-opal` alone.
 
 ## Crew config
 

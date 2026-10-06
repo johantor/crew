@@ -38,20 +38,26 @@ const tools = new ToolsService(app, {
 ```ts
 import { z } from "zod";   // on zod 3.25.x: from "zod/v4" (the SDK reads v4 schemas)
 
+const getEventsInput = {
+  date: z.string().describe("Day to list, ISO 8601 date"),
+  limit: z.number().int().optional().describe("Max events, 1-50"),
+};
+
 registerTool("get_events", {
   description: "Lists the user's calendar events for one day.",
-  inputSchema: {
-    date: z.string().describe("Day to list, ISO 8601 date"),
-    limit: z.number().int().optional().describe("Max events, 1-50"),
-  },
-}, async (params, extra) => listEvents(params.date, params.limit ?? 10));
+  inputSchema: getEventsInput,
+}, async (params, extra) => {
+  const input = z.object(getEventsInput).parse(params);  // the SDK does not validate
+  return listEvents(input.date, input.limit ?? 10);
+});
 ```
 
 - Prefer `registerTool` with Zod over the `@tool` decorator: `@tool` publishes `parameters: []`
   unless you list them by hand, since TypeScript types are not read at runtime.
 - **The Zod schema is not enforced at runtime:** a call missing a required field still runs,
   and `.default()` values are not applied (and are published as required). Parse the input
-  yourself (`z.object(schema).parse(params)`) before you use it.
+  yourself, as above, before you use it; a `ZodError` thrown there returns 500, so catch it
+  and return a message the agent can act on if a clear 400-style answer matters.
 
 ## Auth
 
