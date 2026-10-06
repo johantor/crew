@@ -223,6 +223,10 @@ assert_block "heredoc into the tree"            "$HOOK" "$(payload_bash $'cat > 
 assert_block "redirect after the heredoc ends"  "$HOOK" "$(payload_bash $'cat > /tmp/d <<EOF\n<p>x</p>\nEOF\necho x > src/Foo.cs' crew:lead)" "$gap"
 assert_block "redirect after a <<- body ends"   "$HOOK" "$(payload_bash $'cat > /tmp/d <<-EOF\n\t<p>x</p>\n\tEOF\necho x > src/Foo.cs' crew:lead)" "$gap"
 assert_block "a quoted << opens no body"        "$HOOK" "$(payload_bash $'echo "<<EOF"\necho x > src/Foo.cs\nEOF' crew:lead)" "$gap"
+# An operator line the reader cannot read for certain opens no body.
+assert_block "a quoted << before a real one"    "$HOOK" "$(payload_bash $'echo " <<FAKE"; cat <<REAL\n<h3>x</h3>\nREAL\necho x > src/Foo.cs' crew:lead)" "$gap"
+assert_block "a << after an escaped quote"      "$HOOK" "$(payload_bash $'echo "a \\" <<EOF \\""\necho x > src/Foo.cs\nEOF' crew:lead)" "$gap"
+assert_block "a << in a comment"                "$HOOK" "$(payload_bash $'echo hi # <<EOF\necho x > src/Foo.cs\nEOF' crew:lead)" "$gap"
 assert_block "a here-string opens no body"      "$HOOK" "$(payload_bash $'cat <<<EOF\necho x > src/Foo.cs\nEOF' crew:lead)" "$gap"
 assert_block "a bit shift opens no body"        "$HOOK" "$(payload_bash $'echo $((1<<2))\necho x > src/Foo.cs\n2' crew:lead)" "$gap"
 assert_block "tee into a file"        "$HOOK" "$(payload_bash 'cat t | tee src/Foo.cs' crew:backend)" "$gap"

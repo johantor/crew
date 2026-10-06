@@ -379,9 +379,9 @@ GUARD_RE_HEREDOC_MASKED='(^|[[:space:];|&])<<-?[[:space:]]*[A-Za-z_@\\]'
 
 # _guard_strip_heredocs <cmd> -- sets $_guard_noheredoc to <cmd> without heredoc
 # bodies. A body is stdin data, so `<h3>` or "apply the patch" in a ticket draft
-# is no write. Line by line, one body per operator line: a second body on the
-# same line stays in and over-detects. Open gap: `bash <<EOF` runs its body, as
-# `bash -c '…'` does (AGENTS.md, "The Bash guards are floors, not sandboxes").
+# is no write. A body is stripped only after an unambiguous operator line; any
+# other line is scanned whole, so a misread over-detects (AGENTS.md, "The Bash
+# guards are floors, not sandboxes").
 _guard_strip_heredocs() {
   local line delim='' tabs='' out=''
   case "$1" in *'<<'*) ;; *) _guard_noheredoc="$1"; return 0 ;; esac
@@ -392,9 +392,11 @@ _guard_strip_heredocs() {
       continue
     fi
     out+="$line"$'\n'
-    # The operator must be outside quotes; the delimiter comes from the raw line,
-    # where a quoted one is still readable.
+    # Unambiguous: one `<<` in the raw line, so the raw match is the operator the
+    # masked line saw; no `\"`, which the masker closes early; no `#`, a comment.
+    [[ ${line#*<<} == *'<<'* || $line == *'\"'* ]] && continue
     guard_mask_quotes "$line"
+    [[ $guard_masked == *'#'* ]] && continue
     [[ $guard_masked =~ $GUARD_RE_HEREDOC_MASKED ]] || continue
     [[ $line =~ $GUARD_RE_HEREDOC ]] || continue
     tabs="${BASH_REMATCH[2]}"

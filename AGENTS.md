@@ -376,7 +376,8 @@ was widened once and reverted, and the hooks point here so it is not tried a thi
   outside the project that points into it (as with `/tmp` before), and a main checkout written
   from a worktree session.
 - **The write scan skips heredoc bodies**: a body is stdin data, and HTML or prose in it
-  (`<h3>`, "apply the patch") read as writes. The skip reads lines, one body per operator line.
+  (`<h3>`, "apply the patch") read as writes. The skip reads lines and strips a body only after
+  an unambiguous operator line: one `<<`, no `\"`, no `#`. Anything else is scanned whole.
   Open gap: `bash <<EOF` runs its body, as `bash -c '…'` runs its string.
 - **`rm -rf` refuses every target starting with `/`, `~` or `*`**, build dirs included. A
   whole-token match let `/*/` and `/tmp/../*` through (#264). Out-of-tree cleanup is `rm -r`.
