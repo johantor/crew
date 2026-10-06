@@ -154,7 +154,7 @@ cannot show that `/crew:init` detected a stack or that a worker loaded a skill.
 - [x] **Project review rules** — a scratch repo whose `REVIEW.md` marks "every shell script
   starts with `set -euo pipefail`" Blocking and whose `CLAUDE.md` says "log through `log`, never
   a bare `echo` to stderr"; a diff adding a script that breaks both → `/crew:review quick` lists
-  the first under Blocking and the second under Warnings, each citing its file. (#PR: both
+  the first under Blocking and the second under Warnings, each citing its file. (#309: both
   items appeared as described, cited *REVIEW.md* and *CLAUDE.md*.)
 - [x] **Format matrix from init** — a scratch repo with a `.prettierrc` and a fake
   `node_modules/.bin/prettier` that logs its calls, `/crew:init` → the proposed `formatMatrix`
