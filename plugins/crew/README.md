@@ -163,7 +163,7 @@ claude -p --agent crew:lead '/crew:ship PROJ-123 add SSO login' \
   still pushes and opens a **draft** PR that lists what stopped it, unless a review Blocking
   item is a security finding: then nothing is pushed.
 - **Match the result in a script** on the last line: `crew-ship: <ready|draft|stopped> <URL or
-  reason>`.
+  reason>`. `stopped` means nothing was pushed.
 
 ## Commands
 

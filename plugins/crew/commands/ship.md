@@ -64,3 +64,7 @@ Never force-push. When the push or the PR call is refused, report the exact erro
 Emit your run summary, then the PR URL, then one last line a script can match:
 
 `crew-ship: <ready|draft|stopped> <PR URL or reason>`
+
+`ready` and `draft` name the outcome, not the PR: a branch pushed under the `/crew:pr` step 4
+fallback keeps its outcome, with `no PR: <reason>` in place of the URL. `stopped` means nothing
+was pushed.

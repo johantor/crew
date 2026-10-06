@@ -290,8 +290,9 @@ stack-neutral; run it once per stack.
 - [ ] **A question becomes blocked, then a draft** — a task with a choice no default covers → the
   step is `blocked` with the question in `evidence:`, independent steps still finish, and a
   draft PR opens with the question at the top.
-- [ ] **Preflight stops** — an `unset` slot the run needs, or a modified tracked file → one-line
-  reason, nothing written, `crew-ship: stopped <reason>`.
+- [x] **Preflight stops** — an `unset` slot the run needs, or a modified tracked file → one-line
+  reason, nothing written, `crew-ship: stopped <reason>`. (#307: a modified `README.md` stopped
+  the run with that line; nothing was written.)
 - [ ] **Security Blocking pushes nothing** — a committed secret → gate NO-GO with a security
   Blocking item, no push, `crew-ship: stopped <reason>`.
 
