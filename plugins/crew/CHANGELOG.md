@@ -12,6 +12,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `optimizely-opal` (the custom-tool contract, registries, auth) and one tools-SDK skill each
   for .NET, Node and Python; the backend stack skills name the SDK packages (#296).
 
+## [10.8.1] - 2026-10-06
+
+### Fixed
+
+- `bash-safety` no longer lets a write through after a `\"` inside a quoted string: an
+  unterminated span stays unmasked instead of being dropped (#297).
+
 ## [10.8.0] - 2026-10-06
 
 ### Added

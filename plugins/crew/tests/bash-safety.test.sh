@@ -169,6 +169,9 @@ assert_block "redirect into a file"   "$HOOK" "$(payload_bash 'echo x > src/Foo.
 assert_block "glued redirect"         "$HOOK" "$(payload_bash 'echo x>src/Foo.cs' crew:backend)"    "$gap"
 assert_block "append redirect"        "$HOOK" "$(payload_bash 'printf x >> README.md' crew:backend)" "$gap"
 assert_block "quoted redirect target" "$HOOK" "$(payload_bash 'echo x > "src/Foo.cs"' crew:backend)" "quoted path"
+# The masker closes a span early at `\"`; the quote after it opens a span with
+# no end, which must stay unmasked so the redirect behind it is still seen.
+assert_block "redirect after an escaped quote" "$HOOK" "$(payload_bash $'echo "a \\" b"\necho x > src/Foo.cs' crew:backend)" "$gap"
 # An absolute path outside the project is not guarded by the lane or format
 # hooks, so a redirect there (an out-of-tree build log, #240) is allowed. Inside
 # the project, unset project dir, `..`, and /dev stay refused.
