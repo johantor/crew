@@ -52,8 +52,8 @@ described in `optimizely-cms13`.
    remove the temporary setting before step 3. List third-party packages and confirm each has a 13 release; this is
    usually the largest part of the work.
 2. **Search** for the removed features above and plan a replacement for each. Search &
-   Navigation moves to Optimizely Graph (Optimizely's *Migrate from Search & Navigation to
-   Graph* guide; load `optimizely-graph` for the query mapping).
+   Navigation moves to Optimizely Graph (Optimizely's *Overview of migrating from Search &
+   Navigation* guide). Load `optimizely-search-navigation` for the steps and the API mapping.
 3. **Bump.** Set `net10.0` and move the CMS package family (`EPiServer.CMS*`,
    `EPiServer.Framework*`, the extracted packages above, and `Optimizely.Graph.Cms` /
    `EPiServer.Cms.UI.ContentManager`, which ship as `13.*`) to 13 together. Add-on packages

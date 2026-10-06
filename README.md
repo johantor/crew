@@ -34,7 +34,8 @@ matching skill.
 | `optimizely-cms-upgrade` | The 12 → 13 upgrade | Available |
 | `optimizely-graph` | Graph: sync, schemas, keys, querying from .NET and headless front ends | Available |
 | `optimizely-cms-saas` | SaaS CMS: content types in code, Visual Builder, live preview | Available |
-| Search & Navigation, Commerce, Opal, OCP, ODP, Experimentation | | Planned ([#273](https://github.com/johantor/crew/issues/273)) |
+| `optimizely-search-navigation` | Search & Navigation (Find) on CMS 12, and the move to Graph | Available |
+| Commerce, Opal, OCP, ODP, Experimentation | | Planned ([#273](https://github.com/johantor/crew/issues/273)) |
 
 Stacks: .NET, Node, Python (for Opal tools) and shell on the backend; React and Next.js on the
 front end.

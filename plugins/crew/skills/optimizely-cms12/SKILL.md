@@ -17,8 +17,9 @@ that blocks the upgrade (`optimizely-cms-upgrade` lists them).
   `appsettings.json`, an `EPiServerDB` connection string.
 - `EPiServer.CloudPlatform.Cms` means the site deploys to DXP.
 - `Optimizely.ContentGraph.Cms` means the site syncs to Optimizely Graph: load `optimizely-graph`.
-- Neighbours with no crew skill yet: `EPiServer.Commerce` (Customized Commerce), `EPiServer.Find*`
-  (Search & Navigation). Work from their docs.
+- `EPiServer.Find*` means Search & Navigation: load `optimizely-search-navigation`.
+- Neighbour with no crew skill yet: `EPiServer.Commerce` (Customized Commerce). Work from its
+  docs.
 
 ## Content model
 
@@ -65,7 +66,7 @@ that blocks the upgrade (`optimizely-cms-upgrade` lists them).
 
 - Scheduled job: a `ScheduledJobBase` subclass with
   `[ScheduledPlugIn(DisplayName = "...", GUID = "...")]`. Return a status string from
-  `Execute()`, report progress with `OnStatusChanged`, honour `Stop()` when `IsStoppable`.
+  `Execute()`, report progress with `OnStatusChanged`, honor `Stop()` when `IsStoppable`.
   Jobs run without an HTTP context and as an anonymous user unless the job sets one.
 - Init: prefer `IServiceCollection` registration in `Startup`. An `[InitializableModule]` with
   `[ModuleDependency(typeof(EPiServer.Web.InitializationModule))]` is for event wiring that needs
