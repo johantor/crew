@@ -219,12 +219,12 @@ assert_allow "frontmatter: a slot quoted in the body is not read" \
   "$HOOK" "$(payload_file crew:backend src/web/handler.cs)" "$fm_body"
 
 # e2e: playwright widens to tests/**, and the frontend lane confines it there.
-fm_dozer="$(make_crew_md 'frontendE2eTool: playwright
+fm_e2e="$(make_crew_md 'frontendE2eTool: playwright
 frontendLanePaths: apps/web')"
 assert_allow "frontmatter: e2e allowed an e2e spec inside its frontend lane" \
-  "$HOOK" "$(payload_file crew:e2e apps/web/tests/checkout.spec.ts)" "$fm_dozer"
+  "$HOOK" "$(payload_file crew:e2e apps/web/tests/checkout.spec.ts)" "$fm_e2e"
 assert_block "frontmatter: e2e denied an e2e spec outside its frontend lane" \
-  "$HOOK" "$(payload_file crew:e2e apps/api/tests/checkout.spec.ts)" "outside" "$fm_dozer"
+  "$HOOK" "$(payload_file crew:e2e apps/api/tests/checkout.spec.ts)" "outside" "$fm_e2e"
 
 # --- Retired config locations are not read (5.0.0, #248) -----------------------
 # A legacy `## Crew configuration` block in CLAUDE.md and the `--local` crew.md in
