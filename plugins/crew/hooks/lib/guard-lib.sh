@@ -329,15 +329,18 @@ guard_is_windows() {
 }
 
 # guard_posix_path <path> -- sets $guard_path. On a Windows shell only,
-# backslashes become slashes and `X:/` becomes `/X/`; a drive-relative `X:foo`
-# stays relative. Elsewhere the path is unchanged: there `D:/x` and `a\b` are
-# relative names. Assigns rather than echoing, so a caller pays no `$(...)` fork.
+# backslashes become slashes, and `X:/` and Cygwin's `/cygdrive/x/` become `/X/`
+# and `/x/`; a drive-relative `X:foo` stays relative. Elsewhere the path is
+# unchanged: there `D:/x` and `a\b` are relative names. Callers compare without
+# case. Assigns rather than echoing, so a caller pays no `$(...)` fork.
 guard_posix_path() {
   guard_path="$1"
   guard_is_windows || return 0
   guard_path="${guard_path//\\//}"
   if [[ $guard_path =~ ^([A-Za-z]):(/.*)$ ]]; then
     guard_path="/${BASH_REMATCH[1]}${BASH_REMATCH[2]}"
+  elif [[ $guard_path =~ ^/cygdrive(/[A-Za-z](/.*)?)$ ]]; then
+    guard_path="${BASH_REMATCH[1]}"
   fi
 }
 

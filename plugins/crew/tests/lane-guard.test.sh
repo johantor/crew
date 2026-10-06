@@ -160,6 +160,10 @@ assert_block "lead denied a Windows '..' traversal" \
   "$HOOK" "$(payload_file crew:lead 'C:\work\proj\.claude\..\src\plan-x.md')" "'..' segment"
 assert_allow "unit-tests allowed a Windows test path" \
   "$HOOK" "$(payload_file crew:unit-tests 'C:\work\proj\tests\Foo.Tests\FooTests.cs')"
+# Cygwin spells the project root `/cygdrive/c/...`; a native path is still inside it.
+CLAUDE_PROJECT_DIR=/cygdrive/c/work/proj CREW_OSTYPE=cygwin
+assert_block "lead denied a Windows path inside a Cygwin project root" \
+  "$HOOK" "$(payload_file crew:lead 'C:\work\proj\src\App.cs')" "allowed paths"
 unset CLAUDE_PROJECT_DIR CREW_OSTYPE
 assert_block "lead denied an absolute path with no project dir" \
   "$HOOK" "$(payload_file crew:lead /home/dev/scratch/description.html)" "allowed paths"
