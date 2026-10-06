@@ -33,7 +33,7 @@ that applies changes built in the Optimizely app; **Performance Edge** decides t
 const optimizelyClient = createInstance({      // one per process, not per request
   projectConfigManager: createPollingProjectConfigManager({
     sdkKey: process.env.OPTIMIZELY_SDK_KEY!,
-    autoUpdate: true,   // the JS docs say the default is false, the 6.6 package uses true: set it
+    autoUpdate: true,   // default: false in the browser build, true in Node and universal: set it
   }),
   eventProcessor: createBatchEventProcessor(), // without it, no events are sent at all
 });
