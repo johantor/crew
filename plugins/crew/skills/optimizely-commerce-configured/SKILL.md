@@ -95,8 +95,8 @@ partner owns the **Extensions** project and the Spire blueprints, nothing else.
 - *Admin Console > Jobs > Job Definitions*: **Refresh** (ERP into Commerce), **Submit** (a
   dataset such as an order to the ERP), **Report**, **Execute** (SQL or a stored procedure).
 - A job runs a preprocessor (website, `IJobPreprocessor`), an integration processor (on the WIS,
-  `IIntegrationProcessor`), then a postprocessor (website, `IPostprocessor`; `FieldMap` maps to
-  entities). A class named `IntegrationProcessorXyz` shows as `Xyz` in the Admin Console.
+  `IIntegrationProcessor`), then a postprocessor (website, `IPostprocessor` in the docs; check
+  the name in the referenced assembly; `FieldMap` maps to entities). A class named `IntegrationProcessorXyz` shows as `Xyz` in the Admin Console.
 - The Windows Integration Service runs in the customer's network, hosted by partner and customer.
   On .NET 8+ it uses the REST endpoints (WCF is gone). ERP connectors get bug fixes only:
   extend with jobs and processors, not by patching a connector.

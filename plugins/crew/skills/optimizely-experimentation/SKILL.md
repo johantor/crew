@@ -63,8 +63,8 @@ await optimizelyClient.onReady();              // rejects after 30 s or on close
 
 - `client.createUserContext(userId, attributes).decide("flag_key")` (.NET `CreateUserContext`,
   `Decide`; Python `create_user_context`, `decide`) returns `enabled`, `variationKey`, `variables`.
-- Bucketing hashes user ID and experiment ID: an ID keeps its variation until the split or the
-  variations change. Use a stable, opaque ID, the same on server and client. Sticky bucketing needs
+- Bucketing hashes user ID and experiment ID: an ID keeps its variation only while it still
+  matches the rule's audience and the traffic allocation and variations stay the same. Use a stable, opaque ID, the same on server and client. Sticky bucketing needs
   a user profile service (`lookup`, `save`); the JS SDK ships none.
 - Never change a context's user ID. Anonymous and logged-in journeys get two contexts, each
   tracking its own events (an extra MAU on MAU plans).
