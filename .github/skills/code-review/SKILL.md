@@ -49,9 +49,21 @@ output format; Copilot reads it directly and Claude Code's `crew-review` skill l
 
 ## Prompts (`agents/`, `commands/`, `skills/`)
 
-Apply `AGENTS.md`, "Reviewing a prompt change": cross-run state lives in the declared store;
-a wrapper passes only what its callee accepts; every threshold is a number; every failure path
-has a behavior; changed terms agree across the agent, command, README, `CLAUDE.md` and changelog.
+These files are executable contracts written in prose: `validate-plugin.sh` catches structural
+drift, never a design bug, and most review misses here were design bugs. Authors apply the same
+lens before they push.
+
+- **Durable-state invariant.** If one store is "the only cross-run state", every count or
+  "N-in-a-row" lives there, never in an in-memory tally a fresh-context resume would lose.
+- **Delegation can only pass what the callee accepts.** A wrapper cannot convey what the inner
+  command does not forward; launch the agent directly and say so.
+- **Every threshold is a number**, with what resets it.
+- **Every failure and edge path has a stated behavior**: stop, skip or surface, and which durable
+  state is or is not mutated.
+- **A structured field documents its shape where it is owned**, and the owner is told to
+  preserve it verbatim on rewrite.
+- **Cross-file wording agrees.** Grep every term the diff changed across the command, its agent
+  and the README/AGENTS/CLAUDE/CHANGELOG copies.
 
 ## Release, tests, docs
 

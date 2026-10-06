@@ -30,9 +30,10 @@ entry.
 - `.claude/crew.md`: this repo's own crew configuration. The repo carries no hook wiring of its
   own: work here with `claude --plugin-dir plugins/crew`.
 - `.github/`: `workflows/validate.yml` runs the checks in *Validating changes*;
-  `auto-release.yml` tags. `skills/code-review/SKILL.md` is the one review rubric: Copilot reads
-  it through `copilot-instructions.md`, and `.claude/skills/crew-review/` wraps it for Claude
-  Code. `ISSUE_TEMPLATE/` holds the bug and feature forms.
+  `auto-release.yml` tags. `ISSUE_TEMPLATE/` holds the bug and feature forms. `skills/` holds
+  the repo's own skills, never shipped: `code-review` (the one review rubric, which Copilot reads
+  through `copilot-instructions.md`) and `writing-style`. Each has a thin wrapper in
+  `.claude/skills/` for Claude Code (`crew-review` adds the shell steps).
 - `CONTRIBUTING.md` points here; `CODE_OF_CONDUCT.md` is the Contributor Covenant 2.1;
   `SECURITY.md` covers guard bypasses.
 
@@ -79,25 +80,8 @@ git-excludes the same file, so no reader changes, and moves the prose to a git-e
 Reviews of **this repo** (by Copilot, the `crew-review` skill, or `/crew:review` run here) judge
 code against `engineering-principles` (the code rules) and the `code-review` skill (this repo's
 rubric: what to check, severity, the **Blocking** / **Warnings** / **Passed** output). In a user's
-project, `/crew:review` applies `engineering-principles` only.
-
-### Reviewing a prompt change (commands, agents, skills)
-
-These files are **executable contracts written in prose**: `validate-plugin.sh` catches structural
-drift, never a design bug, and most review misses here were design bugs. Apply this lens before
-pushing and as a reviewer:
-
-- **Durable-state invariant.** If one store is "the only cross-run state", every count or
-  "N-in-a-row" lives there, never in an in-memory tally a fresh-context resume would lose.
-- **Delegation can only pass what the callee accepts.** A wrapper cannot convey what the inner
-  command does not forward; launch the agent directly and say so.
-- **Every threshold is a number**, with what resets it.
-- **Every failure and edge path has a stated behavior**: stop, skip or surface, and which durable
-  state is or is not mutated.
-- **A structured field documents its shape where it is owned**, and the owner is told to
-  preserve it verbatim on rewrite.
-- **Cross-file wording agrees.** Grep every term you changed across the command, its agent and
-  the README/AGENTS/CLAUDE/CHANGELOG copies.
+project, `/crew:review` applies `engineering-principles` only. A prompt change (agents,
+commands, skills) has its own lens in the rubric's *Prompts* section; apply it before you push.
 
 ## Prompt design rationale
 
@@ -312,22 +296,8 @@ line, two at most: *what changed*, with the PR as `(#N)`. The why belongs in the
 - One branch and PR per issue, from the latest `main`: `git fetch origin main && git checkout -B
   <branch> origin/main`. A merged PR's branch is deleted; reusing the name leaves a stale tracking
   ref until pruned.
-
-### Writing style (READMEs, changelogs, PR bodies, issues)
-
-Prose here reads like a person wrote it. Generated-sounding text is a trust problem, because the
-same patterns let a claim slide through unbacked.
-
-- **Name the catch** next to the claim. Two lane-guard overclaims survived #178 because the
-  sentence sounded confident.
-- **Specifics instead of adjectives.** Name the hook, the tool it gates, what happens when it fires.
-- **Take the stance.** "Both have their place" is a dodge.
-- **Don't hedge every sentence**, and **vary the rhythm**; a four-word sentence is allowed.
-- **Skip the tells**: `delve`, `leverage`, `robust`, `seamless`, `unlock`, `harness` (as a verb),
-  `streamline`, `empower`, `elevate`, `pivotal`, "it's not just X, it's Y", "at its core", "in
-  today's fast-paced …".
-- **Go easy on em-dashes.** A colon, a comma or a full stop usually serves; keep a matched pair
-  around a real aside. A nudge, not a review comment.
+- READMEs, changelogs, PR bodies and issues follow the `writing-style` skill
+  (`.github/skills/writing-style/SKILL.md`).
 
 ### The Bash guards are floors, not sandboxes
 
