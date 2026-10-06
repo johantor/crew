@@ -22,7 +22,8 @@ in the product: the `zaius` global, `zaius_id`, `api.zaius.com`, `app.zaius.com`
   `createOdpManager` (JS SDK 6).
 - **API hosts:** `api.zaius.com` or `api.us1.odp.optimizely.com` (US), `api.eu1.odp.optimizely.com`
   (EU), `api.au1.odp.optimizely.com` (APAC). An account lives in one region: use its host.
-- Neighbours: `optimizely-cms12` / `optimizely-cms13` for the CMS side.
+- Neighbours: `optimizely-cms12` / `optimizely-cms13` for the CMS side. `@zaiusinc/node-sdk`
+  beside `@zaiusinc/app-sdk` is an OCP app: load `optimizely-ocp` too.
 
 ## Data model
 

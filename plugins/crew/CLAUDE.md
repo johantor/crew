@@ -78,13 +78,19 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
     move off a product stays in that product's skill (`optimizely-search-navigation` → Graph). Facts
     come from docs.optimizely.com: re-check a skill's sources when you touch it. Name a
     neighbour skill only once it ships; a missing skill makes the `Skill` call fail.
-    `optimizely-graph`, `optimizely-cms-saas` and `optimizely-odp` are the ones a non-.NET
-    worker loads: `frontend-headless` names the markers of all three, `backend-node` those of
-    Graph and ODP, `frontend-server-rendered` the ODP web tag, and the worker greps for them
-    itself. Opal is one concepts skill (`optimizely-opal`) plus one skill per tools SDK
+    A non-.NET worker loads `optimizely-graph`, `optimizely-cms-saas`, `optimizely-odp`,
+    `optimizely-experimentation`, `optimizely-ocp` and (Spire) `optimizely-commerce-configured`:
+    `frontend-headless` names the markers of the first four, `backend-node` those of Graph, ODP,
+    Experimentation and OCP, `frontend-server-rendered` the ODP and Experimentation tags, and the
+    worker greps for them itself. Opal is one concepts skill (`optimizely-opal`) plus one skill per tools SDK
     (`optimizely-opal-tools-dotnet`, `-node`, `-python`); each backend stack skill names its
     SDK's package and both get loaded; a tool written without an SDK loads the concepts skill
-    alone.
+    alone. Commerce is two skills, since the products are different codebases:
+    `optimizely-commerce-customized` (Commerce Connect, `EPiServer.Commerce*`) and
+    `optimizely-commerce-configured` (`Insite.*`, plus Spire, which `frontend-react` routes).
+    `optimizely-experimentation` is named by the .NET, Node and Python backends and the React,
+    Next.js, headless and server-rendered frontend skills; `optimizely-ocp`
+    by `backend-node`, `optimizely-odp` and `optimizely-opal`.
 - `hooks/` — wired in `hooks/hooks.json`, the one copy; in this repo they load through
   `claude --plugin-dir plugins/crew`. `bash-safety` and `lane-guard` fail closed; `read-guard`, `format`,
   `dispatch-denied` and `plan-guard` fail open.

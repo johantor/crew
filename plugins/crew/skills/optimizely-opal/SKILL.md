@@ -20,7 +20,7 @@ covers the contract and the Opal side.
 
 All three SDKs are pre-1.0 (the npm and PyPI releases are `-dev`/`.dev`): pin the version, and
 read the installed package's README before you rely on an API. A tool built on OCP uses
-`@optimizely-opal/opal-tool-ocp-sdk` instead; work from the OCP docs.
+`@optimizely-opal/opal-tool-ocp-sdk` instead; load `optimizely-ocp`.
 
 ## Concepts
 

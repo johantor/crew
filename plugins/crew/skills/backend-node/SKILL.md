@@ -14,6 +14,9 @@ present, also load `optimizely-graph`. `@zaiusinc/node-sdk` or an ODP API host
 `@optimizely-opal/opal-tools-sdk` means an Opal custom tool: load `optimizely-opal` and
 `optimizely-opal-tools-node`. An Opal tool written without the SDK (a `/discovery` route that
 returns `functions` with `endpoint` and `http_method`) loads `optimizely-opal` alone.
+An OCP `app.yml` (with `meta.app_id`) or `@zaiusinc/app-sdk` means an Optimizely Connect Platform
+app: load `optimizely-ocp`. `@optimizely/optimizely-sdk` means Feature Experimentation: load
+`optimizely-experimentation`.
 
 In a SaaS-headless project shape, the "backend" may be thin — a BFF layer or a handful of API
 routes wrapping Graph queries. Don't invent backend surface area the project doesn't have; a

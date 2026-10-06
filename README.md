@@ -38,7 +38,10 @@ matching skill.
 | `optimizely-odp` | Data Platform: events, profiles, real-time audiences for CMS and Experimentation | Available |
 | `optimizely-opal` | Opal custom tools: the discovery contract, registries, auth | Available |
 | `optimizely-opal-tools-dotnet` / `-node` / `-python` | One skill per Opal tools SDK (C#, TypeScript, Python) | Available |
-| Commerce, OCP, Experimentation | | Planned ([#273](https://github.com/johantor/crew/issues/273)) |
+| `optimizely-commerce-customized` | Customized Commerce: catalog, markets, pricing, orders, promotions, payments | Available |
+| `optimizely-commerce-configured` | Configured Commerce: handlers, pipelines, Spire, integration jobs | Available |
+| `optimizely-experimentation` | Feature and Web Experimentation: flags, SDKs, the snippet, flicker, cleanup | Available |
+| `optimizely-ocp` | Connect Platform apps: functions, jobs, lifecycle, settings, the CLI | Available |
 
 Stacks: .NET, Node, Python (for Opal tools) and shell on the backend; React and Next.js on the
 front end.

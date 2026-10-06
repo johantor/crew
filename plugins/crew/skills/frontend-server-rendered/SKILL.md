@@ -10,7 +10,9 @@ shared principles below apply to any server template language. If the views are 
 (`.cshtml`), also load `frontend-razor`.
 
 Search the layouts yourself for the ODP web tag (`zaius`, `zaius-min.js`). If one
-loads it, also load `optimizely-odp`.
+loads it, also load `optimizely-odp`. The Web Experimentation snippet
+(`cdn.optimizely.com/js/<project id>.js`) or a Performance Edge script (`/edge-client/v1/`,
+`/optimizely-edge/`) means Experimentation: also load `optimizely-experimentation`.
 
 ## Shared principles
 

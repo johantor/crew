@@ -17,6 +17,8 @@ Search the dependencies yourself for `optimizely-opal.opal-tools-sdk` (or `opal_
 imports): it means an Opal custom tool, so also load `optimizely-opal` and
 `optimizely-opal-tools-python`. An Opal tool written without the SDK (a `/discovery` route that
 returns `functions` with `endpoint` and `http_method`) loads `optimizely-opal` alone.
+`optimizely-sdk` (`from optimizely import optimizely`) means Feature Experimentation: load
+`optimizely-experimentation`.
 
 ## Crew config
 

@@ -20,8 +20,9 @@ the default editing experience.
 - Graph queries, sync and keys: load `optimizely-graph`.
 - `Optimizely.Cms.Odp` (1.1+) or `UNRVLD.ODP.VisitorGroups` means ODP audiences: load
   `optimizely-odp`.
-- Neighbour with no crew skill yet: `EPiServer.Commerce` (Customized Commerce); use its docs.
-  `EPiServer.Find*` here is a leftover from 12: Search & Navigation is not supported on 13
+- `EPiServer.Commerce*` 15.x (Commerce Connect) means Customized Commerce: load
+  `optimizely-commerce-customized`.
+- `EPiServer.Find*` here is a leftover from 12: Search & Navigation is not supported on 13
   (`optimizely-cms-upgrade`; `optimizely-search-navigation` for the move to Graph).
 
 ## Startup
