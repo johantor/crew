@@ -15,6 +15,10 @@ carries:
 - `optimizely-search-navigation` for `EPiServer.Find*`;
 - `optimizely-odp` for `Optimizely.Cms.Odp`, `UNRVLD.ODP.VisitorGroups` or
   `EPiServer.Commerce.ODP`;
+- `optimizely-commerce-customized` for `EPiServer.Commerce*` or `Mediachase.Commerce*`
+  (Commerce Connect);
+- `optimizely-commerce-configured` for `using Insite.*`, `HandlerBase<,>` or an
+  `InsiteCommerce.Web` project (Configured Commerce);
 - `optimizely-opal` and `optimizely-opal-tools-dotnet` for `Optimizely.Opal.Tools` (or the
   legacy `OptimizelyOpal.OpalToolsSDK`); `optimizely-opal` alone for an Opal tool written
   without the SDK (a `/discovery` route that returns `functions` with `endpoint` and
