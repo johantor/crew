@@ -282,6 +282,19 @@ stack-neutral; run it once per stack.
 - [ ] **`max` parsing** — `max=5` caps at 5; a malformed `max=0`/`max=abc` is left in the goal and
   the cap defaults to 10 (deterministic, no guess).
 
+### Unattended run (`/crew:ship`)
+
+- [ ] **GO opens a ready PR** — `claude -p '/crew:ship <small task>'` in a scratch repo with a
+  remote and a git-host MCP → no prompt, plan written without a checkpoint, workers run in the
+  foreground, gate GO, branch pushed, ready PR opened, last line `crew-ship: ready <URL>`.
+- [ ] **A question becomes blocked, then a draft** — a task with a choice no default covers → the
+  step is `blocked` with the question in `evidence:`, independent steps still finish, and a
+  draft PR opens with the question at the top.
+- [ ] **Preflight stops** — an `unset` slot the run needs, or a modified tracked file → one-line
+  reason, nothing written, `crew-ship: stopped <reason>`.
+- [ ] **Security Blocking pushes nothing** — a committed secret → gate NO-GO with a security
+  Blocking item, no push, `crew-ship: stopped <reason>`.
+
 ### Steering a running worker (`mid-run-direction`)
 
 These rows are the only coverage for the receiving half of steering: it needs a live

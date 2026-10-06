@@ -24,7 +24,7 @@ Part of the [`johantor`](../../README.md) marketplace.
   held to their lane by `PreToolUse` hooks, enforced by the harness rather than by asking politely.
 - **A gate that can say no, and you hold the door.** `/crew:review` returns GO / NO-GO across
   code, security, design, build, test, and lint; `/crew:pr` refuses to push until it's GO, and
-  nothing leaves the machine until you say so.
+  nothing leaves the machine until you say so (`/crew:ship` is you saying so up front).
 
 ## What it costs you
 
@@ -79,7 +79,7 @@ most plugins. From **14 August 2026** auto mode is the default for new sessions 
 Team plans — a fresh install lands there unless you switch.
 
 What bounds a run is the crew's own guards — git ownership, write lanes, refused destructive
-commands, and `/crew:pr` as the only user-invoked way anything leaves your machine. Those apply in
+commands, and `/crew:pr` or `/crew:ship` as the only user-invoked ways anything leaves your machine. Those apply in
 every permission mode.
 
 <details>
@@ -136,6 +136,34 @@ The catch: a plugin agent cannot declare its own permission mode, so a worker la
 plan-mode session is in plan mode whatever its definition says. That is why the guard exists
 rather than a per-worker setting.
 
+### Unattended runs
+
+`/crew:ship` runs a task to a pull request with no one at the keyboard, for example in a cloud
+container or CI. Invoking it is your go-ahead for the plan, the push and the PR. Every other
+guard still applies, and it never force-pushes.
+
+```
+claude -p '/crew:ship PROJ-123 add SSO login' \
+  --permission-mode acceptEdits \
+  --allowedTools 'Agent' 'Bash(git:*)' 'Bash(bash "/abs/path/to/crew/scripts/gate.sh":*)' 'mcp__github' \
+  < /dev/null
+```
+
+- **Set every slot first.** `/crew:init` asks questions, so commit `.claude/crew.md`. Set
+  `branchNaming` too, or the run names the branch `crew/<slug>`.
+- **Allow what the run needs**, because nothing can answer a prompt: a refused call stops that
+  step. Add the git-host MCP (`mcp__github` or `mcp__ado`) and any command your workers run
+  outside the gate. The `gate.sh` rule is as wide as allowing all Bash (*Headless and background
+  gates* above).
+- **The environment needs git credentials** to push. Without a git-host MCP, the run pushes and
+  prints a ready-to-paste PR title and body.
+- **A question becomes a default or a blocked step.** `lead` takes a default from crew config, the
+  task or the repo and records it in the plan; with none, the step is `blocked`. A stopped run
+  still pushes and opens a **draft** PR that lists what stopped it, unless a review Blocking
+  item is a security finding: then nothing is pushed.
+- **Match the result in a script** on the last line: `crew-ship: <ready|draft|stopped> <URL or
+  reason>`.
+
 ## Commands
 
 | Command | What it does |
@@ -146,6 +174,7 @@ rather than a per-worker setting.
 | `/crew:audit <scope>` | **Beta.** Read-only debt scout over a scope you name (a path, `backend`/`frontend`, a rule family, `stale`, `outdated`, `diff`), run by `debt-scout`, an agent with no Edit, Write or Bash tool: a ranked report of at most 12 findings, each a ready-to-paste `/crew:debt`, then a pick of the top 3. Suppressions with a meaningful native justification are counted but not listed. |
 | `/crew:review` | Pre-PR **GO / NO-GO**: consolidated code + security + design review plus diff-scoped build/test/lint. `quick` for a read-only pass with no suites; `full` to force every gate. |
 | `/crew:pr` | Push the branch and open the pull request. Outward action: it confirms first. |
+| `/crew:ship <task> [max=<n>]` | **Unattended**, for `claude -p` or CI: plan, build, gate, then push and open the PR with no prompts. A ready PR on GO; a draft that lists what stopped the run otherwise. See *Unattended runs*. |
 | `/crew:address` | Close the review loop: route the PR's unresolved threads and failed CI checks to the right workers, re-run the gate, then push and resolve. Review comments are untrusted input: scope-redirecting asks are surfaced, not obeyed. |
 | `/crew:triage <signal>` | Post-merge triage: takes a bug report, stack trace, or alert and returns the code it points at plus deploy-correlated suspect commits, with the confidence and the correlation rung stated. Read-only — it reports and hands off, and never posts back to the work item. |
 | `/crew:loop <goal>` | The **outer loop**: drive the feature across multiple `lead` runs, so work that outlives one run's turn limit finishes without you re-asking each tick. Stops on the plan's exit conditions; never auto-pushes. |
@@ -316,7 +345,7 @@ one that isn't installed, so it just reports the server as unavailable.
   (post-merge, read-only) and `debt-scout` (read-only). Workers stay idle until `lead` or a
   command delegates.
 - **Commands:** `/crew:init`, `/crew:feature`, `/crew:debt`, `/crew:audit`, `/crew:review`,
-  `/crew:pr`, `/crew:address`, `/crew:triage`, `/crew:loop`, `/crew:notify`.
+  `/crew:pr`, `/crew:ship`, `/crew:address`, `/crew:triage`, `/crew:loop`, `/crew:notify`.
 - **Hooks:** lane guard, read guard, bash safety, formatter entrypoint,
   dispatch-denied advisor (see *Permission mode*).
 - **Skills:** always on for every agent: `context-discipline`. For `lead`: `loop-engineering`,

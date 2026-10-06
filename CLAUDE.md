@@ -93,5 +93,5 @@ a summary. It is not remote execution, and it sends nothing outside the reposito
 The crew's guard hooks bound what a worker can do: only `lead` touches git, no agent commits on
 the base branch, each worker's edits are confined to its own lane — through `Edit`/`Write`, and
 file-mutating Bash is refused so a write cannot route around the lane — and destructive shell
-commands are refused. Nothing is pushed and no pull request is opened on its own — `/crew:pr` is the only
-path out of the machine, and the user invokes it.
+commands are refused. Nothing is pushed and no pull request is opened on its own — `/crew:pr` and
+`/crew:ship` are the only paths out of the machine, and the user invokes them.

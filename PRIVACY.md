@@ -58,8 +58,8 @@ Three paths, none of them the plugins' own and all of them under your control:
    **These plugins ship no MCP configuration and start no server.** The agent
    files only name tools they will use if you have already made them available.
    Anything sent to such a server is governed by that server's own terms.
-3. **Your git remote.** `/crew:pr` pushes your branch and opens a pull request,
-   and only when you run it. The crew stops at a local review gate by default;
+3. **Your git remote.** `/crew:pr` and `/crew:ship` push your branch and open a
+   pull request, and only when you run them. The crew stops at a local review gate by default;
    nothing is pushed on its own.
 
 ## Third parties

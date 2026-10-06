@@ -25,7 +25,7 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
     shape is what §11 parses); §2 takes each backend's commands from its `backend-<stack>`
     skill's *Crew config* section; §3 owns what may go in `CLAUDE.md` (auto mode's classifier
     reads only that file); §5 writes and reconciles; §6 reports MCP namespaces.
-  - `feature`, `review` (GO/NO-GO gate), `pr` (the only push/PR path), `address`.
+  - `feature`, `review` (GO/NO-GO gate), `pr` (with `ship`, the only push/PR path), `address`.
   - `debt`: routes into `lead`'s debt lane (the `debt-lane` skill), in the foreground so its
     gates can prompt. The skill must not share a command's name: a command is also listed as a
     skill, so `lead` would load the command and relaunch itself.
@@ -33,6 +33,10 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
     resolved here first — the scout has no Bash), relays the report, then launches `lead`
     directly per picked pointer with `debt`'s open-mode instructions, never by nesting
     `/crew:debt`.
+  - `ship`: the unattended run for `claude -p` or CI. Launches `lead` directly with a note
+    (no prompts, go-ahead given, loop mode, foreground workers, defaults or `blocked` instead
+    of a question) until the plan is quiescent or the cap, then pushes and opens a ready PR on
+    GO, a draft otherwise. It shares `iterations:` with `loop` as the launch count.
   - `loop`: re-launches `lead` directly each tick on native `/loop` until exit conditions or
     the cap; the wrapper owns scheduling.
   - `triage`: launches `incident-triage` and relays its report; writes nothing (#175 phase 2).
@@ -159,7 +163,7 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
 - Durable run state: `<plan-dir>/plan-<feature>.md`, schema in `agents/lead.md`
   §"The plan file is durable state" — header `feature:`/`base-branch:`/`feature-branch:` +
   inner-loop fields (`loop:`, `exit-conditions:`, `gate:`) + outer-loop bookkeeping
-  (`iterations: n/max`, written by the `/crew:loop` wrapper, not lead);
+  (`iterations: n/max`, written by the `/crew:loop` or `/crew:ship` wrapper, not lead);
   steps carry `id:`/`status:`/`depends-on:`/`acceptance:`/`worker:`/`attempts:`/`evidence:`, plus
   `agent-id:` while in flight (cleared when the step leaves `in-progress`). The `steer-token:`
   **never** lands in the plan file, since a plan dir can be committed; a resumed run

@@ -293,11 +293,10 @@ Only a step that must prompt the user runs in the foreground; otherwise, always 
   is complete and correct), then re-dispatch the unfinished remainder as a fresh, narrower step —
   peeling any run/verify into its own dispatch (*The plan file is durable state*'s "`in-progress`
   is unconfirmed" rule, triggered by the return instead of a crash).
-- **An outer-loop tick runs foreground.** When `/crew:loop` drives a tick (its dispatch says so),
-  delegate that tick's workers in the **foreground** and run to a stopping point: the outer loop
-  needs each tick to return with no worker still running, so the next tick can't double-dispatch.
-  This is the one exception to "always background"; an interactive `/crew:feature` run backgrounds
-  as usual.
+- **An outer-loop tick or a `/crew:ship` run runs foreground.** When either drives you (its
+  dispatch says so), delegate workers in the **foreground** and run to a stopping point: the next
+  tick, or the push that follows, needs you to return with no worker still running. This is the
+  one exception to "always background"; an interactive `/crew:feature` run backgrounds as usual.
 
 ## Right-size the model per delegation
 
@@ -396,8 +395,8 @@ changes state, never in a batch at the end, so a run cut off at `maxTurns` resum
   rules), and `gate:` — the review gate's latest outcome plus its NO-GO count, so a resume
   never re-runs a gate that already hit its cap. A resumed plan with `loop: on` continues in
   loop mode without re-handshake.
-- Outer-loop bookkeeping (`iterations: <n>/<max>`): written by the `/crew:loop` wrapper (the
-  main-session outer loop), not by you — you never self-schedule. **Preserve it verbatim when you
+- Outer-loop bookkeeping (`iterations: <n>/<max>`): written by the `/crew:loop` or
+  `/crew:ship` wrapper (the main-session outer loop), not by you — you never self-schedule. **Preserve it verbatim when you
   rewrite the plan** — the wrapper reads it to enforce the cap.
 - Each step: `id:` (stable), `status:` `pending`\|`in-progress`\|`done`\|`blocked`,
   `depends-on:` (step `id`s or `independent`), `acceptance:` (pass criteria), `worker:` (the
@@ -433,9 +432,9 @@ decision). A backgrounded or dispatched step is `in-progress`, never `done`, unt
 
 **Loop-mode bindings (`loop-engineering`).** A *unit* is a plan step; *durable state* is this
 plan file; the *terminal gate* is the review gate — success = all steps `done` + gate **GO**,
-and push/PR stay behind `/crew:pr`. The retry cap applies to the gate too: a NO-GO routes
-findings back once; a second NO-GO on the same findings is `blocked` (outcome + NO-GO count
-tracked in the header `gate:`). A `generalist` express task is single-pass — loop mode is a no-op
+and push/PR stay behind `/crew:pr` (or `/crew:ship`, after you return). The retry cap applies to
+the gate too: a NO-GO routes findings back once; a second NO-GO on the same findings is
+`blocked` (outcome + NO-GO count tracked in the header `gate:`). A `generalist` express task is single-pass — loop mode is a no-op
 there. A **truncation-resume is not a failed fix→verify round-trip**: the retry cap (`attempts:`)
 counts work that came back *wrong*, not work that didn't *finish*, so re-dispatching a truncated
 step's remainder (*A truncated return is not a finished step*) does not consume an attempt.
@@ -457,7 +456,7 @@ Anti-drift rules:
 4. Treat test/design failures and "improvements noticed" as drift signals; fold them into the plan deliberately. When a failure looks **pre-existing** rather than caused by this run, dispatch `crew:incident-triage` to establish provenance before routing it to an implementer. When re-delegating to `crew:unit-tests`/`crew:e2e` to confirm a fix, name the exact previously-failing test(s)/spec(s) so it reruns just those, not the full suite.
 5. Each delegation must explicitly state what a passing result looks like (e.g. "all new tests green", "no TypeScript errors", "layout matches spec"). Reject any result that does not include evidence of this.
 6. Keep each step current: on dispatch, record its `worker` and `agent-id` and flip `status` to `in-progress`; after the round-trip, set `status` to `done` (with `evidence`) or `blocked` and clear the now-dead `agent-id` — before proceeding.
-7. You are the sole owner of git: branch off the resolved base branch, never commit to it directly, and commit only verified steps. Workers run no git but a plain `git mv`. Push/PR happen only via `/crew:pr`.
+7. You are the sole owner of git: branch off the resolved base branch, never commit to it directly, and commit only verified steps. Workers run no git but a plain `git mv`. Push/PR happen only via `/crew:pr` or `/crew:ship`, never from you.
 8. Size each dispatch to one unit a worker can finish within its turn budget, and keep authoring separate from running/verifying (*Right-size the model per delegation*). A truncated return is resumed, never accepted as done (*A truncated return is not a finished step*).
 
 Keep your own context lean and let workers absorb verbose outputs.

@@ -42,7 +42,8 @@ entry.
 
 - `lead` plans and delegates. It writes no production code and is the **sole owner of git**: it
   branches off the resolved base and commits each verified step. Workers run no git but a plain
-  `git mv`. The crew stops at the local review gate; `/crew:pr` pushes.
+  `git mv`. The crew stops at the local review gate; `/crew:pr` pushes, or `/crew:ship`
+  does on an unattended run.
 - The plan at `<plan-dir>/plan-<feature>.md` (the `planDirectory` slot, else `.claude/`) carries
   per-step acceptance criteria. It is presented once for the user's go-ahead before the branch
   or any delegation (the plan checkpoint); a standing "just build it" counts as the go-ahead.
@@ -156,6 +157,10 @@ rule costs more than a sentence of prose, and motivation measurably helps compli
 - **The plan file is durable state.** It survives a crash or context reset. `/crew:loop` keeps
   no crash marker: ticks run their workers in the foreground and return only when nothing runs,
   so the next tick's resume reconciles whatever a crashed one left (#249).
+- **`/crew:ship` is the unattended path to a PR.** Its invocation is the standing go-ahead for the
+  checkpoint, the push and the PR, so `claude -p` never waits on a prompt. The command, not
+  `lead`, pushes: `lead` stays push-free in every mode. A stopped run still opens a draft PR,
+  since a cloud container loses unpushed commits; a security Blocking finding pushes nothing.
 - **Run summary** reproduces the per-worker view the agent panel loses on resume, so it repeats
   neither `/recap`'s commit list nor the status pulse.
 - **Anti-drift.** Citing the exact plan step in every delegation keeps a run resumable; current
