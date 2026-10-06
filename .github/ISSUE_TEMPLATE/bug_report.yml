@@ -1,0 +1,57 @@
+name: Bug report
+description: A hook, agent, command or skill does the wrong thing.
+title: "fix(crew): "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A way to get past a guard (`bash-safety.sh`, `lane-guard.sh`) is a security bug.
+        Report it privately as SECURITY.md describes, not here.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What the crew did, and what you expected it to do instead.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: How to reproduce
+      description: The command or prompt you ran, and the steps that led to it. For a hook, the tool call it refused or let through.
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: Relevant output
+      description: The refusal message, error or transcript excerpt. Keep it to the lines that matter.
+      render: text
+  - type: input
+    id: crew-version
+    attributes:
+      label: crew version
+      description: From `claude plugin list`, or the `crew/vX.Y.Z` release.
+      placeholder: "10.10.0"
+    validations:
+      required: true
+  - type: input
+    id: claude-code-version
+    attributes:
+      label: Claude Code version
+      description: From `claude --version`.
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - macOS
+        - Linux
+        - Windows (Git Bash)
+        - Windows (WSL)
+        - Other
+    validations:
+      required: true

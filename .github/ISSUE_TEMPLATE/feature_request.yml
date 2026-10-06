@@ -1,0 +1,24 @@
+name: Feature request
+description: A new skill, agent, command or stack, or a change to how the crew works.
+title: "feat(crew): "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What you tried to do, and where the crew fell short.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: What should change. Name the agent, command, skill or hook it touches, if you know.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Workaround today
+      description: How you get by without it, if at all.

@@ -51,6 +51,8 @@ entry.
 - `.github/` — `copilot-instructions.md` points Copilot at `skills/code-review/SKILL.md`, the one
   review rubric (`.claude/skills/crew-review/` wraps it for Claude Code); `workflows/validate.yml`
   runs shellcheck, the validator, the release gate and the hook tests; `auto-release.yml` tags.
+  `ISSUE_TEMPLATE/` holds the bug and feature forms.
+- `CONTRIBUTING.md` points here; `CODE_OF_CONDUCT.md` is the Contributor Covenant 2.1.
 
 ## How the crew works
 
