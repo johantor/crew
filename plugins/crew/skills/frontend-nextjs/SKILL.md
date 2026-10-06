@@ -7,6 +7,8 @@ description: Next.js frontend stack conventions — App Router, Server/Client Co
 
 You are working in a Next.js frontend: App Router, React Server Components (RSC) and Client
 Components, and data fetching from the project's headless CMS/API (e.g. Optimizely Graph).
+`@optimizely/react-sdk` or `@optimizely/optimizely-sdk` means Feature Experimentation: load
+`optimizely-experimentation`.
 
 ## Server/client split
 

@@ -84,7 +84,12 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
     itself. Opal is one concepts skill (`optimizely-opal`) plus one skill per tools SDK
     (`optimizely-opal-tools-dotnet`, `-node`, `-python`); each backend stack skill names its
     SDK's package and both get loaded; a tool written without an SDK loads the concepts skill
-    alone.
+    alone. Commerce is two skills, since the products are different codebases:
+    `optimizely-commerce-customized` (Commerce Connect, `EPiServer.Commerce*`) and
+    `optimizely-commerce-configured` (`Insite.*`, plus Spire, which `frontend-react` routes).
+    `optimizely-experimentation` is named by the .NET, Node and Python backends and the React,
+    Next.js, headless and server-rendered frontend skills; `optimizely-ocp`
+    by `backend-node`, `optimizely-odp` and `optimizely-opal`.
 - `hooks/` — wired in `hooks/hooks.json`, the one copy; in this repo they load through
   `claude --plugin-dir plugins/crew`. `bash-safety` and `lane-guard` fail closed; `read-guard`, `format`,
   `dispatch-denied` and `plan-guard` fail open.
