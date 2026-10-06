@@ -68,7 +68,7 @@ entry.
   post-merge triage (read-only, returns a pointer), `debt-scout` debt scout (read-only, no Bash,
   returns `/crew:debt` pointers). `lane-guard.sh` enforces the write lane by extension where the
   stacks' languages differ, or by the configured lane paths when they are the same (Node +
-  Next.js is the one such pair, and an `other` stack on either side needs them too); with
+  Next.js is the one such pair, and an `other` stack without them has open lanes); with
   `backendStack` unset it refuses `backend`/`frontend`.
 - A **regression** enters through `incident-triage`: `lead` delegates the report to it and plans
   against the pointer, so the finding arrives in its own context. `/crew:triage` is the same
@@ -350,6 +350,25 @@ same patterns let a claim slide through unbacked.
   today's fast-paced …".
 - **Go easy on em-dashes.** A colon, a comma or a full stop usually serves; keep a matched pair
   around a real aside. A nudge, not a review comment.
+
+### Open up before you lock down
+
+Fail closed is for **safety**: git, destructive and file-mutating Bash, secrets, pushes. It is not
+for division of labour. When a guard cannot know the answer (which agent owns a file in a stack
+the crew knows nothing about), open it and let `lead`'s plan or the agent's prompt hold the rule,
+rather than add mechanism to refuse. The signs you are locking down the wrong thing: the fix needs
+a list that will always miss a case, a parser, a new required slot, or a config shape some real
+layout cannot express; or a second review round finds a new edge case of the same mechanism.
+Opening up removes code; locking down adds it and still leaks. The worked example is the next
+section. Reviewers: an opening documented here is not a fail-open finding.
+
+### Why an `other` stack has open lanes
+
+No extension list can split `backend`'s files from `frontend`'s for a stack the crew knows
+nothing about (#301 found `.styl` past one), and required lane paths cannot express a root-level
+backend. So with an `other` stack and no lane paths, `lane-guard` lets both write anywhere and
+`lead`'s plan gives each step its own files. Every safety guard is unchanged, as are the
+`unit-tests`, `e2e` and `lead` lanes; lane paths, when set, restore the directory split.
 
 ### The Bash guards are floors, not sandboxes
 

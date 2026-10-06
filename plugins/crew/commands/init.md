@@ -36,7 +36,8 @@ run until this command fills it (`branchNaming` is asked once per run instead, a
   template.
 - **Backend stack** (`backendStack`) — `dotnet`, `node`, `python`, or `shell`; `other` for a
   stack the crew ships no skill for (Go, Rust, Java, Ruby, …), best effort: the crew works from
-  the configured commands and the project's own skill, and a frontend needs lane paths. The
+  the configured commands and the project's own skill, and `lead`'s plan, not the lane guard,
+  keeps `backend` and `frontend` apart unless lane paths are set. The
   lane guard refuses `backend`/`frontend` while it is `unset`.
 - **Backend skill** (`backendSkill`) — only with `other`: the project's own skill for its stack,
   by name, which `lead` hands to `backend` and `unit-tests`; `none` when it has none. `unset`
@@ -45,7 +46,7 @@ run until this command fills it (`branchNaming` is asked once per run instead, a
   `none` is a statement: the project has no client-facing surface (a library, a headless service,
   a script pack), so `lead` skips frontend mode, e2e and unit-tool resolution and never
   dispatches the frontend workers. `other` is a web view the crew ships no skill for (Vue,
-  Svelte, Angular, Astro, …), best effort like the backend's, and needs lane paths. **A TUI, or
+  Svelte, Angular, Astro, …), best effort like the backend's. **A TUI, or
   a CLI whose rendered output is designed, is a view** in `frontend`'s lane with no supported
   value yet — stop and surface unsupported rather than writing `none`, `other` or `unset`.
 - **Frontend skill** (`frontendSkill`) — only with `other`: the project's own skill for its
@@ -56,9 +57,10 @@ run until this command fills it (`branchNaming` is asked once per run instead, a
 - **Frontend unit test tool** (`frontendUnitTestTool`) — `vitest`, `jest`, or `cypress`; `unset`
   when the project has no frontend unit tests, and `unit-tests` then scopes to backend tests.
 - **Backend lane path(s)** (`backendLanePaths`) — comma-separated path prefixes, e.g. `apps/api/`.
-  Only when backend and frontend stacks are the same language (Node backend + Next.js), or
-  either stack is `other` beside a frontend: by extension `lane-guard.sh` cannot tell
-  `backend`'s and `frontend`'s files apart and falls back to these. `unset` otherwise.
+  Only when backend and frontend stacks are the same language (Node backend + Next.js): by
+  extension `lane-guard.sh` cannot tell `backend`'s and `frontend`'s files apart and falls back
+  to these. Optional with an `other` stack, for the guard to split the lanes there too. `unset`
+  otherwise.
 - **Frontend lane path(s)** (`frontendLanePaths`) — e.g. `apps/web/`; same caveat. A lane path
   is a directory: never `./` or `.` (it covers the whole tree, so the other lane can write
   nothing). Files outside both lanes (a backend's root `Program.cs`) are open to both.
@@ -137,7 +139,7 @@ trust or correct it; never invent a command you can't see configured.
 | Frontend mode | An SPA build (React, Vue, Svelte, Angular, Next, Nuxt, …) → `headless`; Razor `.cshtml` views without an SPA bundle → `server-rendered`. Mixed or unclear → **ask** which mode governs the areas the crew will work in, write that one, and describe the split in the body notes. Never leave it `unset`: `lead` stops on it and sends the user back here. |
 | Frontend e2e tool | `cypress.config.*` or a `cypress/` directory → `cypress`; `playwright.config.*` → `playwright`; neither → `none`, a confirmed absence, never `unset`. |
 | Frontend unit test tool | `vitest.config.*` → `vitest`; `jest.config.*` or a `jest` key with no vitest → `jest`; a `cypress.config.*` `component` key with neither → `cypress`. Absent → `unset`, a confirmed absence that stops nothing. |
-| Lane paths | Never auto-detect. Only when backend and frontend stacks are the same language, or either is `other` beside a frontend, and then ask for the paths. |
+| Lane paths | Never auto-detect. Only when backend and frontend stacks are the same language, and then ask for the paths. With an `other` stack beside a frontend, say they are optional and leave them `unset` unless the user gives them. |
 | Base branch | `git symbolic-ref refs/remotes/origin/HEAD`, else an existing `main`/`develop`. Ambiguous → ask; `origin/HEAD` is often unset or stale, and a wrong base is expensive. |
 | Run/dev URL, branch naming | Dev scripts, `launchSettings.json`, existing branch names; else `unset`. |
 | Plan directory | Only an obvious existing convention (`docs/plans/`, tracked `plan-*.md` outside `.claude/`); else `unset`. |

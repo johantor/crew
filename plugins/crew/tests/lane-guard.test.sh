@@ -222,15 +222,15 @@ frontendLanePaths: unset')"
 assert_block "frontmatter: only one lane path configured → fail closed" \
   "$HOOK" "$(payload_file crew:backend src/api/handler.ts)" "only one of" "$fm_one"
 
-# --- frontendStack: other: no extension list covers it, so it needs lane paths ---
-# A .cs file for backend and a .styl file for frontend are the discriminators:
-# the extension regime would allow both.
+# --- An `other` stack: open lanes without lane paths, split by them -----------
+# No extension list covers it, so lead's plan holds the split. The cross-lane
+# file is the discriminator: the extension regime would refuse it.
 fm_fe_other="$(make_crew_md 'backendStack: dotnet
 frontendStack: other')"
-assert_block "dotnet + frontend other, no lane paths: backend fails closed" \
-  "$HOOK" "$(payload_file crew:backend Foo.cs)" "knows no file extensions" "$fm_fe_other"
-assert_block "dotnet + frontend other, no lane paths: frontend fails closed" \
-  "$HOOK" "$(payload_file crew:frontend web/theme.styl)" "knows no file extensions" "$fm_fe_other"
+assert_allow "dotnet + frontend other, no lane paths: backend may write a .ts file" \
+  "$HOOK" "$(payload_file crew:backend web/app.ts)" "$fm_fe_other"
+assert_allow "dotnet + frontend other, no lane paths: frontend may write a .cs file" \
+  "$HOOK" "$(payload_file crew:frontend Foo.cs)" "$fm_fe_other"
 
 fm_fe_other_paths="$(make_crew_md 'backendStack: dotnet
 frontendStack: other
@@ -243,17 +243,14 @@ assert_block "dotnet + frontend other + lane paths: backend denied a .styl file"
 assert_allow "dotnet + frontend other + lane paths: frontend allowed its .styl file" \
   "$HOOK" "$(payload_file crew:frontend web/theme.styl)" "$fm_fe_other_paths"
 
-# --- backendStack: other (a stack the crew ships no skill for) ----------------
-# No extension list covers it, so a frontend needs lane paths; an Elixir .ex file
-# is the discriminator, since the extension regime would leave it to both lanes.
 fm_other_fe="$(make_crew_md 'backendStack: other
 frontendStack: react
 backendLanePaths: unset
 frontendLanePaths: unset')"
-assert_block "other + frontend, no lane paths: backend fails closed" \
-  "$HOOK" "$(payload_file crew:backend lib/app.ex)" "knows no file extensions" "$fm_other_fe"
-assert_block "other + frontend, no lane paths: frontend fails closed" \
-  "$HOOK" "$(payload_file crew:frontend lib/app.ex)" "knows no file extensions" "$fm_other_fe"
+assert_allow "backend other + frontend, no lane paths: backend may write a .tsx file" \
+  "$HOOK" "$(payload_file crew:backend web/App.tsx)" "$fm_other_fe"
+assert_allow "backend other + frontend, no lane paths: frontend may write a .cs file" \
+  "$HOOK" "$(payload_file crew:frontend Foo.cs)" "$fm_other_fe"
 
 fm_other_paths="$(make_crew_md 'backendStack: other
 frontendStack: react
@@ -264,15 +261,12 @@ assert_allow "other + lane paths: backend allowed in its lane" \
 assert_block "other + lane paths: frontend denied the backend lane" \
   "$HOOK" "$(payload_file crew:frontend api/lib/app.ex)" "out of" "$fm_other_paths"
 
-# Backend only: backend owns the tree, .ts included; frontend has no lane.
 fm_other_be="$(make_crew_md 'backendStack: other
 frontendStack: none
 backendLanePaths: unset
 frontendLanePaths: unset')"
-assert_allow "other, no frontend: backend owns the tree" \
+assert_allow "backend other, no frontend: backend owns the tree" \
   "$HOOK" "$(payload_file crew:backend assets/app.ts)" "$fm_other_be"
-assert_block "other, no frontend: frontend has no lane" \
-  "$HOOK" "$(payload_file crew:frontend Foo.tsx)" "no frontend configured" "$fm_other_be"
 
 # unit-tests adds the remaining common test layouts for `other` only.
 assert_allow "other: unit-tests may write an RSpec spec" \

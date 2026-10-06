@@ -11,7 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `frontendStack: other`, best effort, for a web view with no crew skill (Vue, Svelte, Angular);
   the new `frontendSkill` slot names the project's own skill.
-- `lane-guard` refuses a frontend `other` until both lane paths are set.
+
+### Changed
+
+- With an `other` stack and no lane paths, `lane-guard` lets `backend` and `frontend` write
+  anywhere and `lead`'s plan keeps them apart; `/crew:init` no longer asks for lane paths there.
 
 ## [10.10.0] - 2026-10-06
 
