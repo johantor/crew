@@ -93,8 +93,10 @@ CMP, ODP) and third parties. The Zaius name remains: `@zaiusinc/*` packages, `fu
   (AES-256) may hold credentials; OCP deletes both on uninstall.
 - `storage.kvStore` (per install, about 400 KB a record, `{ ttl }`, `patch`, `increment`, lists,
   sets) and `storage.sharedKvStore` (all installs: prefix keys by install) hold no secrets.
-- Each call is a network call: read once per run into a local. Never keep `storage` in a
-  module-level constant (it breaks after a reinstall). Store nothing outside OCP or on disk.
+- Each call is a network call: read once per run into a local. Importing `storage` at module
+  level is fine: its getters resolve the current install on each access. Never keep a resolved
+  store (`const s = storage.settings`) at module level: it stays bound to the context it was
+  first read in. Store nothing outside OCP or on disk.
 
 ## Data sync sources and destinations
 
