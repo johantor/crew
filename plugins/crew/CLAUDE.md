@@ -101,7 +101,8 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
     four lane workers get their lanes below. The path goes through `guard_posix_path` first, so
     a Windows `D:\x\y` matches the `/` globs. The globs match with case on every OS (macOS
     too): ignoring it would widen `**/IT*.java` to `Item.java`. Only `format.sh`'s `$PWD` prefix
-    ignores case, on Windows. A `..` segment is refused for every lane agent.
+    ignores case, on Windows. A `..` segment is refused for every lane agent, and on Windows a
+    drive-relative `C:x` too.
     `backend`/`frontend` are refused while `backendStack` is `unset`; the guard probes no markers.
     Reads crew config through `guard_config_load` (`.claude/crew.md` frontmatter by key,
     nothing else), called in the parent shell since `config_slot` runs in `$(...)`.

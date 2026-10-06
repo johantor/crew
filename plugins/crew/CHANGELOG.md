@@ -10,9 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - `lane-guard` reads a Windows backslash path as `/`-separated, so `lead` can write its plan and
-  memory files there and the worker lanes and `..` check apply.
-- `format.sh` matches a Windows path against `formatMatrix` rows, so per-edit formatting runs there.
-- `gate.sh start` works on Git Bash, whose `mkdir -m 700` failed and read as a reused `<id>`.
+  memory files there and the worker lanes and `..` check apply; a drive-relative path is refused (#298).
+- `format.sh` matches a Windows path against `formatMatrix` rows, so per-edit formatting runs there (#298).
+- `gate.sh start` works on Git Bash, whose `mkdir -m 700` failed and read as a reused `<id>` (#298).
 
 ## [10.9.0] - 2026-10-06
 
