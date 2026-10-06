@@ -49,7 +49,8 @@ entry.
 - `.claude/crew.md` — this repo's own crew configuration. The repo carries no hook wiring of its
   own: work here with `claude --plugin-dir plugins/crew`.
 - `.github/` — `copilot-instructions.md` points Copilot at `skills/code-review/SKILL.md`, the one
-  review rubric (`.claude/skills/crew-review/` wraps it for Claude Code); `workflows/validate.yml`
+  review rubric (`.claude/skills/crew-review/` wraps it for Claude Code, and
+  `.claude/skills/steward/` says how a session drives a PR); `workflows/validate.yml`
   runs shellcheck, the validator, the release gate and the hook tests; `auto-release.yml` tags.
 
 ## How the crew works
@@ -68,7 +69,7 @@ entry.
   post-merge triage (read-only, returns a pointer), `debt-scout` debt scout (read-only, no Bash,
   returns `/crew:debt` pointers). `lane-guard.sh` enforces the write lane by extension where the
   stacks' languages differ, or by the configured lane paths when they are the same (Node +
-  Next.js is the one such pair, and `backendStack: other` beside a frontend needs them too); with
+  Next.js is the one such pair, and an `other` stack without them has open lanes); with
   `backendStack` unset it refuses `backend`/`frontend`.
 - A **regression** enters through `incident-triage`: `lead` delegates the report to it and plans
   against the pointer, so the finding arrives in its own context. `/crew:triage` is the same
@@ -330,6 +331,9 @@ line, two at most: *what changed*, with the PR as `(#N)`. The why belongs in the
   ("ran X, all green"), not a transcript.
 - **Every review comment gets a reply, then the thread is resolved.** Fixed — name the commit.
   Declining — say why. Duplicate — say which.
+- **A correct finding is fixed and pushed now**, whatever its label (nit, low, optional). Never
+  defer it to "the next code push": the PR can merge before one comes, and the wrong line ships.
+  Decline only a finding that is wrong, and say why.
 - A PR that resolves an issue links it with a closing keyword (`Closes #N`).
 - One branch and PR per issue, from the latest `main`: `git fetch origin main && git checkout -B
   <branch> origin/main`. A merged PR's branch is deleted; reusing the name leaves a stale tracking
@@ -350,6 +354,25 @@ same patterns let a claim slide through unbacked.
   today's fast-paced …".
 - **Go easy on em-dashes.** A colon, a comma or a full stop usually serves; keep a matched pair
   around a real aside. A nudge, not a review comment.
+
+### Open up before you lock down
+
+Fail closed is for **safety**: git, destructive and file-mutating Bash, secrets, pushes. It is not
+for division of labour. When a guard cannot know the answer (which agent owns a file in a stack
+the crew knows nothing about), open it and let `lead`'s plan or the agent's prompt hold the rule,
+rather than add mechanism to refuse. The signs you are locking down the wrong thing: the fix needs
+a list that will always miss a case, a parser, a new required slot, or a config shape some real
+layout cannot express; or a second review round finds a new edge case of the same mechanism.
+Opening up removes code; locking down adds it and still leaks. The worked example is the next
+section. Reviewers: an opening documented here is not a fail-open finding.
+
+### Why an `other` stack has open lanes
+
+No extension list can split `backend`'s files from `frontend`'s for a stack the crew knows
+nothing about (#301 found `.styl` past one), and required lane paths cannot express a root-level
+backend. So with an `other` stack and no lane paths, `lane-guard` lets both write anywhere and
+`lead`'s plan gives each step its own files. Every safety guard is unchanged, as are the
+`unit-tests`, `e2e` and `lead` lanes; lane paths, when set, restore the directory split.
 
 ### The Bash guards are floors, not sandboxes
 

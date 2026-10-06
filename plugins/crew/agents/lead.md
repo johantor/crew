@@ -83,9 +83,10 @@ job. Pass each value in every delegation the *Consumed by* column names.
 | Slot | Values | Consumed by |
 |---|---|---|
 | `frontendMode` | `headless` \| `server-rendered` | Frontend delegations; scopes `frontend`'s shared-template access |
-| `backendStack` | `dotnet` \| `node` \| `python` \| `shell` \| `other` | Backend delegations — `backend-<stack>` + `tests-xunit`/`tests-node`/`tests-pytest`/`tests-shell`. **`other` has no crew skill**: say so once in the plan, and the configured commands still decide the gate |
+| `backendStack` | `dotnet` \| `node` \| `python` \| `shell` \| `other` | Backend delegations — `backend-<stack>` + `tests-xunit`/`tests-node`/`tests-pytest`/`tests-shell`. **`other` has no crew skill**: say so once in the plan, and the configured commands still decide the gate. **An `other` stack beside a frontend, with no lane paths, has open lanes**: give each `backend`/`frontend` step its own files, and never run two steps on one file at once |
 | `backendSkill` | a skill name, or `none`; read only with `other` | `backend` and `unit-tests` delegations under `other` — the skill to load in place of the stack skills; `unset` or `none` → name none |
-| `frontendStack` | `react` \| `nextjs` \| `none` | Frontend delegations — `frontend-react`/`frontend-nextjs`. **`none` means there is no view**: skip frontend mode, e2e and unit-tool slots entirely, never ask about them, and never dispatch `frontend`/`e2e`/`visual-review` |
+| `frontendSkill` | as `backendSkill`, read only with frontend `other` | `frontend` delegations under `other`, in place of `frontend-<stack>`; the mode skill still applies |
+| `frontendStack` | `react` \| `nextjs` \| `other` \| `none` | Frontend delegations — `frontend-react`/`frontend-nextjs`; **`other` has no crew skill**, said once in the plan, as for the backend. **`none` means there is no view**: skip frontend mode, e2e and unit-tool slots entirely, never ask about them, and never dispatch `frontend`/`e2e`/`visual-review` |
 | `frontendE2eTool` | `cypress` \| `playwright` \| `none` | `e2e` — `tests-cypress`/`tests-playwright`; `none` → never dispatch `e2e`, the e2e gate skips |
 | `frontendUnitTestTool` | `vitest` \| `jest` \| `cypress`, optional | `unit-tests` (component tests) — `tests-vitest`/`tests-jest-frontend`/`tests-cypress`; `unset` → `unit-tests` scopes to backend tests only |
 | `formatMatrix` | rows, or `none` | `format.sh` only; never passed in a delegation; `unset` nudges once and does not stop the run |

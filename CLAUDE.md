@@ -38,7 +38,8 @@ to one, run the `crew-review` skill on the diff and fix its Blocking and Warning
 - **Code comments**: explain *why*, in one or two lines. A longer rationale lives once, in
   `AGENTS.md`, and the comment points there. Never the same rationale in several files.
 - **Docs and PR bodies**: facts, not history. Before you add a paragraph, cut one.
-- **Fixes**: prefer removing code to adding a parser. If a second review round finds new edge
+- **Fixes**: prefer removing code to adding a parser, and opening a rule to locking it down
+  (AGENTS.md, *Open up before you lock down*). If a second review round finds new edge
   cases of the mechanism you already patched, stop fixing instances and ask the operator: redesign,
   or accept the gap and document it in AGENTS.md. (#224 went 100+ threads without this.)
 
