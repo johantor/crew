@@ -14,8 +14,9 @@ flow over data) are `backend`'s; change the view-model contract together, not ea
 - One strongly typed view model per view (`@model`), built in the controller or component.
   Never pass entities or data-access services to a view, and keep `ViewData`/`ViewBag` for the
   odd layout value: they are not type-checked.
-- `_ViewImports.cshtml` holds `@using`, `@addTagHelper`, `@inject`, `@model` and `@inherits`
-  only; it applies to its folder and below. `_ViewStart.cshtml` runs before every full view, not
+- `_ViewImports.cshtml` holds directives only (`@using`, `@addTagHelper`, `@removeTagHelper`,
+  `@tagHelperPrefix`, `@inject`, `@model`, `@inherits`, `@namespace`), never functions or
+  sections; it applies to its folder and below. `_ViewStart.cshtml` runs before every full view, not
   before layouts or partials.
 - A layout calls `@RenderBody()` and renders sections with `@RenderSection("Scripts", required:
   false)`. A section a view defines must be rendered by its layout (or `IgnoreSection`), and
@@ -67,24 +68,32 @@ content model is `optimizely-cms12` / `optimizely-cms13`.
 - **ContentArea:** `<div epi-property="@Model.MainArea"><div epi-property-item /></div>`, or
   `@Html.PropertyFor(m => m.MainArea, new { CssClass = "row", ChildrenCssClass = "col" })`.
   Display options (`services.Configure<DisplayOptions>(...)`) set a tag that picks the item
-  template. Customize item markup by subclassing `ContentAreaRenderer`.
+  template. Customize item markup in the `epi-property-item` element (or `epi-on-item-rendered`)
+  with the tag helper; a `ContentAreaRenderer` subclass changes only the `PropertyFor` path.
+- **Never loop over `ContentArea.Items` to render it:** `Items` is unfiltered, so visitors would
+  see unpublished, access-restricted and personalized-out blocks. Render through `epi-property`
+  or `PropertyFor`, or apply `IContentAreaItemsRenderingFilter` when code must walk the items.
 - **Blocks:** a partial view named after the block type in `Views/Shared`, or a
   `BlockComponent<T>` / `AsyncBlockComponent<T>` when the block needs logic. On CMS 13 a
   tag-specific view is `{Type}.{Tag}.cshtml`.
 - **Client resources:** every layout renders `@Html.RequiredClientResources("Header")` in
   `<head>` and `("Footer")` before `</body>` (or `<required-client-resources area="..." />`);
-  the editing UI injects its scripts through them.
-- **Edit mode:** branch on `@inject IContextModeResolver` (`CurrentMode.EditOrPreview()`), not
+  the CMS requires both, and on-page editing loads its scripts through them.
+- **Edit mode:** `@inject IContextModeResolver ContextModeResolver` with `@using EPiServer.Web`,
+  then branch on `ContextModeResolver.CurrentMode.EditOrPreview()`; not
   `PageEditing.PageIsInEditMode` (obsolete in 12, removed in 13). Never hide content from
   editors that visitors see.
 - **Links:** `Html.ContentLink(...)` and `Url.ContentUrl(contentLink)`, never a hardcoded path.
-- **Visual Builder (CMS 13):** render an experience with `<epi-outline experience="@Model">`,
-  `<epi-grid>`, `<epi-row>`, `<epi-column>` and `<epi-component />`; they add the edit attributes
-  themselves.
-- **Gone in CMS 13:** `ContentArea.FilteredItems` (use `Items`; obsolete or removed depending on
-  the 13.x release), the `CustomTag` /
-  `ChildrenCustomTag` render-setting constants (use `CustomTagName` / `ChildrenCustomTagName`),
-  and `ClientResources.Render`.
+- **Visual Builder (CMS 13):** render an experience with
+  `<epi-outline experience="@Model.CurrentPage">` (the expression must reach the
+  `ExperienceData`, not a wrapping view model), then `<epi-grid>`, `<epi-row>`, `<epi-column>`
+  and `<epi-component />`; only `epi-` elements may be direct children of `<epi-outline>`. They
+  add the edit attributes themselves.
+- **Changed in CMS 13:** `ContentArea.FilteredItems` is obsolete (render through the helpers,
+  as above); the C# render-setting constants `CustomTag` / `ChildrenCustomTag` are gone (use
+  `RenderSettings.CustomTagName` / `ChildrenCustomTagName`), while an anonymous
+  `new { CustomTag = "span" }` key still works (`CustomTagName` as a key does not);
+  `ClientResources.Render` is removed.
 
 ## Testing
 
