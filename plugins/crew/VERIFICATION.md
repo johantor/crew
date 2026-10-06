@@ -80,6 +80,10 @@ cannot show that `/crew:init` detected a stack or that a worker loaded a skill.
   headless Next.js repo that queries `cg.optimizely.com` → `frontend` loads `optimizely-graph`.
   (#288: `backend` cited both `Site.csproj` lines; `frontend` cited the gateway URL in
   `lib/graph.ts`, and skipped the skill before `frontend-headless` named the markers.)
+- [x] **A SaaS CMS front end loads the SaaS skill** — a headless Next.js scratch repo with
+  `optimizely.config.mjs` and `@optimizely/cms-sdk` → `frontend` loads `optimizely-cms-saas`
+  and `optimizely-graph`, and no `optimizely-cms12`/`-cms13`. (#290: `frontend` cited
+  `optimizely.config.mjs`, then loaded `optimizely-graph` because the SaaS skill names it.)
 - [x] **A worker's tool calls arrive namespaced** — a `crew:backend` dispatch's Bash call carries
   `agent_type: crew:backend`, a project agent `.claude/agents/backend.md` carries `backend` and
   runs `git status` unrefused. (#272, observed through a logging `PreToolUse` hook.)
