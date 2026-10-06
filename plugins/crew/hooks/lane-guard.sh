@@ -28,7 +28,9 @@ if ! guard_jq2 \
   exit 2
 fi
 guard_agent_type
-path="$guard_untrusted"
+# The globs below and the `..` check use `/`; Windows hands over `D:\x\y`.
+guard_posix_path "$guard_untrusted"
+path="$guard_path"
 
 # The main session and `generalist` (the express lane) have no lane and bail here.
 # crew-roster: lane-guarded -- validator §9 keeps the arm below in lockstep with

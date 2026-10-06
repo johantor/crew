@@ -149,6 +149,17 @@ assert_allow "lead allowed a Windows temp scratchpad" \
   "$HOOK" "$(payload_file crew:lead 'C:\Users\dev\AppData\Local\Temp\claude\description.html')"
 assert_block "lead denied a Windows path in the project" \
   "$HOOK" "$(payload_file crew:lead 'C:\work\proj\src\App.cs')" "allowed paths"
+# The harness hands a Windows hook backslash paths; the lane globs use `/`.
+assert_allow "lead allowed a Windows plan path in the project" \
+  "$HOOK" "$(payload_file crew:lead 'C:\work\proj\.claude\plan-sso.md')"
+assert_allow "lead allowed a Windows agent-memory path in the project" \
+  "$HOOK" "$(payload_file crew:lead 'C:\work\proj\.claude\agent-memory-local\lead\notes.md')"
+assert_allow "lead allowed a relative Windows plan path" \
+  "$HOOK" "$(payload_file crew:lead '.claude\plan-sso.md')"
+assert_block "lead denied a Windows '..' traversal" \
+  "$HOOK" "$(payload_file crew:lead 'C:\work\proj\.claude\..\src\plan-x.md')" "'..' segment"
+assert_allow "unit-tests allowed a Windows test path" \
+  "$HOOK" "$(payload_file crew:unit-tests 'C:\work\proj\tests\Foo.Tests\FooTests.cs')"
 unset CLAUDE_PROJECT_DIR CREW_OSTYPE
 assert_block "lead denied an absolute path with no project dir" \
   "$HOOK" "$(payload_file crew:lead /home/dev/scratch/description.html)" "allowed paths"
