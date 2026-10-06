@@ -360,8 +360,8 @@ back into eyeballing, which reads as a passing review rather than a broken one.
 - [x] **Review gates** — `/crew:review quick` on a frontend diff with a planted
   `dangerouslySetInnerHTML` of user input and an `<img>` without `alt` → the output carries a
   *security* Blocking item from `security-review` and a *web* Blocking item (`WCAG 1.1.1`) from
-  `web-review`. A backend-only diff skips `web-review` as *lane untouched*. (#306: both Blocking
-  items appeared; the backend-only skip was not run.)
+  `web-review`. With `frontendStack: none`, `web-review` is skipped. (#306: both Blocking items
+  appeared; the `none` skip was not run.)
 
 ### Triage (`/crew:triage`, `crew:incident-triage`)
 

@@ -41,7 +41,9 @@ incorporates WCAG 2.1 AA, and 2.2 AA is a superset of it. Treat an AA failure as
   3:1 (1.4.3, 1.4.11).
 - Never convey meaning by color alone (1.4.1).
 - Reflow at 320 CSS px without horizontal scrolling (1.4.10); text resizes to 200% (1.4.4).
-- Target size at least 24×24 CSS px, or enough spacing (2.5.8, new in 2.2).
+- Target size at least 24×24 CSS px, or enough spacing (2.5.8, new in 2.2). Exempt: a link
+  inline in text, a browser-default control, a target with an equivalent that passes, and a
+  size that is essential.
 - Respect `prefers-reduced-motion`; nothing flashes more than 3 times a second; auto-playing
   motion longer than 5 seconds can be paused.
 

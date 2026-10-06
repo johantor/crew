@@ -144,8 +144,8 @@ mode overrides: unconditional in `full` mode, and still lane-scoped (off step 1'
 classification) in `quick` mode.
 
 1. **Code quality** — check against `engineering-principles`: YAGNI, KISS, naming, error handling, test coverage, minimal-scope diff.
-2. **Security** — delegate to `crew:security-review` with the changed files and the resolved
-   stacks; fold its `## Blocking` / `## Warnings` / `## Passed` into yours, each item marked
+2. **Security** — delegate to `crew:security-review` with the changed files, their diff hunks
+   (`git diff <base>...HEAD -- <files>`; it has no git) and the resolved stacks; fold its `## Blocking` / `## Warnings` / `## Passed` into yours, each item marked
    *security*.
 3. **Design conformance** — *only if the frontend lane changed* (per step 1), or always in `full`
    mode: delegate to `crew:visual-review` (installed plugin agents only resolve namespaced) with the
@@ -153,10 +153,11 @@ classification) in `quick` mode.
    Otherwise **skip** — a backend-only diff is unlikely to have changed the rendered UI, so this
    is a cost heuristic, not a guarantee; if backend logic you know affects rendered output
    changed, run `full` or note it for a manual visual-review pass.
-4. **Web review** — SEO, accessibility and performance, scoped like design conformance and
-   never run when **Frontend stack** is `none`: delegate to `crew:web-review` with the changed
-   files, the resolved stacks and the running URL when there is one; fold its findings in as
-   in item 2, each marked *web*.
+4. **Web review** — SEO, accessibility and performance, *when either lane changed* (server
+   caching, redirects and Graph queries live in the backend), or always in `full` mode; never
+   when **Frontend stack** is `none`: delegate to `crew:web-review` with the changed files,
+   their diff hunks, the resolved stacks and the running URL when there is one; fold its
+   findings in as in item 2, each marked *web*.
 
 Delegate items 2–4 in one message, each with its own `steer-token:`: they are read-only and
 run side by side. If one cannot be launched, stop and report the exact error.
