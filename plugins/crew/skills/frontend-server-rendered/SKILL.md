@@ -1,14 +1,13 @@
 ---
 name: frontend-server-rendered
-description: Conventions for server-rendered frontends — a server template renders the page shell, with a client-side framework layered in as islands/widgets rather than a full SPA. Covers Razor (.NET/Optimizely) and Blade (Laravel). Next.js/RSC is not covered here — crew's mode vocabulary treats Next.js as headless (see frontend-nextjs) even though it server-renders. Load when the repo's frontend mode is "server-rendered".
+description: Conventions for server-rendered frontends — a server template renders the page shell, with a client-side framework layered in as islands/widgets rather than a full SPA. The template language has its own skill (`frontend-razor` for Razor). Next.js/RSC is not covered here — crew's mode vocabulary treats Next.js as headless (see frontend-nextjs) even though it server-renders. Load when the repo's frontend mode is "server-rendered".
 ---
 
 # Server-rendered frontend conventions
 
 Confirm the actual setup from the repo first; follow its patterns over these defaults. The
-shared principles below apply regardless of which server template language the project
-uses; load the subsection matching the project's server template language (Razor or Blade)
-for the specifics.
+shared principles below apply to any server template language. If the views are Razor
+(`.cshtml`), also load `frontend-razor`.
 
 Search the layouts yourself for the ODP web tag (`zaius`, `zaius-min.js`). If one
 loads it, also load `optimizely-odp`.
@@ -25,14 +24,5 @@ loads it, also load `optimizely-odp`.
   (element structure, classes, ARIA, presentation) is the frontend agent's; the server-side
   logic (data binding, control flow, data access) is the backend agent's. Coordinate the
   contract rather than crossing into each other's concern.
-
-## Razor (.NET / Optimizely)
-
-Render content through the CMS pipeline (display templates, `IContentRenderer`, partials),
-not hardcoded markup; keep logic out of views. Styling via SCSS through the .NET/front-end
-build pipeline per repo conventions.
-
-## Blade (Laravel)
-
-Render through Blade components/layouts (`@component`, `@include`), not hardcoded markup;
-keep business logic in controllers/view models, not `.blade.php` files.
+- **Styling** goes through the project's front-end build pipeline (SCSS or similar), per repo
+  conventions.

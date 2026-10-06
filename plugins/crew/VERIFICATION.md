@@ -92,6 +92,11 @@ cannot show that `/crew:init` detected a stack or that a worker loaded a skill.
   and `Optimizely.Cms.Odp` → `backend` loads `optimizely-cms12` and `optimizely-odp`; a
   server-rendered layout with the `zaius` web tag → `frontend` loads `optimizely-odp`. (#292:
   `backend` cited `Site.csproj`; `frontend` cited `_Layout.cshtml` once the skill said to search.)
+- [x] **A Razor view loads the Razor skill** — a dotnet scratch repo with `EPiServer.CMS` `12.*`,
+  a `.cshtml` layout and `frontendMode: server-rendered` → `frontend` loads
+  `frontend-server-rendered` and `frontend-razor`; `backend` asked to change a view model
+  loads `frontend-razor` too. (#293: `frontend` cited the `.cshtml` target; `backend` cited
+  `backend-dotnet`'s rule and also loaded `optimizely-cms12` from `Site.csproj`.)
 - [x] **A worker's tool calls arrive namespaced** — a `crew:backend` dispatch's Bash call carries
   `agent_type: crew:backend`, a project agent `.claude/agents/backend.md` carries `backend` and
   runs `git status` unrefused. (#272, observed through a logging `PreToolUse` hook.)
@@ -109,6 +114,10 @@ cannot show that `/crew:init` detected a stack or that a worker loaded a skill.
 - [ ] **`frontendStack: none` suppresses the frontend half** — a shell or CLI scratch repo with
   `frontendStack: none` in `.claude/crew.md` → `lead` asks nothing about frontend mode, e2e
   tool or unit test tool, and dispatches only `backend`/`unit-tests`.
+- [ ] **Local init leaves the tree clean** — `/crew:init` in a scratch repo, answer **Local** →
+  `.git/info/exclude` gains `/.claude/crew.md` and `/CLAUDE.local.md`, the prose is in
+  `CLAUDE.local.md`, and `git status --short` is empty. A re-run reports Local and asks nothing;
+  a tracked `CLAUDE.local.md` makes init stop before it writes.
 
 ### Review gate
 
