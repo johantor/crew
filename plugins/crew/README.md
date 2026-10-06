@@ -6,7 +6,7 @@
 **Ship Optimizely features like a team, not a single agent.** `crew` turns a Claude Code
 session into a lead that plans and delegates, plus specialists — backend, the client-facing
 layer, tests, visual review — each scoped to its own lane. It is built for Optimizely work, with
-one skill per product (CMS 12, CMS 13, the upgrade between them, Graph, SaaS CMS, Search & Navigation and ODP today), and the backend lane
+one skill per product (CMS 12, CMS 13, the upgrade between them, Graph, SaaS CMS, Search & Navigation, ODP and Opal today), and the backend lane
 covers .NET, Node, Python (for Opal tools) and shell, Optimizely or not. A project with no view
 layer says so with `frontendStack: none`, and the frontend half of the crew
 stays out of the way. You approve the plan, every step is verified and committed as it
@@ -324,7 +324,7 @@ one that isn't installed, so it just reports the server as unavailable.
   every worker: `mid-run-direction` (how to treat a steer that arrives mid-run), and
   `design-tokens` for the agent doing design conformance.
   Loaded once the stack is resolved: per frontend mode (plus `frontend-razor` for `.cshtml` views), per backend stack (.NET, Node, Python, shell —
-  plus one skill per Optimizely product on top, today CMS 12, CMS 13, SaaS CMS, Graph, Search & Navigation and ODP), per frontend stack (React, Next.js), and per test tool
+  plus one skill per Optimizely product on top, today CMS 12, CMS 13, SaaS CMS, Graph, Search & Navigation, ODP, and Opal with a tools skill per SDK), per frontend stack (React, Next.js), and per test tool
   (xUnit, pytest, bats, Vitest, Jest, Cypress, Playwright).
 
 Local agent memory is git-ignored (`.claude/agent-memory-local/`).

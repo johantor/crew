@@ -75,7 +75,10 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
     `optimizely-graph`, `optimizely-cms-saas` and `optimizely-odp` are the ones a non-.NET
     worker loads: `frontend-headless` names the markers of all three, `backend-node` those of
     Graph and ODP, `frontend-server-rendered` the ODP web tag, and the worker greps for them
-    itself.
+    itself. Opal is one concepts skill (`optimizely-opal`) plus one skill per tools SDK
+    (`optimizely-opal-tools-dotnet`, `-node`, `-python`); each backend stack skill names its
+    SDK's package and both get loaded; a tool written without an SDK loads the concepts skill
+    alone.
 - `hooks/` — wired in `hooks/hooks.json`, the one copy; in this repo they load through
   `claude --plugin-dir plugins/crew`. `bash-safety` and `lane-guard` fail closed; `read-guard`, `format`,
   `dispatch-denied` and `plan-guard` fail open.

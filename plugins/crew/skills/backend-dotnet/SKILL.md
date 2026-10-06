@@ -14,7 +14,11 @@ carries:
 - `optimizely-graph` for `Optimizely.Graph.*` or `Optimizely.ContentGraph.*`;
 - `optimizely-search-navigation` for `EPiServer.Find*`;
 - `optimizely-odp` for `Optimizely.Cms.Odp`, `UNRVLD.ODP.VisitorGroups` or
-  `EPiServer.Commerce.ODP`.
+  `EPiServer.Commerce.ODP`;
+- `optimizely-opal` and `optimizely-opal-tools-dotnet` for `Optimizely.Opal.Tools` (or the
+  legacy `OptimizelyOpal.OpalToolsSDK`); `optimizely-opal` alone for an Opal tool written
+  without the SDK (a `/discovery` route that returns `functions` with `endpoint` and
+  `http_method`).
 
 Each product skill names its own markers and neighbours.
 
