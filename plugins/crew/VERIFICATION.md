@@ -105,10 +105,13 @@ cannot show that `/crew:init` detected a stack or that a worker loaded a skill.
 - [x] **A worker's tool calls arrive namespaced** — a `crew:backend` dispatch's Bash call carries
   `agent_type: crew:backend`, a project agent `.claude/agents/backend.md` carries `backend` and
   runs `git status` unrefused. (#272, observed through a logging `PreToolUse` hook.)
-- [x] **An unsupported stack stops** — a scratch repo with only `go.mod` → `/crew:init` says the
-  stack is unsupported rather than proposing one. (#272: init named Go unsupported and offered
-  a wrong-repo check or an `unset` stack.) A stale pin (`backendStack: go`) → init
-  reports it as unsupported, and `lead` stops naming `/crew:init`.
+- [x] **An unsupported stack is `other`** — a scratch repo with only `go.mod` → `/crew:init`
+  proposes `backendStack: other`, says the crew has no skill for it, and asks for the commands.
+  A stale pin (`backendStack: go`) → init reports it as unsupported and proposes `other`, and
+  `lead` stops naming `/crew:init`. With `other` and `backendSkill: go-conventions` (a project
+  skill), a `crew:backend` dispatch loads that skill and no `backend-<stack>` skill. (#300:
+  init proposed `other` from `make` targets and `backendSkill: none`; the stale pin came back
+  unsupported with `other`; `lead` named `go-conventions` for both workers and `backend` loaded it.)
 - [ ] **Two backend markers ask** — `*.csproj` **and** a server `package.json` → `/crew:init`
   asks which is the backend rather than breaking the tie.
 - [x] **An unset stack stops the run** — no `.claude/crew.md`, `/crew:feature <task>` →

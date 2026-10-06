@@ -222,6 +222,47 @@ frontendLanePaths: unset')"
 assert_block "frontmatter: only one lane path configured → fail closed" \
   "$HOOK" "$(payload_file crew:backend src/api/handler.ts)" "only one of" "$fm_one"
 
+# --- backendStack: other (a stack the crew ships no skill for) ----------------
+# No extension list covers it, so a frontend needs lane paths; an Elixir .ex file
+# is the discriminator, since the extension regime would leave it to both lanes.
+fm_other_fe="$(make_crew_md 'backendStack: other
+frontendStack: react
+backendLanePaths: unset
+frontendLanePaths: unset')"
+assert_block "other + frontend, no lane paths: backend fails closed" \
+  "$HOOK" "$(payload_file crew:backend lib/app.ex)" "knows no file extensions" "$fm_other_fe"
+assert_block "other + frontend, no lane paths: frontend fails closed" \
+  "$HOOK" "$(payload_file crew:frontend lib/app.ex)" "knows no file extensions" "$fm_other_fe"
+
+fm_other_paths="$(make_crew_md 'backendStack: other
+frontendStack: react
+backendLanePaths: api/
+frontendLanePaths: web/')"
+assert_allow "other + lane paths: backend allowed in its lane" \
+  "$HOOK" "$(payload_file crew:backend api/lib/app.ex)" "$fm_other_paths"
+assert_block "other + lane paths: frontend denied the backend lane" \
+  "$HOOK" "$(payload_file crew:frontend api/lib/app.ex)" "out of" "$fm_other_paths"
+
+# Backend only: backend owns the tree, .ts included; frontend has no lane.
+fm_other_be="$(make_crew_md 'backendStack: other
+frontendStack: none
+backendLanePaths: unset
+frontendLanePaths: unset')"
+assert_allow "other, no frontend: backend owns the tree" \
+  "$HOOK" "$(payload_file crew:backend assets/app.ts)" "$fm_other_be"
+assert_block "other, no frontend: frontend has no lane" \
+  "$HOOK" "$(payload_file crew:frontend Foo.tsx)" "no frontend configured" "$fm_other_be"
+
+# unit-tests adds the remaining common test layouts for `other` only.
+assert_allow "other: unit-tests may write an RSpec spec" \
+  "$HOOK" "$(payload_file crew:unit-tests spec/models/user_spec.rb)" "$fm_other_be"
+assert_allow "other: unit-tests may write an ExUnit test" \
+  "$HOOK" "$(payload_file crew:unit-tests test/app_test.exs)" "$fm_other_be"
+assert_block "other: unit-tests still kept out of e2e" \
+  "$HOOK" "$(payload_file crew:unit-tests e2e/login_spec.rb)" "e2e lane" "$fm_other_be"
+assert_block "a supported stack keeps unit-tests out of spec/" \
+  "$HOOK" "$(payload_file crew:unit-tests spec/models/user_spec.rb)" "outside" "$fm_ext"
+
 # A quoted YAML scalar is the same value. Left unstripped it would build the glob
 # `"src/api"/**`, which matches nothing, so backend would be silently unconfined.
 fm_quoted="$(make_crew_md 'backendStack: node
