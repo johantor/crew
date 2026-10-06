@@ -18,8 +18,8 @@ skill adds only what a session with a shell can do.
 4. **Check new tests pin something**: run the changed suite against the base version of every
    changed hook file, `hooks/lib/` included. A new case that still passes is a Warning.
 5. **Run the behavior the diff changes.** For each `plugins/crew/VERIFICATION.md` row whose
-   mechanism the change alters (a guard's input, an agent or command prompt, a new kind of skill
-   route), run it headless as that file's *Running a row headless* says, and cite what you
+   mechanism the change alters (a guard's input, an agent, command or skill prompt, a new kind of
+   skill route), run it headless as that file's *Running a row headless* says, and cite what you
    observed. A change that repeats a pattern a ticked row already proves needs no run
    (`AGENTS.md`, *Validating changes*): name the row. A row you cannot run is named in the report.
 6. **Report** in the rubric's format, most severe first. Post to GitHub only when asked.

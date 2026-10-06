@@ -243,8 +243,8 @@ What the lockstep sections protect:
 [`VERIFICATION.md`](plugins/crew/VERIFICATION.md) and citing the observed result. "Would pass" is
 not verification, and neither is "needs a person": most rows run headless (`VERIFICATION.md`,
 *Running a row headless*), so run them before asking the maintainer to. Run a row when the
-change alters the mechanism it covers: a guard, an agent or command prompt, or a new kind of
-route. A change that repeats a pattern a ticked row already proves (one more marker line that
+change alters the mechanism it covers: a guard, an agent, command or skill prompt, or a new kind
+of route. A change that repeats a pattern a ticked row already proves (one more marker line that
 routes to a product skill) needs no run and no new row: name the row it relies on.
 
 ## Releasing
