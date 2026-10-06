@@ -321,14 +321,20 @@ guard_outside_project() {
   [ "$inside" -eq 0 ]
 }
 
+# guard_is_windows -- true on a Windows shell (Git Bash, MSYS, Cygwin).
+# CREW_OSTYPE is a test override.
+guard_is_windows() {
+  case "${CREW_OSTYPE:-${OSTYPE:-}}" in msys*|cygwin*|win*) return 0 ;; esac
+  return 1
+}
+
 # guard_posix_path <path> -- sets $guard_path. On a Windows shell only,
 # backslashes become slashes and `X:/` becomes `/X/`; a drive-relative `X:foo`
 # stays relative. Elsewhere the path is unchanged: there `D:/x` and `a\b` are
-# relative names. CREW_OSTYPE is a test override. Assigns rather than echoing,
-# so a caller pays no `$(...)` fork.
+# relative names. Assigns rather than echoing, so a caller pays no `$(...)` fork.
 guard_posix_path() {
   guard_path="$1"
-  case "${CREW_OSTYPE:-${OSTYPE:-}}" in msys*|cygwin*|win*) ;; *) return 0 ;; esac
+  guard_is_windows || return 0
   guard_path="${guard_path//\\//}"
   if [[ $guard_path =~ ^([A-Za-z]):(/.*)$ ]]; then
     guard_path="/${BASH_REMATCH[1]}${BASH_REMATCH[2]}"

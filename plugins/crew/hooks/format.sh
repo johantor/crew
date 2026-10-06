@@ -32,11 +32,18 @@ guard_config_load
 rows="$(config_block formatMatrix)"
 [ -n "$rows" ] || exit 0
 
-# Rows name project-relative directories; the payload may carry an absolute path.
-case "$path" in
-  "$PWD"/*) path="${path#"$PWD"/}" ;;
-  ./*)      path="${path#./}" ;;
-esac
+# Rows name project-relative `/` directories; the payload may carry an absolute or
+# a Windows path. Windows ignores case, and Git Bash's $PWD has `/d/` for `D:\`.
+# An absolute path outside $PWD stays as given, so a native tool can still read it.
+guard_posix_path "$PWD"; root="$guard_path"
+guard_posix_path "$path"
+guard_is_windows && shopt -s nocasematch
+if [[ $guard_path == "$root"/* ]]; then
+  path="${guard_path:${#root}+1}"
+elif [[ $guard_path != /* ]]; then
+  path="${guard_path#./}"
+fi
+shopt -u nocasematch
 ext="${path##*.}"
 [ "$ext" = "$path" ] && ext=""
 

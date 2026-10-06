@@ -106,6 +106,16 @@ assert_silent "a file outside every row's directory is left alone" \
   "$(payload_file crew:backend src/a.ts)" "$mono"
 assert_silent "a directory prefix matches whole segments only" \
   "$(payload_file crew:backend apps/webapp/a.ts)" "$mono"
+# Windows hands over backslash paths whose case may differ from Git Bash's $PWD.
+export CREW_OSTYPE=msys
+assert_reports "a Windows relative path matches a row's directory" \
+  "$(payload_file crew:backend 'apps\web\src\a.ts')" "$mono" "applied prettier"
+mono_upper="$(tr '[:lower:]' '[:upper:]' <<<"$mono")"
+assert_reports "a Windows absolute path is matched project-relative, ignoring case" \
+  "$(payload_file crew:backend "${mono_upper//\//\\}\\apps\\web\\src\\a.ts")" "$mono" "applied prettier"
+unset CREW_OSTYPE
+assert_silent "off Windows, the project prefix is matched with its case" \
+  "$(payload_file crew:backend "$mono_upper/apps/web/src/a.ts")" "$mono"
 # The row's tool is gone: the matrix is stale, and the message names the fix.
 assert_reports "a tool the row names but cannot be found nudges /crew:init" \
   "$(payload_file crew:backend apps/api/Svc.cs)" "$mono" "dotnet-csharpier not found for formatMatrix row 'apps/api cs'; run /crew:init"
