@@ -88,7 +88,8 @@ git-excludes the same file, so no reader changes, and moves the prose to a git-e
 Reviews of **this repo** (by Copilot, the `crew-review` skill, or `/crew:review` run here) judge
 code against `engineering-principles` (the code rules) and the `code-review` skill (this repo's
 rubric: what to check, severity, the **Blocking** / **Warnings** / **Passed** output). In a user's
-project, `/crew:review` applies `engineering-principles` only. A prompt change (agents,
+project, `/crew:review` applies `engineering-principles`, then the project's `REVIEW.md` and
+`CLAUDE.md` rules, the files Claude Code Review reads, so a team writes its rules once. A prompt change (agents,
 commands, skills) has its own lens in the rubric's *Prompts* section; apply it before you push.
 
 ## Prompt design rationale

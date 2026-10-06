@@ -55,7 +55,8 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
     (mechanisms, justification slots, recipes). `debt-scout` loads the taxonomy skills too; the
     audit flow lives in its own prompt.
   - Also: `engineering-principles` (the code rules `/crew:review` grades a user's project
-    against; this repo's own review rubric is `.github/skills/code-review`), and the preloads
+    against, with the project's `REVIEW.md` and `CLAUDE.md` rules on top; this repo's own
+    review rubric is `.github/skills/code-review`), and the preloads
     `worker-contract` (the rules shared by the five workers with a shell — `backend`, `frontend`,
     `unit-tests`, `e2e`, `generalist` — so each prompt states only what is specific to its role, and each
     stack skill only what is specific to its tool: watch commands, weakening flags, the lock
