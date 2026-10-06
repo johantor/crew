@@ -108,13 +108,17 @@ in the product: the `zaius` global, `zaius_id`, `api.zaius.com`, `app.zaius.com`
 ## Rate limits
 
 - Events and objects: no published limit. Profiles and lists: 10 requests per second. On-site
-  GraphQL: 500 per second. The over-limit response is not documented: back off on any 4xx or
-  5xx from these endpoints, batch profile writes, and never call the profile API per page view.
+  GraphQL: 500 per second. The over-limit response is not documented, so stay under the limits
+  client-side: throttle and batch profile writes, and never call the profile API per page view.
+  Retry only transient failures (a 5xx such as 502–504, which the Node SDK retries once, or a
+  response that asks for a retry); surface a 400, 401 or 403 instead of retrying it.
 
 ## Testing
 
-- Use a separate ODP instance for test, with its own tracker ID and keys in configuration;
-  there is no self-service delete, so test data in production stays until support removes it.
+- Use a separate ODP instance for test, with its own tracker ID and keys in configuration.
+  There is no self-service reset of an instance: the compliance delete removes one known
+  person's data (within 30 days), but anything else sent to production stays until support
+  removes it.
 - Unit-test the code that builds events and identifiers against a fake client; assert on the
   payload (identifiers present, no PII where it should not be).
 - Watch a test run in *Settings > Event Inspector* (it records up to 15 minutes).
