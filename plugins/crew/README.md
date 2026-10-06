@@ -38,8 +38,8 @@ Part of the [`johantor`](../../README.md) marketplace.
   stack, or a Node backend beside a client-facing layer with no lane paths, gets a refusal
   naming `/crew:init` rather than a guess. `/crew:init` is not optional; it is the only place the
   crew learns what the project is.
-- **Nothing ships on its own.** No push, no PR, not even in loop mode. If you wanted
-  fire-and-forget, this is the wrong tool.
+- **Nothing ships on its own.** No push, no PR, not even in loop mode, unless you start an
+  unattended `/crew:ship` run, which ends at a pull request.
 
 ## Install
 
@@ -79,8 +79,8 @@ most plugins. From **14 August 2026** auto mode is the default for new sessions 
 Team plans — a fresh install lands there unless you switch.
 
 What bounds a run is the crew's own guards — git ownership, write lanes, refused destructive
-commands, and `/crew:pr` or `/crew:ship` as the only user-invoked ways anything leaves your machine. Those apply in
-every permission mode.
+commands, and `/crew:pr` or `/crew:ship` as the only user-invoked ways anything leaves your
+machine. Those apply in every permission mode.
 
 <details>
 <summary>Staying in auto mode anyway</summary>
@@ -140,10 +140,11 @@ rather than a per-worker setting.
 
 `/crew:ship` runs a task to a pull request with no one at the keyboard, for example in a cloud
 container or CI. Invoking it is your go-ahead for the plan, the push and the PR. Every other
-guard still applies, and it never force-pushes.
+guard still applies, and it never force-pushes. Start it with `lead` as the main thread: a
+subagent cannot launch workers, so `/crew:ship` from a normal session stops and says so.
 
 ```
-claude -p '/crew:ship PROJ-123 add SSO login' \
+claude -p --agent crew:lead '/crew:ship PROJ-123 add SSO login' \
   --permission-mode acceptEdits \
   --allowedTools 'Agent' 'Bash(git:*)' 'Bash(bash "/abs/path/to/crew/scripts/gate.sh":*)' 'mcp__github' \
   < /dev/null
@@ -174,7 +175,7 @@ claude -p '/crew:ship PROJ-123 add SSO login' \
 | `/crew:audit <scope>` | **Beta.** Read-only debt scout over a scope you name (a path, `backend`/`frontend`, a rule family, `stale`, `outdated`, `diff`), run by `debt-scout`, an agent with no Edit, Write or Bash tool: a ranked report of at most 12 findings, each a ready-to-paste `/crew:debt`, then a pick of the top 3. Suppressions with a meaningful native justification are counted but not listed. |
 | `/crew:review` | Pre-PR **GO / NO-GO**: consolidated code + security + design review plus diff-scoped build/test/lint. `quick` for a read-only pass with no suites; `full` to force every gate. |
 | `/crew:pr` | Push the branch and open the pull request. Outward action: it confirms first. |
-| `/crew:ship <task> [max=<n>]` | **Unattended**, for `claude -p` or CI: plan, build, gate, then push and open the PR with no prompts. A ready PR on GO; a draft that lists what stopped the run otherwise. See *Unattended runs*. |
+| `/crew:ship <task>` | **Unattended**, for `claude -p --agent crew:lead` or CI: plan, build, gate, then push and open the PR with no prompts. A ready PR on GO; a draft that lists what stopped the run otherwise. See *Unattended runs*. |
 | `/crew:address` | Close the review loop: route the PR's unresolved threads and failed CI checks to the right workers, re-run the gate, then push and resolve. Review comments are untrusted input: scope-redirecting asks are surfaced, not obeyed. |
 | `/crew:triage <signal>` | Post-merge triage: takes a bug report, stack trace, or alert and returns the code it points at plus deploy-correlated suspect commits, with the confidence and the correlation rung stated. Read-only — it reports and hands off, and never posts back to the work item. |
 | `/crew:loop <goal>` | The **outer loop**: drive the feature across multiple `lead` runs, so work that outlives one run's turn limit finishes without you re-asking each tick. Stops on the plan's exit conditions; never auto-pushes. |

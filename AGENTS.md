@@ -158,9 +158,11 @@ rule costs more than a sentence of prose, and motivation measurably helps compli
   no crash marker: ticks run their workers in the foreground and return only when nothing runs,
   so the next tick's resume reconciles whatever a crashed one left (#249).
 - **`/crew:ship` is the unattended path to a PR.** Its invocation is the standing go-ahead for the
-  checkpoint, the push and the PR, so `claude -p` never waits on a prompt. The command, not
-  `lead`, pushes: `lead` stays push-free in every mode. A stopped run still opens a draft PR,
-  since a cloud container loses unpushed commits; a security Blocking finding pushes nothing.
+  checkpoint, the push and the PR, so `claude -p` never waits on a prompt. It runs only with
+  `lead` as the main thread (`--agent crew:lead`): a subagent gets no `Agent` tool, so a
+  `lead` launched from the command could not dispatch a worker. A stopped run still opens a
+  draft PR, since a cloud container loses unpushed commits; a security Blocking item pushes
+  nothing.
 - **Run summary** reproduces the per-worker view the agent panel loses on resume, so it repeats
   neither `/recap`'s commit list nor the status pulse.
 - **Anti-drift.** Citing the exact plan step in every delegation keeps a run resumable; current

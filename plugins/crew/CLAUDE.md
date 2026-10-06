@@ -33,10 +33,10 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
     resolved here first — the scout has no Bash), relays the report, then launches `lead`
     directly per picked pointer with `debt`'s open-mode instructions, never by nesting
     `/crew:debt`.
-  - `ship`: the unattended run for `claude -p` or CI. Launches `lead` directly with a note
-    (no prompts, go-ahead given, loop mode, foreground workers, defaults or `blocked` instead
-    of a question) until the plan is quiescent or the cap, then pushes and opens a ready PR on
-    GO, a draft otherwise. It shares `iterations:` with `loop` as the launch count.
+  - `ship`: the unattended run, `claude -p --agent crew:lead '/crew:ship <task>'`. `lead` must
+    be the main thread (a subagent gets no `Agent` tool, so it cannot launch workers). It runs
+    `lead`'s flow with no checkpoint, loop mode, foreground workers, and a default or a `blocked`
+    step in place of a question, then pushes: a ready PR on GO, a draft otherwise.
   - `loop`: re-launches `lead` directly each tick on native `/loop` until exit conditions or
     the cap; the wrapper owns scheduling.
   - `triage`: launches `incident-triage` and relays its report; writes nothing (#175 phase 2).
@@ -163,7 +163,7 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
 - Durable run state: `<plan-dir>/plan-<feature>.md`, schema in `agents/lead.md`
   §"The plan file is durable state" — header `feature:`/`base-branch:`/`feature-branch:` +
   inner-loop fields (`loop:`, `exit-conditions:`, `gate:`) + outer-loop bookkeeping
-  (`iterations: n/max`, written by the `/crew:loop` or `/crew:ship` wrapper, not lead);
+  (`iterations: n/max`, written by the `/crew:loop` wrapper, not lead);
   steps carry `id:`/`status:`/`depends-on:`/`acceptance:`/`worker:`/`attempts:`/`evidence:`, plus
   `agent-id:` while in flight (cleared when the step leaves `in-progress`). The `steer-token:`
   **never** lands in the plan file, since a plan dir can be committed; a resumed run
