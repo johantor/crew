@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # Per-agent file-write lanes for PreToolUse(Edit|Write), routed on the payload's
 # `agent_type` since plugin agents cannot carry their own hooks. Lane paths win
-# when configured, else extension globs; a same-language pair or an `other` stack
-# with no paths, or an unset backend stack, fails closed. The guard reads slots and detects nothing
-# (AGENTS.md, "Init is the only detector").
+# when configured, else extension globs; a same-language pair or an `other`
+# backend beside a frontend with no paths, or an unset backend stack, fails
+# closed. The guard reads slots and detects nothing (AGENTS.md, "Init is the only
+# detector").
 
 # Fail closed: a guard that can't read its input must block, not allow.
 _lib="${BASH_SOURCE[0]%/*}/lib/guard-lib.sh"
@@ -156,6 +157,7 @@ case "$agent_type" in
       mode="--deny"
       if [ "$agent_type" = "backend" ]; then
         patterns='*.ts *.tsx *.jsx *.js *.mjs *.scss *.css *.html'
+        patterns+=' *.vue *.svelte *.astro *.less *.sass'    # a frontend `other`
       else
         patterns='*.cs *.csproj'                                     # dotnet
         patterns+=' *.py *.pyi pyproject.toml requirements*.txt setup.py setup.cfg'

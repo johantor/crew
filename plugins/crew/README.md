@@ -325,7 +325,7 @@ one that isn't installed, so it just reports the server as unavailable.
   every worker: `mid-run-direction` (how to treat a steer that arrives mid-run), and
   `design-tokens` for the agent doing design conformance.
   Loaded once the stack is resolved: per frontend mode (plus `frontend-razor` for `.cshtml` views), per backend stack (.NET, Node, Python, shell —
-  plus one skill per Optimizely product on top, today CMS 12, CMS 13, SaaS CMS, Graph, Search & Navigation, ODP, and Opal with a tools skill per SDK; any other backend runs best effort as `other`, with the project's own skill), per frontend stack (React, Next.js), and per test tool
+  plus one skill per Optimizely product on top, today CMS 12, CMS 13, SaaS CMS, Graph, Search & Navigation, ODP, and Opal with a tools skill per SDK; any other backend runs best effort as `other`, with the project's own skill), per frontend stack (React, Next.js; any other view runs best effort as `other`), and per test tool
   (xUnit, pytest, bats, Vitest, Jest, Cypress, Playwright).
 
 Local agent memory is git-ignored (`.claude/agent-memory-local/`).

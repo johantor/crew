@@ -222,6 +222,18 @@ frontendLanePaths: unset')"
 assert_block "frontmatter: only one lane path configured → fail closed" \
   "$HOOK" "$(payload_file crew:backend src/api/handler.ts)" "only one of" "$fm_one"
 
+# --- frontendStack: other beside a dotnet backend: extensions still split them ---
+fm_fe_other="$(make_crew_md 'backendStack: dotnet
+frontendStack: other')"
+for f in src/App.vue src/Card.svelte src/pages/index.astro src/site.less src/site.sass; do
+  assert_block "dotnet + frontend other: backend denied $f" \
+    "$HOOK" "$(payload_file crew:backend "$f")" "out of" "$fm_fe_other"
+  assert_allow "dotnet + frontend other: frontend allowed $f" \
+    "$HOOK" "$(payload_file crew:frontend "$f")" "$fm_fe_other"
+done
+assert_block "dotnet + frontend other: frontend denied a .cs file" \
+  "$HOOK" "$(payload_file crew:frontend Foo.cs)" "out of" "$fm_fe_other"
+
 # --- backendStack: other (a stack the crew ships no skill for) ----------------
 # No extension list covers it, so a frontend needs lane paths; an Elixir .ex file
 # is the discriminator, since the extension regime would leave it to both lanes.

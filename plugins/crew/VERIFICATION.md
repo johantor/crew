@@ -119,6 +119,10 @@ cannot show that `/crew:init` detected a stack or that a worker loaded a skill.
   `crew:backend` edit in the same repo is refused by `lane-guard` with the same name. (#269: the
   run ended on `main` with no branch, plan or worker; the worker's hand-back quoted the
   refusal and ended `remaining: … blocked until /crew:init has run`.)
+- [ ] **A Vue frontend is `other`** — a scratch repo with a `*.csproj` and a `package.json`
+  depending on `vue` → `/crew:init` proposes `frontendStack: other`, says the crew has no skill
+  for it, and asks no lane paths. With `frontendSkill: vue-conventions` (a project skill), a
+  `crew:frontend` dispatch loads that skill and `frontend-headless`, and no `frontend-<stack>`.
 - [ ] **`frontendStack: none` suppresses the frontend half** — a shell or CLI scratch repo with
   `frontendStack: none` in `.claude/crew.md` → `lead` asks nothing about frontend mode, e2e
   tool or unit test tool, and dispatches only `backend`/`unit-tests`.
