@@ -5,12 +5,19 @@ All notable changes to the `crew` plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [10.8.0] - 2026-10-06
+## [10.9.0] - 2026-10-06
 
 ### Added
 
 - `optimizely-opal` (the custom-tool contract, registries, auth) and one tools-SDK skill each
   for .NET, Node and Python; the backend stack skills name the SDK packages (#296).
+
+## [10.8.0] - 2026-10-06
+
+### Added
+
+- `lead` may write ticket drafts (`tickets/*.md` at any depth) and any path outside the project,
+  such as a session scratchpad (#295).
 
 ## [10.7.0] - 2026-10-06
 
