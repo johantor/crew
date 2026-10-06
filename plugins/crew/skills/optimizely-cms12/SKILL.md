@@ -18,6 +18,7 @@ that blocks the upgrade (`optimizely-cms-upgrade` lists them).
 - `EPiServer.CloudPlatform.Cms` means the site deploys to DXP.
 - `Optimizely.ContentGraph.Cms` means the site syncs to Optimizely Graph: load `optimizely-graph`.
 - `EPiServer.Find*` means Search & Navigation: load `optimizely-search-navigation`.
+- `Optimizely.Cms.Odp` or `UNRVLD.ODP.VisitorGroups` means ODP audiences: load `optimizely-odp`.
 - Neighbour with no crew skill yet: `EPiServer.Commerce` (Customized Commerce). Work from its
   docs.
 
