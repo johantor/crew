@@ -10,7 +10,8 @@ one skill per product (CMS 12, CMS 13, the upgrade between them, Graph, SaaS CMS
 covers .NET, Node, Python (for Opal tools) and shell, Optimizely or not. A project with no view
 layer says so with `frontendStack: none`, and the frontend half of the crew
 stays out of the way. You approve the plan, every step is verified and committed as it
-lands, and nothing reaches a pull request until a consolidated review gate returns **GO**.
+lands, and nothing reaches a pull request until a consolidated review gate returns **GO**. The
+exception is an unattended `/crew:ship` run you start: it opens a draft PR when it stops short.
 
 Part of the [`johantor`](../../README.md) marketplace.
 

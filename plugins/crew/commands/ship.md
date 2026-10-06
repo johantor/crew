@@ -20,8 +20,9 @@ End the run with the one-line reason and the status line (*4*) when:
 - the session is in plan mode (the run writes the plan and dispatches editing workers);
 - `.claude/crew.md` is missing, or a slot the run needs is `unset` → name `/crew:init`, which
   asks questions and cannot run here;
-- a tracked file has uncommitted changes (an unattended run must not commit what it did not
-  write); untracked files, such as a plan under `.claude/`, do not count;
+- a file has uncommitted changes or is untracked (an unattended run must not commit what it did
+  not write); only the plan directory (`<plan-dir>`, `.claude/` when unset) is exempt, so a
+  resume keeps its plan;
 - the task is a pointer to known debt: the debt lane never pushes, so name `/crew:debt`.
 
 ## 2. Run your flow unattended

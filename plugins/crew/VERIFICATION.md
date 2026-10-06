@@ -284,9 +284,13 @@ stack-neutral; run it once per stack.
 
 ### Unattended run (`/crew:ship`)
 
-- [ ] **GO opens a ready PR** — `claude -p '/crew:ship <small task>'` in a scratch repo with a
-  remote and a git-host MCP → no prompt, plan written without a checkpoint, workers run in the
-  foreground, gate GO, branch pushed, ready PR opened, last line `crew-ship: ready <URL>`.
+- [ ] **GO opens a ready PR** — `claude -p --agent crew:lead '/crew:ship <two-step feature>'` in a
+  scratch repo with a remote and a git-host MCP → no prompt, plan written without a checkpoint,
+  workers run in the foreground, gate GO, branch pushed, ready PR opened, last line
+  `crew-ship: ready <URL>`.
+- [x] **Express lane pushes** — the same with a one-file task → no plan file, `generalist` runs,
+  the quick self-review stands in for the gate, branch pushed. (#307: against a local bare
+  remote with no git host, one commit pushed and the `/crew:pr` step 4 fallback printed.)
 - [ ] **A question becomes blocked, then a draft** — a task with a choice no default covers → the
   step is `blocked` with the question in `evidence:`, independent steps still finish, and a
   draft PR opens with the question at the top.
