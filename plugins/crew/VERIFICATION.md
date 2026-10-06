@@ -119,6 +119,10 @@ cannot show that `/crew:init` detected a stack or that a worker loaded a skill.
 - [ ] **`frontendStack: none` suppresses the frontend half** — a shell or CLI scratch repo with
   `frontendStack: none` in `.claude/crew.md` → `lead` asks nothing about frontend mode, e2e
   tool or unit test tool, and dispatches only `backend`/`unit-tests`.
+- [ ] **Local init leaves the tree clean** — `/crew:init` in a scratch repo, answer **Local** →
+  `.git/info/exclude` gains `/.claude/crew.md` and `/CLAUDE.local.md`, the prose is in
+  `CLAUDE.local.md`, and `git status --short` is empty. A re-run reports Local and asks nothing;
+  a tracked `CLAUDE.local.md` makes init stop before it writes.
 
 ### Review gate
 
