@@ -30,11 +30,11 @@ caching, sync) is `optimizely-graph`.
   ['elementEnabled']`; `'sectionEnabled'` makes it usable as a section.
 - Property types: `string`, `richText`, `boolean`, `integer`, `float`, `dateTime`, `url`,
   `link`, `binary`, `json`, `content`, `contentReference`, `array`, `component`. Each `content`
-  or `contentReference` property needs exactly one of `allowedTypes`/`restrictedTypes`, or the
-  push fails.
+  or `contentReference` property needs a constraint, either `contentType` alone or
+  `allowedTypes` and/or `restrictedTypes`, or the push fails.
 - **The key is the identity.** It must start with a letter and hold only letters, digits and
   `_`. Never change or reuse a key.
-- Push with the CLI: `config push` (add `--dryRun` first), `config pull` to bring the CMS state
+- Push with the CLI: `config push`, `config pull` to bring the CMS state
   back into code. Credentials: `OPTIMIZELY_CMS_CLIENT_ID` and `OPTIMIZELY_CMS_CLIENT_SECRET`.
 - A push that would drop stored data is refused. `--force` overrides it and loses the data of a
   removed or changed property: never add `--force` to make a push pass; tell the operator what
@@ -51,8 +51,9 @@ caching, sync) is `optimizely-graph`.
   `initReactComponentRegistry({ resolver: { Key: Component } })`; render any content with
   `<OptimizelyComponent content={...} />` (`@optimizely/cms-sdk/react/server`). One registry, one
   mapping per key.
-- **Display templates** (`displayTemplate({ key, displayName, baseType | contentType | nodeType,
-  settings })`) carry editor choices such as alignment or color. Read them from
+- **Display templates** (`displayTemplate({ key, displayName, isDefault, baseType | contentType |
+  nodeType, settings })`; `isDefault` is required) carry editor choices such as alignment or
+  color. Read them from
   `displaySettings`; do not add content properties for the same choice.
 - Keep sections and elements self-contained. Layout belongs to the grid, not to fields.
 
@@ -99,8 +100,9 @@ caching, sync) is `optimizely-graph`.
 
 - Unit-test components with fixed content objects of the generated types; render through
   `OptimizelyComponent` with the real registry, so a missing mapping fails the test.
-- Run `config push --dryRun` in CI against a non-production instance, so a breaking type change
-  shows up before merge.
+- Run `config push --dryRun` in CI: it validates the model locally (keys, constraints) and sends
+  nothing, so it cannot show what the server would drop. A breaking change shows up only on a
+  real push, without `--force`, to a development instance.
 
 ## Deploy and verify
 
