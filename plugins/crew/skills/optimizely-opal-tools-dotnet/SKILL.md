@@ -29,6 +29,10 @@ proxy needs the prefix.
 ## Defining a tool
 
 ```csharp
+using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
+using Optimizely.Opal.Tools;
+
 public class GetEventsParameters
 {
     [Required, Description("Day to list, ISO 8601 date")]
@@ -47,8 +51,9 @@ public class CalendarTools(ICalendarClient calendar)
 }
 ```
 
-- Set `Name` explicitly: without it the method name becomes the tool name, and its endpoint
-  turns `_` into `-`.
+- Set `Name` explicitly: without it the method name becomes the tool name. The endpoint always
+  turns `_` into `-` (`get_events` is served at `/tools/get-events`; `/tools/get_events` is a
+  404), so tests read the path from `/discovery`.
 - A non-nullable value type is published as `required: true` even with a default: make an
   optional number nullable (`int?`).
 - Discovery publishes parameter names as the C# property names (`Date`); requests bind
@@ -58,7 +63,9 @@ public class CalendarTools(ICalendarClient calendar)
 
 ## Auth
 
-- **Registry token:** configure it, *and* add the middleware:
+- **Registry token:** the service is open by default. Configure the token (`AddOpalTools` with a
+  config also registers the service, so `AddOpalToolService()` is then redundant), *and* add the
+  middleware:
 
   ```csharp
   builder.Services.AddOpalTools(o => o.Config = new SdkConfig
@@ -69,11 +76,12 @@ public class CalendarTools(ICalendarClient calendar)
   app.UseOpalToolsAuth();
   ```
 
-  Without `UseOpalToolsAuth()` every token is accepted. Read the token from configuration,
-  never a committed `appsettings.json`. `/discovery` stays public.
+  Without `UseOpalToolsAuth()` every call passes, with or without a token. Read the token from
+  configuration, never a committed `appsettings.json`. `/discovery` stays public; every other
+  path returns 401 without the token, health checks included.
 - **User auth:** `[OpalAuthorization("provider", "scope_bundle", required)]` on the method, then
-  read `context.AuthorizationData.Provider` and `.Credentials`. Check the provider before you
-  use the token.
+  read `context.AuthorizationData`. The SDK does not enforce `required`: when
+  `AuthorizationData` is null or names another provider, refuse the call.
 
 ## Errors
 
@@ -85,8 +93,9 @@ public class CalendarTools(ICalendarClient calendar)
 
 - Unit-test the tool class directly: construct it with fakes for its dependencies and call the
   method with a parameters object.
-- Test the HTTP contract with `WebApplicationFactory`: `GET /discovery` (names, `required`
-  flags), a call with the bearer token (200) and one without it (401).
+- Test the HTTP contract with `WebApplicationFactory` (a top-level `Program` needs
+  `public partial class Program {}`): `GET /discovery` (names, `required` flags, endpoints),
+  then a call to the published endpoint with the bearer token (200) and one without it (401).
 
 ## Deploy and verify
 

@@ -16,6 +16,7 @@ The contract and the Opal side are in `optimizely-opal`; packaging and the gate 
 ## Setup
 
 ```python
+import os
 from fastapi import FastAPI
 from opal_tools_sdk import ToolsService, tool
 from opal_tools_sdk.config import SdkConfig
@@ -28,14 +29,20 @@ tools = ToolsService(app, config=SdkConfig(
 - Routes: `GET /discovery` and one `POST /tools/{name}` per tool. The service also registers
   `GET /debug-routes`, which lists every route and stays public: block it at the proxy in
   production.
-- A config with no credentials fails closed (every call refused): set the token.
+- Without a config (`ToolsService(app)` or `SdkConfig()`), every call runs: always configure
+  the token. `static_token` with an empty token fails at startup, which is what you want.
+- Create `ToolsService` before any `@tool` runs; otherwise the tool is skipped with only a
+  warning.
 
 ## Defining a tool
 
 ```python
+from typing import Optional
+from pydantic import BaseModel, Field
+
 class GetEventsParameters(BaseModel):
     date: str = Field(description="Day to list, ISO 8601 date")
-    limit: int | None = Field(default=None, description="Max events, 1-50")
+    limit: Optional[int] = Field(default=None, description="Max events, 1-50")
 
 @tool("get_events", "Lists the user's calendar events for one day.")
 async def get_events(parameters: GetEventsParameters):
@@ -45,8 +52,9 @@ async def get_events(parameters: GetEventsParameters):
 - **Handlers must be `async def`:** a plain `def` returns 500 ("can't be used in 'await'
   expression").
 - The first argument is typed with a Pydantic model; `Field(description=...)` becomes the
-  parameter description, and a default or `Optional` makes it not required. Pydantic validates
-  the call: an invalid one returns 400.
+  parameter description, and a default or `Optional` makes it not required. Write
+  `Optional[int]`, not `int | None`: the SDK publishes a PEP 604 union as `string`. Pydantic
+  validates the call: an invalid one returns 400.
 
 ## Auth
 
@@ -54,7 +62,9 @@ async def get_events(parameters: GetEventsParameters):
   `/discovery` stays public.
 - **User auth:** declare it in the decorator,
   `@tool(..., auth_requirements=[{"provider": "...", "scope_bundle": "...", "required": True}])`,
-  and take a keyword argument named exactly `auth_data`. Do not use `@requires_auth`: above
+  and take a keyword argument named exactly `auth_data`. The SDK does not enforce `required`:
+  when `auth_data` is `None` or names another provider, refuse the call. Do not use
+  `@requires_auth`: above
   `@tool` the requirement never reaches discovery, and below it every call returns 500.
 
 ## Errors
@@ -66,9 +76,12 @@ async def get_events(parameters: GetEventsParameters):
 ## Testing
 
 - pytest, following the SDK's own tests: an autouse fixture that clears the registry
-  (`_registry.services.clear()`), a fresh `ToolsService(FastAPI())`, then
-  `TestClient(app).post("/tools/get_events", json={"parameters": {...}})`. Assert on
-  `/discovery` too, and on 401 without the token.
+  (`from opal_tools_sdk import _registry`; `_registry.services.clear()`), then build the app in
+  a factory that creates `ToolsService(FastAPI(), config=...)` and only then defines the tools,
+  for example through a `register_tools()` function (a `@tool` that ran at import time is lost
+  after the clear, and importing the module again does not run it again). Call it with
+  `TestClient(app).post("/tools/get_events", json={"parameters": {...}})`, and assert on
+  `/discovery` and on 401 without the token.
 - Unit-test the logic behind the handler without the SDK.
 
 ## Deploy and verify

@@ -26,7 +26,8 @@ read the installed package's README before you rely on an API. A tool built on O
 
 - **Agents** combine tools (actions) with **skills** (behavior guidelines; called
   *instructions* before May 2026). A **specialized agent** has a prompt template with
-  `[[variables]]`, and uses only the tools its prompt names in backticks. A **workflow agent**
+  `[[variables]]`; it uses the tools added in its *Tools* section, which the prompt names in
+  backticks. A **workflow agent**
   chains triggers, logic and specialized agents.
 - **Tool types:** system tools, connector tools, and custom tools (yours). Remote MCP servers
   are added as *External Providers*, not as a tool registry.
@@ -43,7 +44,8 @@ read the installed package's README before you rely on an API. A tool built on O
   declares an auth requirement and `environment` (`execution_mode`: `headless` or
   `interactive`). Headers such as `x-opal-thread-id` identify the conversation.
 - **Response:** JSON. Return what the agent needs to answer, not a raw upstream payload: the
-  model reads every byte. The SDKs map validation errors to 400 and exceptions to 500.
+  model reads every byte. The C# and Python SDKs return 400 on invalid input; the Node SDK does
+  not validate at all. All three return 500 on an exception.
 - No sync timeout or payload limit is documented: keep a call to seconds, and use the SDK's
   async mode (202, then a callback) for long work.
 
@@ -53,10 +55,12 @@ read the installed package's README before you rely on an API. A tool built on O
   **bearer token**.
 - After a change to a tool's name, description or parameters, run *More > Sync* on the
   registry; Opal does not see new or changed tools until then.
-- Tool and registry names must be unique in the instance. Use `snake_case` names; the SDKs turn
-  `_` into `-` in some endpoint paths, so let the SDK publish the endpoint.
-- An instance allows a limited number of active tools (128 per the November 2025 notes); prefer
-  fewer, well-described tools over many narrow ones.
+- Tool names must be unique in the instance. Use `snake_case` names. The C# and Node SDKs map
+  `get_events` to the endpoint `/tools/get-events`; Python keeps the underscore. Read the
+  endpoint from `/discovery` rather than building it.
+- The release notes have both capped active tools (128, November 2025) and lifted a 128-tool
+  limit (May 2026): check the instance before you add many. Fewer, well-described tools beat
+  many narrow ones either way.
 
 ## Naming and descriptions
 
@@ -66,16 +70,18 @@ read the installed package's README before you rely on an API. A tool built on O
 
 ## Security
 
-- **Registry token:** Opal sends `Authorization: Bearer <token>` on calls. The tool must check
-  it, in constant time; `/discovery` stays public. Each SDK turns this on differently, and one
-  of them accepts every token until you add its middleware: follow the SDK skill.
+- **Registry token:** Opal sends `Authorization: Bearer <token>` on calls. **Every SDK is open
+  by default:** with no auth mode configured, any call runs. Turn the token check on as the SDK
+  skill says, and test that a call without the token gets 401. `/discovery` stays public; every
+  other path is gated, health checks included, so give the deploy probe `/discovery`.
 - **User auth:** a tool declares `auth_requirements` (`provider`, `scope_bundle`, `required`);
-  Opal then sends `auth: { provider, credentials: { access_token, ... } }` in the body. Treat it
-  as input: use the token only for the provider named, and never log it. The docs say only Opti
-  ID is supported for tool authentication, while the SDK examples show other providers: check
-  the provider with the operator.
-- `/discovery` must be reachable from the internet; the tool endpoints are public too, so the
-  token check is the only gate. Never expose an admin or debug route on the same host.
+  Opal then sends `auth: { provider, credentials: { access_token, ... } }` in the body. **No SDK
+  enforces `required`:** the handler runs without it, so refuse the call yourself when `auth` is
+  missing or names another provider. Never log the token. The docs say only Opti ID is
+  supported for tool authentication, while the SDK examples show other providers: check the
+  provider with the operator.
+- `/discovery` must be reachable from the internet, and so are the tool endpoints: the token
+  check is the only gate. Never expose an admin or debug route on the same host.
 
 ## Testing
 

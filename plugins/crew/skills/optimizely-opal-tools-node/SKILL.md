@@ -27,14 +27,17 @@ const tools = new ToolsService(app, {
 ```
 
 - Without `express.json()`, parameters arrive `undefined` and the call still returns 200.
-- Create `ToolsService` before any tool registers. Import everything from the package root;
-  the README's `/auth` subpath does not resolve.
-- Routes: `GET /discovery` and one `POST /tools/{name}` per tool; `_` in a name becomes `-` in
-  its endpoint.
+- Without `authMode`, the service accepts every call: always configure the token.
+- Create `ToolsService` before any tool registers: `registerTool` only adds to services that
+  exist. Import the API from the package root; the README's `/auth` subpath does not resolve.
+- Routes: `GET /discovery` and one `POST /tools/{name}` per tool; `_` in a name always becomes
+  `-` in its endpoint (`get_events` is served at `/tools/get-events`).
 
 ## Defining a tool
 
 ```ts
+import { z } from "zod";   // on zod 3.25.x: from "zod/v4" (the SDK reads v4 schemas)
+
 registerTool("get_events", {
   description: "Lists the user's calendar events for one day.",
   inputSchema: {
@@ -55,8 +58,9 @@ registerTool("get_events", {
 - **Registry token:** pass `authMode: "static_token"` and `bearerToken` from the environment
   (above); the comparison is constant-time and `/discovery` stays public.
 - **User auth:** declare `authRequirements: { provider, scopeBundle, required }` on the tool,
-  and read `extra.auth` in the handler. The `@requiresAuth` decorator never reaches discovery:
-  do not use it.
+  and read `extra?.auth` in the handler (`extra` is optional in the typings). The SDK does not
+  enforce `required`: when `auth` is missing or names another provider, refuse the call. The
+  `@requiresAuth` decorator never reaches discovery: do not use it.
 
 ## Errors
 
@@ -66,8 +70,11 @@ registerTool("get_events", {
 ## Testing
 
 - Unit-test the handler function with fakes.
-- Test the HTTP contract against `app.listen(0)` (or supertest): `/discovery`, a call with the
-  token and one without (401). Tools register into a global registry: reset it between tests.
+- Test the HTTP contract against `app.listen(0)` (or supertest): `/discovery`, a call to the
+  published endpoint with the token and one without (401). Tools register into a global
+  registry that the package root does not export (it lives in
+  `@optimizely-opal/opal-tools-sdk/dist/registry`): build the app in a factory per test that
+  creates `ToolsService` first and registers the tools after it.
 
 ## Deploy and verify
 
