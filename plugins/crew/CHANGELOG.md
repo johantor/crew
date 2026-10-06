@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - `bash-safety` no longer lets a write through after a `\"` inside a quoted string: an
-  unterminated span stays unmasked instead of being dropped.
+  unterminated span stays unmasked instead of being dropped (#297).
 
 ## [10.8.0] - 2026-10-06
 
