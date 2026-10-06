@@ -65,6 +65,12 @@ lens before they push.
   state is or is not mutated.
 - **A structured field documents its shape where it is owned**, and the owner is told to
   preserve it verbatim on rewrite.
+- **Every skill a prompt names exists.** Check each new literal skill name a prompt tells a
+  worker to load against `plugins/<plugin>/skills/<name>/`: a missing one fails the worker's
+  `Skill` call. A placeholder (`backend-<stack>`) or a project's own skill (`backendSkill`) is
+  not checked. The validator
+  checks only `crew:` refs (§10) and `skills:` frontmatter (§2g); a name match by prefix also
+  hits package names (`optimizely-sdk`), so this check stays with the reviewer.
 - **Cross-file wording agrees.** Grep every term the diff changed across the command, its agent
   and the README/AGENTS/CLAUDE/CHANGELOG copies.
 
