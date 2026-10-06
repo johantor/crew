@@ -57,11 +57,9 @@ that blocks the upgrade (`optimizely-cms-upgrade` lists them).
 
 - Pages: `PageController<T>` with an `Index(T currentPage)` action, or a view found by
   convention. Blocks: `BlockComponent<T>` (a view component) or a partial view.
-- Render properties with `@Html.PropertyFor(m => m.Prop)` or the `epi-property` tag helper, so
-  on-page edit works. A `ContentArea` renders the same way; display options go through
-  `DisplayOptions`.
-- `XhtmlString` is editor HTML. Render it through `PropertyFor`, never `Html.Raw` on anything a
-  visitor typed.
+- Views render every property through `@Html.PropertyFor` or the `epi-property` tag helper, so
+  on-page edit works; `XhtmlString` never through `Html.Raw`. The view rules (ContentArea,
+  display options, client resources, edit mode) are in `frontend-razor`.
 
 ## Background work
 

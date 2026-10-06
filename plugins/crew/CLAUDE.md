@@ -54,7 +54,10 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
     stack skill only what is specific to its tool: watch commands, weakening flags, the lock
     signature, filter and discovery syntax, the skip mechanism),
     `mid-run-direction` (all eight workers, not `lead`) and `design-tokens` (`visual-review`).
-  - Loaded once resolved: frontend mode, stack and test-tool skills. Backends `backend-dotnet`
+  - Loaded once resolved: frontend mode, stack and test-tool skills. `frontend-razor` holds the
+    `.cshtml` rules for both halves of a view: `frontend-server-rendered` names it for the
+    markup, `backend-dotnet` for the server side, and the CMS skills point their view rules
+    there instead of repeating them. Backends `backend-dotnet`
     (+ the `optimizely-<product>` skills), `-node`, `-python` (Opal tools), `-shell`, each paired
     with a `tests-*` skill. Other languages are unsupported; the hooks keep their Go/Rust/JVM
     patterns for mixed repos. Only node needs lane paths (its extensions collide with a frontend's).

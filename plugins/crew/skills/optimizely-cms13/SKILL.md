@@ -74,10 +74,9 @@ the default editing experience.
 ## Rendering
 
 - Server-side ASP.NET MVC rendering is still supported: `PageController<T>`,
-  `BlockComponent<T>`, and `@Html.PropertyFor` / the `epi-property` tag helper, so editing
-  works.
-- `XhtmlString` is editor HTML: render it through `PropertyFor`, never `Html.Raw` on visitor
-  input.
+  `BlockComponent<T>`, and the `epi-property` tag helper (recommended) or `@Html.PropertyFor`,
+  so editing works; `XhtmlString` never through `Html.Raw`. The view rules (ContentArea,
+  Visual Builder tag helpers, client resources, edit mode) are in `frontend-razor`.
 - A headless front end reads from Graph through the frontend stack skill. The Graph schema is
   unified: `_Content`, `_Page`, `_Component`, `_Media`, with metadata under `_metadata`.
 

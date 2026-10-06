@@ -31,7 +31,9 @@ analyzers against the project and takes 10-60s, so it stays at the lint gate.
 Own the server-side of Razor (`.cshtml`): view-model binding, `@functions`/`@code`, control
 flow over data, and data access. In server-rendered mode, frontend owns the *markup/DOM*
 (structure, classes, ARIA, presentation) — coordinate the view-model contract with frontend
-rather than reworking the markup yourself. In headless mode, Razor is entirely yours.
+rather than reworking the markup yourself. In headless mode, Razor is entirely yours. Load
+`frontend-razor` before you change a `.cshtml` file: it holds the view rules, the Optimizely
+ones included.
 
 ## Build
 
