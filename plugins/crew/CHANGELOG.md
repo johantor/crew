@@ -5,6 +5,19 @@ All notable changes to the `crew` plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.13.0] - 2026-10-06
+
+### Added
+
+- Read-only agents `analyst` and `architect`, which `lead` runs before it plans (#275).
+- Lane agents `designer` (tokens and design specs) and `copywriter` (copy and resource files) (#275).
+- Read-only review agents `security-review` and `web-review`, dispatched by `/crew:review` (#275).
+- `seo`, `accessibility` and `web-performance` skills (#275).
+
+### Changed
+
+- `lead`'s footprint cap rises from 609 to 612 lines (#275).
+
 ## [10.12.0] - 2026-10-06
 
 ### Added

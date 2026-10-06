@@ -85,9 +85,11 @@ worker delegation by. The crew's **configuration** is not here: it lives in
 ## Crew orchestration
 
 Development in this repo is orchestrated: `lead` plans the work and delegates each step to a
-worker subagent (`backend`, `frontend`, `unit-tests`, `e2e`, `visual-review`, `generalist`, `incident-triage`, `debt-scout`). Dispatching a
+worker subagent (`backend`, `frontend`, `unit-tests`, `e2e`, `visual-review`, `generalist`, `incident-triage`, `debt-scout`,
+`analyst`, `architect`, `designer`, `copywriter`, `security-review`, `web-review`). Dispatching a
 worker is ordinary in-repo development — the worker reads files in this working tree, an
-implementer edits them (`visual-review`, `incident-triage` and `debt-scout` carry no edit tool), and each returns
+implementer edits them (`visual-review`, `incident-triage`, `debt-scout`, `analyst`, `architect`,
+`security-review` and `web-review` carry no edit tool), and each returns
 a summary. It is not remote execution, and it sends nothing outside the repository.
 
 The crew's guard hooks bound what a worker can do: only `lead` touches git, no agent commits on

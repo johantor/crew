@@ -6,7 +6,7 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
 ## Map
 
 - `agents/` — auto-discovered, not in the manifest.
-  - `lead`: orchestrator, `model: opus`, sole git owner. Its `Agent(...)` allowlist (eight
+  - `lead`: orchestrator, `model: opus`, sole git owner. Its `Agent(...)` allowlist (fourteen
     workers plus `Explore`/`Plan`) and `ExitPlanMode` only work as the main thread of
     `claude --agent crew:lead`; via `/crew:feature` the harness ignores both. It also has
     `AskUserQuestion` (operator choices), `TaskStop`, `Skill`, `WebFetch` and `WebSearch`;
@@ -16,7 +16,11 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
     computed styles through the browser MCP), `generalist` (express path), `incident-triage`
     (post-merge; no Write/Edit/Bash, history via the git-host MCP), `debt-scout` (no
     Write/Edit/Bash — `Grep`/`Glob` only, so `/crew:audit` hands it `diff` and `outdated`
-    results as data).
+    results as data). Before the plan, read-only: `analyst` (requirements, acceptance criteria,
+    content needs, tracking plan) and `architect` (`model: opus`; content models, Graph
+    schemas, catalogs, integrations). Lane workers with no Bash: `designer` (tokens and specs,
+    Figma MCP) and `copywriter` (copy and resource files). Review gates, read-only, dispatched
+    by `/crew:review` step 3: `security-review` and `web-review` (browser MCPs).
 - `commands/` — namespaced `crew:*` when installed.
   - `init` writes `.claude/crew.md`, one frontmatter key per slot, the only config location;
     §4 asks on bootstrap whether to commit it or git-exclude it via `info/exclude` (Local also
@@ -25,7 +29,8 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
     shape is what §11 parses); §2 takes each backend's commands from its `backend-<stack>`
     skill's *Crew config* section; §3 owns what may go in `CLAUDE.md` (auto mode's classifier
     reads only that file); §5 writes and reconciles; §6 reports MCP namespaces.
-  - `feature`, `review` (GO/NO-GO gate), `pr` (the only push/PR path), `address`.
+  - `feature`, `review` (GO/NO-GO gate; dispatches `security-review`, `web-review` and
+    `visual-review`), `pr` (the only push/PR path), `address`.
   - `debt`: routes into `lead`'s debt lane (the `debt-lane` skill), in the foreground so its
     gates can prompt. The skill must not share a command's name: a command is also listed as a
     skill, so `lead` would load the command and relaunch itself.
@@ -55,7 +60,10 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
     `unit-tests`, `e2e`, `generalist` — so each prompt states only what is specific to its role, and each
     stack skill only what is specific to its tool: watch commands, weakening flags, the lock
     signature, filter and discovery syntax, the skip mechanism),
-    `mid-run-direction` (all eight workers, not `lead`) and `design-tokens` (`visual-review`).
+    `mid-run-direction` (every worker, not `lead`) and `design-tokens` (`visual-review`,
+    `designer`). `seo`, `accessibility` and `web-performance` are preloaded by `web-review`
+    (`copywriter` takes the first two) and loaded on demand by `frontend`, `backend` and
+    `designer`.
   - Loaded once resolved: frontend mode, stack and test-tool skills. `frontend-razor` holds the
     `.cshtml` rules for both halves of a view: `frontend-server-rendered` names it for the
     markup, `backend-dotnet` for the server side, and the CMS skills point their view rules
@@ -110,7 +118,10 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
     `plan-*.md`, `debt-*.md`, `crew.md`, `agent-memory-local/*.md`, `tickets/*.md` — plus scratch
     and any path `guard_outside_project` accepts; no directory to anchor, no plan-directory slot
     read (AGENTS.md, "Why `lead` is lane-guarded"). The
-    four lane workers get their lanes below. The path goes through `guard_posix_path` first, so
+    four code lane workers get their lanes below. `copywriter` (`.resx`, `.po`/`.pot`, XLIFF,
+    and JSON/YAML/XML/`.po` under `locales/`, `locale/`, `i18n/`, `lang/`, `translations/`,
+    `messages/`) and `designer` (`design/`, `docs/design/`, `design-tokens/`, JSON/YAML under
+    `tokens/`, `*.tokens.json`) are `--allow` lanes that read no slot. The path goes through `guard_posix_path` first, so
     a Windows `D:\x\y` matches the `/` globs. The globs match with case on every OS (macOS
     too): ignoring it would widen `**/IT*.java` to `Item.java`. Only `format.sh`'s `$PWD` prefix
     ignores case, on Windows. A `..` segment is refused for every lane agent, and on Windows a
@@ -172,9 +183,9 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
 - `omitClaudeMd: true` only on `incident-triage` and `visual-review` (read-only, fully briefed). Never on an
   implementer: the project's `CLAUDE.md` holds its conventions. Not on `debt-scout` either: the
   project's `CLAUDE.md` may carry the debt policy section it has to honor.
-- `lead` has `loaded-lines-cap: 609`, 4 lines of slack (raised from 595 when the gate rules
-  moved into the preloaded `review-gate` skill, whose frontmatter and heading count). Skills it
-  loads on demand (`debt-lane`) do not count.
+- `lead` has `loaded-lines-cap: 612`, 4 lines of slack (raised from 595 when the gate rules
+  moved into the preloaded `review-gate` skill, whose frontmatter and heading count, and from
+  609 for the six roles of #275). Skills it loads on demand (`debt-lane`) do not count.
 
 ## Gotchas
 

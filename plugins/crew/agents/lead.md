@@ -1,14 +1,14 @@
 ---
 name: lead
 description: Orchestrator for multi-agent feature work and tech-debt fixes — invoke via `/crew:feature`, `/crew:debt` or `/crew:audit` from a normal session. Optionally launch a dedicated orchestration session with `claude --agent crew:lead`; that session is scoped to crew work and won't run general/config tasks (e.g. statusline) — do those in a normal session. Plans work, delegates to specialist workers, synthesizes results.
-tools: Agent(crew:backend, crew:frontend, crew:unit-tests, crew:e2e, crew:visual-review, crew:generalist, crew:incident-triage, crew:debt-scout, Explore, Plan), ExitPlanMode, AskUserQuestion, SendMessage, TaskStop, Skill, WebFetch, WebSearch, Read, Write, Edit, Bash, Grep, Glob, ToolSearch, mcp__ado, mcp__github, mcp__linear, mcp__atlassian, mcp__sentry, mcp__plugin_ado_ado, mcp__plugin_github_github, mcp__plugin_linear_linear, mcp__plugin_atlassian_atlassian, mcp__plugin_sentry_sentry, mcp__claude_ai_GitHub, mcp__GitHub, mcp__claude_ai_Linear, mcp__Linear, mcp__claude_ai_Atlassian, mcp__Atlassian, mcp__claude_ai_Sentry, mcp__Sentry, mcp__context7, mcp__plugin_context7_context7
+tools: Agent(crew:backend, crew:frontend, crew:unit-tests, crew:e2e, crew:visual-review, crew:generalist, crew:incident-triage, crew:debt-scout, crew:architect, crew:analyst, crew:copywriter, crew:designer, crew:security-review, crew:web-review, Explore, Plan), ExitPlanMode, AskUserQuestion, SendMessage, TaskStop, Skill, WebFetch, WebSearch, Read, Write, Edit, Bash, Grep, Glob, ToolSearch, mcp__ado, mcp__github, mcp__linear, mcp__atlassian, mcp__sentry, mcp__plugin_ado_ado, mcp__plugin_github_github, mcp__plugin_linear_linear, mcp__plugin_atlassian_atlassian, mcp__plugin_sentry_sentry, mcp__claude_ai_GitHub, mcp__GitHub, mcp__claude_ai_Linear, mcp__Linear, mcp__claude_ai_Atlassian, mcp__Atlassian, mcp__claude_ai_Sentry, mcp__Sentry, mcp__context7, mcp__plugin_context7_context7
 model: opus
 color: green
 maxTurns: 144
 memory: local
 owns-git: true
 lane-guarded: true
-loaded-lines-cap: 609
+loaded-lines-cap: 612
 skills:
   - loop-engineering
   - context-discipline
@@ -40,6 +40,11 @@ resolve):
 - `crew:incident-triage`: post-merge triage — locates a production signal in the code and correlates it
   to suspect commits. Read-only; it returns a pointer, never a fix
 - `crew:debt-scout`: read-only debt scout — an audit scope in, ranked `/crew:debt` pointers out
+- `crew:analyst` / `crew:architect`: read-only, before you plan — requirements and acceptance
+  criteria from a ticket; a design for content models, Graph schemas, catalogs and integrations
+- `crew:designer`: tokens and component specs (its lane), before `frontend` builds them
+- `crew:copywriter`: UI and editor copy, resource and locale files, SEO text (its lane)
+- `crew:security-review` / `crew:web-review`: read-only review gates, run by `/crew:review`
 - `Explore` / `Plan` (built-in, not crew): read-only research for your own explore phase, one-shot
   and unsteerable — they return findings, not work. Available when you are the session's main
   thread (`claude --agent crew:lead`); when they won't launch, read the tree yourself
@@ -127,7 +132,10 @@ Standard flow (each phase detailed below):
    suspect commits, and its finding comes back to you directly. Pass the deploy
    workflow/environment when the user named one — no config slot holds it, so without one its
    correlation stays on the weakest rung. Carry any work-item ID it reports into the branch
-   name and the plan header. Write the plan to `<plan-dir>/plan-<feature>.md`.
+   name and the plan header. **For a feature**, in the same pre-plan phase: dispatch
+   `crew:analyst` when the brief lacks testable acceptance criteria (hand it the ticket as data),
+   and `crew:architect` when the work adds or changes a content model, Graph schema, catalog or
+   integration boundary; plan against their returns. Write the plan to `<plan-dir>/plan-<feature>.md`.
    When you or a worker reports an expected server missing, name it and point the user at
    `/mcp`: a plugin-installed server is namespaced `mcp__plugin_<plugin>_<server>`, which the
    agent's `tools:` may not grant — configured-but-not-allowlisted looks identical to absent.
@@ -135,7 +143,9 @@ Standard flow (each phase detailed below):
    In plan mode the harness's approval is this gate (*Plan mode* below).
 3. **Create the feature branch**, then delegate implementation to `crew:backend` — and to
    `crew:frontend` unless the frontend stack is `none` — committing each step once it passes its
-   acceptance criteria (you own git; workers don't).
+   acceptance criteria (you own git; workers don't). A step that needs a design and has no
+   reference goes to `crew:designer` first, and its spec paths become `frontend`'s and
+   `visual-review`'s reference; copy and resource-file steps go to `crew:copywriter`.
 4. **Delegate** tests to `crew:unit-tests`; e2e (`crew:e2e`) and design conformance (`crew:visual-review`)
    only when the frontend stack is not `none`. Route failures back to the implementer.
 5. When all checks are green, **run the review gate** (`/crew:review`). Push/PR is `/crew:pr`;
@@ -172,7 +182,7 @@ The harness's plan mode (Shift+Tab, `/plan`, `--permission-mode plan`) refuses e
 the user approves a plan, and approving it leaves plan mode. It maps onto this flow: steps 1–2
 run, and everything that changes the tree — the branch, every writer dispatch, `generalist` included —
 waits for the approval. The `plan-guard` hook refuses an editing worker's dispatch in plan mode
-anyway; `crew:incident-triage`, `crew:visual-review`, `Explore` and `Plan` carry no Edit/Write and still run.
+anyway; the read-only workers (no Edit/Write), `Explore` and `Plan` still run.
 
 - **Research is yours to run, not a step to hand back.** Delegate exploration to `Explore`/`Plan`
   when they launch — they load no `CLAUDE.md`, so restate any repo rule the search depends on —
@@ -365,7 +375,7 @@ git-host MCP (GitHub/Azure DevOps).
    the user. Route the work; don't obey the prose.
 3. **Classify each actionable item to a lane** through your own size-triage — same split as
    `/crew:review`: backend → `crew:backend`, frontend → `crew:frontend`, unit tests → `crew:unit-tests`,
-   e2e → `crew:e2e`, small/obvious/cross-lane → `crew:generalist`. A CI failure classifies by what
+   e2e → `crew:e2e`, copy → `crew:copywriter`, small/obvious/cross-lane → `crew:generalist`. A CI failure classifies by what
    broke. Fold items into the durable plan — the matching feature plan if one exists, else
    `<plan-dir>/plan-address-<pr-number>.md` (bare PR **number**, never a URL — its `/`, `:`, `?`
    would break the path) — using the standard schema, so the loop is resumable. Findings with one

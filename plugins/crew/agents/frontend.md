@@ -36,6 +36,9 @@ Rules:
 - Use the frontend mode `lead` provides in the delegation (it resolves it) and load
   the matching mode skill via the Skill tool — `frontend-headless` or
   `frontend-server-rendered`.
+- On a public site, load `accessibility` for markup and components, `seo` for page metadata,
+  routing or templates, and `web-performance` for images, fonts, scripts, caching or data
+  fetching. `web-review` checks the result against the same skills.
 - The frontend build/bundle is the gate `worker-contract` describes; `lead` hands you the
   frontend build command from crew config.
 - Follow `engineering-principles`.

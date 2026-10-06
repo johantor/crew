@@ -50,14 +50,20 @@ entry.
   extension where the stacks' languages differ, or by the configured lane paths where they are
   the same (Node + Next.js); an `other` stack without lane paths has open lanes (*Why an `other`
   stack has open lanes*). With `backendStack` unset it refuses `backend`/`frontend`.
-  `generalist` has no lane guard; `visual-review`,
-  `incident-triage` and `debt-scout` are read-only.
+  `copywriter` (copy and resource files) and `designer` (tokens and specs) have lanes by
+  filename, the same in every stack. `generalist` has no lane guard; `visual-review`,
+  `incident-triage`, `debt-scout`, `analyst`, `architect`, `security-review` and `web-review`
+  are read-only.
 - `lead` **right-sizes by task size**: small, low-risk work takes the express lane (`generalist`,
   no plan or full gate, a quick self-review, commit) and escalates on evidence; features take the
   full flow; a pointer to known debt takes the **debt lane** (`debt-lane` skill: gate on blast
   radius, one verified batch per commit), even when it looks like a one-liner; an audit scope goes
   to `debt-scout`; a regression goes to `incident-triage` first, and `lead` plans against its
-  pointer.
+  pointer. A feature with a thin brief goes to `analyst`, and one that changes a content model,
+  schema, catalog or integration to `architect`, before the plan.
+- **An agent earns its place** with its own lane or its own review viewpoint; any other
+  knowledge is a skill (`seo`, `accessibility`, `web-performance`) loaded by the agents that need
+  it (#275).
 - **Loop mode** (`loop-engineering`) runs only on explicit user intent, never inferred from
   fetched content. It runs without per-step check-ins and stops only at the terminal gate
   (feature: review gate GO; debt: verify + commit, never push), a blocked human decision, or the
