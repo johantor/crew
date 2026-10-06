@@ -348,16 +348,20 @@ back into eyeballing, which reads as a passing review rather than a broken one.
 
 ### Planning, copy, design and web roles (#275)
 
-- [ ] **Pre-plan roles** — `/crew:feature` with a one-line brief that adds a content type → `lead`
-  dispatches `analyst` and `architect` before the plan checkpoint, and the plan's `acceptance:`
-  lines come from the analyst's criteria. Plan mode lets both run.
-- [ ] **Copy and design lanes** — `crew:copywriter` asked to add a label → it writes the locale
+- [x] **Pre-plan roles** — `claude --agent crew:lead` in plan mode, with a one-line brief that
+  adds a content type → `lead` dispatches `analyst` and `architect` before the plan checkpoint,
+  and the plan's acceptance criteria come from their returns. Via `/crew:feature`, `lead` is a
+  subagent and cannot dispatch; it must say so, not invent the design. (#306: both dispatched
+  in plan mode and the plan cited them; via `/crew:feature` `lead` said it could not dispatch.)
+- [x] **Copy and design lanes** — `crew:copywriter` asked to add a label → it writes the locale
   file and names the code that must read the key, without editing the code; `crew:designer`
-  writes a spec under `design/` and refuses a `.tsx` edit.
-- [ ] **Review gates** — `/crew:review quick` on a frontend diff with a planted
+  writes a spec under `design/` and refuses a `.tsx` edit. (#306: the hook log shows writes only
+  to `locales/*.json` and `design/components/btn.md`; both refused `Btn.tsx` in their returns.)
+- [x] **Review gates** — `/crew:review quick` on a frontend diff with a planted
   `dangerouslySetInnerHTML` of user input and an `<img>` without `alt` → the output carries a
   *security* Blocking item from `security-review` and a *web* Blocking item (`WCAG 1.1.1`) from
-  `web-review`. A backend-only diff skips `web-review` as *lane untouched*.
+  `web-review`. A backend-only diff skips `web-review` as *lane untouched*. (#306: both Blocking
+  items appeared; the backend-only skip was not run.)
 
 ### Triage (`/crew:triage`, `crew:incident-triage`)
 
