@@ -34,7 +34,13 @@ run until this command fills it (`branchNaming` is asked once per run instead, a
 - **Frontend mode** (`frontendMode`) — `headless` or `server-rendered`. Orthogonal to the
   stack: Next.js is `headless` even though it server-renders, since there is no shared server
   template.
-- **Backend stack** (`backendStack`) — `dotnet`, `node`, `python`, or `shell`. The lane guard refuses `backend`/`frontend` while it is `unset`.
+- **Backend stack** (`backendStack`) — `dotnet`, `node`, `python`, or `shell`; `other` for a
+  stack the crew ships no skill for (Go, Rust, Java, Ruby, …), best effort: the crew works from
+  the configured commands and the project's own skill, and a frontend needs lane paths. The
+  lane guard refuses `backend`/`frontend` while it is `unset`.
+- **Backend skill** (`backendSkill`) — only with `other`: the project's own skill for its stack,
+  by name, which `lead` hands to `backend` and `unit-tests`; `none` when it has none. `unset`
+  for every other stack.
 - **Frontend stack** (`frontendStack`) — `react`, `nextjs`, or `none`;
   `none` is a statement: the project has no client-facing surface (a library, a headless service,
   a script pack), so `lead` skips frontend mode, e2e and unit-tool resolution and never
@@ -46,9 +52,9 @@ run until this command fills it (`branchNaming` is asked once per run instead, a
 - **Frontend unit test tool** (`frontendUnitTestTool`) — `vitest`, `jest`, or `cypress`; `unset`
   when the project has no frontend unit tests, and `unit-tests` then scopes to backend tests.
 - **Backend lane path(s)** (`backendLanePaths`) — comma-separated path prefixes, e.g. `apps/api/`.
-  Only when backend and frontend stacks are the same language (Node backend + Next.js): by
-  extension `lane-guard.sh` cannot tell `backend`'s and `frontend`'s files apart and falls back to
-  these. `unset` otherwise.
+  Only when backend and frontend stacks are the same language (Node backend + Next.js), or the
+  backend stack is `other` beside a frontend: by extension `lane-guard.sh` cannot tell
+  `backend`'s and `frontend`'s files apart and falls back to these. `unset` otherwise.
 - **Frontend lane path(s)** (`frontendLanePaths`) — e.g. `apps/web/`; same caveat.
 - **Backend test command** (`backendTestCommand`) — e.g. `dotnet test`.
 - **Frontend test command** (`frontendTestCommand`) — the **e2e** suite only (e.g. `npx playwright
@@ -81,6 +87,7 @@ The file's shape:
 ```markdown
 ---
 backendStack: dotnet
+backendSkill: unset
 frontendStack: react
 frontendMode: server-rendered
 frontendE2eTool: cypress
@@ -113,15 +120,16 @@ trust or correct it; never invent a command you can't see configured.
 
 | Slot | Detect from |
 |---|---|
-| Backend stack | `*.csproj`/`*.sln` → `dotnet`; `package.json` with a server framework (NestJS/Express/Fastify) and no SPA-only bundle config → `node`; `pyproject.toml` (or `requirements*.txt`/`setup.py`/`Pipfile`) → `python`; `*.sh`/`*.bats` with no other backend marker → `shell` (the scripts are the deliverable, not a repo that merely has a build script). Only other languages' markers (`go.mod`, `Cargo.toml`, `pom.xml`, …), one or several → stop, unsupported. Markers for two supported backends → ask which governs the crew, don't break the tie; an unsupported marker beside a supported one does not count. |
-| Backend build, test, lint | Load the detected stack's `backend-<stack>` skill and propose what its **Crew config** section says; it names the static gate for a stack with no compile step and the runner prefix a command needs. |
+| Backend stack | `*.csproj`/`*.sln` → `dotnet`; `package.json` with a server framework (NestJS/Express/Fastify) and no SPA-only bundle config → `node`; `pyproject.toml` (or `requirements*.txt`/`setup.py`/`Pipfile`) → `python`; `*.sh`/`*.bats` with no other backend marker → `shell` (the scripts are the deliverable, not a repo that merely has a build script). Only other languages' markers (`go.mod`, `Cargo.toml`, `pom.xml`, `Gemfile`, …), one or several → propose `other` and say the crew has no skill for it. Markers for two supported backends → ask which governs the crew, don't break the tie; an unsupported marker beside a supported one does not count. |
+| Backend skill | Only for `other`: a project skill (`.claude/skills/<name>/SKILL.md`, or one the user names) whose description covers the stack → propose its name; else `none`. `unset` for a supported stack. |
+| Backend build, test, lint | Load the detected stack's `backend-<stack>` skill and propose what its **Crew config** section says; it names the static gate for a stack with no compile step and the runner prefix a command needs. For `other`, propose only the commands the project configures (a `Makefile` target, a CI step, the backend skill) and ask for the rest; a slot nobody can name is `none`. |
 | Frontend stack | `next.config.*` → `nextjs`; a React/Vite SPA build without it → `react`; no client-facing surface → propose `none` and say why. A TUI or designed CLI output → stop, unsupported. |
 | Frontend build, test, lint | `package.json` `scripts`: `build`/`typecheck` → build, `test`/`e2e`/a Playwright config → test, `lint` → lint. Use the scripts that exist; don't assume an `npx` download. A script that only runs from a subdirectory says so in the value: `npm run build (from src/Site)`. |
 | Format matrix | One row per configured single-file formatter per package, from the package's own directory (in a monorepo that is not the root); a package with Prettier and ESLint gets two rows. Backend rows come from the `backend-<stack>` skill's **Crew config** section. Web rows from the configs in the package (a config file, or the matching `package.json` key): `biome.json*` → `node_modules/.bin/biome check --write {file}`; `.prettierrc*`/`prettier.config.*`/a `prettier` key → `node_modules/.bin/prettier --write {file}`; `.eslintrc*`/`eslint.config.*`/an `eslintConfig` key → `node_modules/.bin/eslint --fix --cache {file}` (script extensions only); `.stylelintrc*`/`stylelint.config.*`/a `stylelint` key → `node_modules/.bin/stylelint --fix {file}` (style extensions only). Always the locally installed binary, never `npx`. A tool merely on `PATH` with no config is not the project's choice: no row. No single-file formatter anywhere → `none`. |
 | Frontend mode | React/Vite/Next SPA build → `headless`; Razor `.cshtml` views without an SPA bundle → `server-rendered`. Mixed or unclear → **ask** which mode governs the areas the crew will work in, write that one, and describe the split in the body notes. Never leave it `unset`: `lead` stops on it and sends the user back here. |
 | Frontend e2e tool | `cypress.config.*` or a `cypress/` directory → `cypress`; `playwright.config.*` → `playwright`; neither → `none`, a confirmed absence, never `unset`. |
 | Frontend unit test tool | `vitest.config.*` → `vitest`; `jest.config.*` or a `jest` key with no vitest → `jest`; a `cypress.config.*` `component` key with neither → `cypress`. Absent → `unset`, a confirmed absence that stops nothing. |
-| Lane paths | Never auto-detect. Only when backend and frontend stacks are the same language, and then ask for the paths. |
+| Lane paths | Never auto-detect. Only when backend and frontend stacks are the same language, or the backend is `other` beside a frontend, and then ask for the paths. |
 | Base branch | `git symbolic-ref refs/remotes/origin/HEAD`, else an existing `main`/`develop`. Ambiguous → ask; `origin/HEAD` is often unset or stale, and a wrong base is expensive. |
 | Run/dev URL, branch naming | Dev scripts, `launchSettings.json`, existing branch names; else `unset`. |
 | Plan directory | Only an obvious existing convention (`docs/plans/`, tracked `plan-*.md` outside `.claude/`); else `unset`. |
@@ -228,8 +236,8 @@ already there. Until that write succeeds, write nothing else: if it fails, stop 
   changing them; a `formatMatrix` block with rows is such a value, so propose new rows as a
   diff rather than rewriting the block. Preserve the body notes verbatim. The one exception: a
   value §1 no longer lists (a `backendStack` of `go`, `rust` or `java` from crew 6)
-  is shown as "unsupported" with the supported values, and the user picks one or removes the
-  crew from the project.
+  is shown as "unsupported" with the supported values, `other` proposed first, and the user
+  picks one or removes the crew from the project.
 
 Before writing, show the exact set of additions and removals — a short diff of slots, plus the
 `CLAUDE.md` lines kept, reworded, and dropped — and apply only after the user confirms.

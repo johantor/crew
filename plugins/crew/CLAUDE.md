@@ -61,8 +61,11 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
     markup, `backend-dotnet` for the server side, and the CMS skills point their view rules
     there instead of repeating them. Backends `backend-dotnet`
     (+ the `optimizely-<product>` skills), `-node`, `-python` (Opal tools), `-shell`, each paired
-    with a `tests-*` skill. Other languages are unsupported; the hooks keep their Go/Rust/JVM
-    patterns for mixed repos. Only node needs lane paths (its extensions collide with a frontend's).
+    with a `tests-*` skill. Any other language is `backendStack: other`, best effort: no crew
+    skill, the project's own via `backendSkill`; the hooks keep their Go/Rust/JVM patterns for
+    mixed repos. Node and `other` need lane paths beside a frontend (node's extensions collide
+    with a frontend's; `other` has none the guard knows), and `other` widens `unit-tests` to
+    `test/`, `spec/`, `*_test.*` and `*_spec.*`.
     `frontendStack: none` is a stated absence: `lead` skips frontend, e2e and unit-tool
     resolution and dispatches only `backend`/`unit-tests`. That gate sits above the resolution table.
   - Optimizely: one `optimizely-<product>` skill per product, sections in order **Detect**

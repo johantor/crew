@@ -1,6 +1,7 @@
 ---
 frontendMode: unset
 backendStack: shell
+backendSkill: unset
 frontendStack: none
 frontendE2eTool: unset
 frontendUnitTestTool: unset

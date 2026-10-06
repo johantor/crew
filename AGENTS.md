@@ -68,7 +68,8 @@ entry.
   post-merge triage (read-only, returns a pointer), `debt-scout` debt scout (read-only, no Bash,
   returns `/crew:debt` pointers). `lane-guard.sh` enforces the write lane by extension where the
   stacks' languages differ, or by the configured lane paths when they are the same (Node +
-  Next.js is the one such pair); with `backendStack` unset it refuses `backend`/`frontend`.
+  Next.js is the one such pair, and `backendStack: other` beside a frontend needs them too); with
+  `backendStack` unset it refuses `backend`/`frontend`.
 - A **regression** enters through `incident-triage`: `lead` delegates the report to it and plans
   against the pointer, so the finding arrives in its own context. `/crew:triage` is the same
   agent standalone.

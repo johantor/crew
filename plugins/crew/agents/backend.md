@@ -24,7 +24,8 @@ Scope:
   view layer is entirely yours.
 - Use the backend stack `lead` provides in the delegation (it resolves it) and load the
   matching stack skill via the Skill tool — `backend-<stack>` (`backend-dotnet`,
-  `backend-node`, `backend-python`, `backend-shell`). A stack skill may name a composable platform skill to also load when self-detectable (e.g. `backend-dotnet` names
+  `backend-node`, `backend-python`, `backend-shell`). For stack `other` there is no crew skill:
+  load the project skill the delegation names, if any, and follow the repo's own conventions. A stack skill may name a composable platform skill to also load when self-detectable (e.g. `backend-dotnet` names
   the `optimizely-<product>` skills, detected by an `EPiServer.CMS*` package reference) —
   check for it yourself rather than waiting for the delegation to mention it.
 - In **server-rendered** frontend mode, a shared server template's markup/DOM belongs to

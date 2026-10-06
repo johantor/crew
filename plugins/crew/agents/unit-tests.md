@@ -20,7 +20,8 @@ You write and run unit and component tests using repository test commands, worki
 Rules:
 - Use the backend stack `lead` provides in the delegation (it resolves it) and load the
   matching backend test skill via the Skill tool — `tests-xunit` (dotnet), `tests-node`,
-  `tests-pytest`, `tests-shell`.
+  `tests-pytest`, `tests-shell`. For stack `other`, load the project skill the delegation names,
+  if any, and follow the existing tests' conventions.
 - If the delegation also names a frontend unit test tool, load its skill via the Skill tool
   too — e.g. `tests-vitest`, `tests-jest-frontend`, `tests-cypress`. Apply it only when `lead` explicitly asks for frontend
   component/unit tests; never assume frontend test scope unless it's in the delegation. A
