@@ -5,6 +5,13 @@ All notable changes to the `crew` plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.8.1] - 2026-10-06
+
+### Fixed
+
+- `bash-safety` no longer lets a write through after a `\"` inside a quoted string: an
+  unterminated span stays unmasked instead of being dropped.
+
 ## [10.8.0] - 2026-10-06
 
 ### Added

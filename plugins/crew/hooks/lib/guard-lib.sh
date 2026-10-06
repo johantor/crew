@@ -342,10 +342,11 @@ _guard_posix_path() {
 # hide a write. Quote types are tracked properly: an apostrophe inside `"..."`
 # opens nothing.
 #
-# An unterminated quote drops the remainder, and a `\"` inside a double-quoted
-# span ends it here where bash would keep going. Both mis-parses close a span
-# EARLY, so the scan masks less than it should and over-detects: the failure
-# direction is a refused command, never a write that slips through.
+# An unterminated quote keeps the remainder unmasked, and a `\"` inside a
+# double-quoted span ends it here where bash would keep going. Both mis-parses
+# mask less than bash would quote, so the scan over-detects: the failure
+# direction is a refused command, never a write that slips through. (Dropping
+# the remainder instead hid a write behind `echo "a \" b"`.)
 guard_mask_quotes() {
   local s="$1" out='' pre rest q sq dq
   while :; do
@@ -357,11 +358,10 @@ guard_mask_quotes() {
     # absent yields the whole string, so it always loses the comparison.
     sq="${s%%\'*}"; dq="${s%%\"*}"
     if [ "${#sq}" -lt "${#dq}" ]; then q=\'; pre="$sq"; else q='"'; pre="$dq"; fi
-    out+="$pre$GUARD_QUOTED"
     rest="${s#"$pre$q"}"
     case "$rest" in
-      *"$q"*) s="${rest#*"$q"}" ;;
-      *) s='' ;;
+      *"$q"*) out+="$pre$GUARD_QUOTED"; s="${rest#*"$q"}" ;;
+      *) guard_masked="$out$s"; return 0 ;;
     esac
   done
 }
