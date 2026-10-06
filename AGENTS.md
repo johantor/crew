@@ -97,7 +97,8 @@ there is the `## Crew orchestration` prose, whose reader — auto mode's permiss
 sees only `CLAUDE.md`. It is the one location: the `--local` file and the legacy `CLAUDE.md`
 block went in 5.0.0 (#248), each stated in seven places and read by one hook. To keep the
 configuration out of the repo, `/crew:init` git-excludes the same file rather than move it, so
-no reader changes; a new worktree then has no configuration.
+no reader changes; a new worktree then has no configuration. The prose then goes to a
+git-excluded `CLAUDE.local.md`, which Claude Code loads alongside `CLAUDE.md`.
 
 ## How we review code (the crew reviewer)
 
