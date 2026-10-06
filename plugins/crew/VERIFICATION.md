@@ -361,7 +361,8 @@ back into eyeballing, which reads as a passing review rather than a broken one.
   `dangerouslySetInnerHTML` of user input and an `<img>` without `alt` → the output carries a
   *security* Blocking item from `security-review` and a *web* Blocking item (`WCAG 1.1.1`) from
   `web-review`. With `frontendStack: none`, `web-review` is skipped. (#306: both Blocking items
-  appeared; the `none` skip was not run.)
+  appeared; a `.cs` diff under `none` dispatched only `security-review` and listed web review as
+  ⏭️ *frontend stack is `none`*.)
 
 ### Triage (`/crew:triage`, `crew:incident-triage`)
 

@@ -145,7 +145,8 @@ classification) in `quick` mode.
 
 1. **Code quality** — check against `engineering-principles`: YAGNI, KISS, naming, error handling, test coverage, minimal-scope diff.
 2. **Security** — delegate to `crew:security-review` with the changed files, their diff hunks
-   (`git diff <base>...HEAD -- <files>`; it has no git) and the resolved stacks; fold its `## Blocking` / `## Warnings` / `## Passed` into yours, each item marked
+   (`git diff $(git merge-base <base> HEAD) -- <files>`, which includes uncommitted edits; it
+   has no git) and the resolved stacks; fold its `## Blocking` / `## Warnings` / `## Passed` into yours, each item marked
    *security*.
 3. **Design conformance** — *only if the frontend lane changed* (per step 1), or always in `full`
    mode: delegate to `crew:visual-review` (installed plugin agents only resolve namespaced) with the
