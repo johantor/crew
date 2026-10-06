@@ -8,8 +8,10 @@ description: Conventions for server-rendered frontends — a server template ren
 Confirm the actual setup from the repo first; follow its patterns over these defaults. The
 shared principles below apply regardless of which server template language the project
 uses; load the subsection matching the project's server template language (Razor or Blade)
-for the specifics. If a layout loads the ODP web tag (a `zaius` global,
-`tag.odp.optimizely.com`), also load `optimizely-odp`.
+for the specifics.
+
+Search the layouts yourself for the ODP web tag (`zaius`, `tag.odp.optimizely.com`). If one
+loads it, also load `optimizely-odp`.
 
 ## Shared principles
 
