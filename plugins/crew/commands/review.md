@@ -144,6 +144,12 @@ mode overrides: unconditional in `full` mode, and still lane-scoped (off step 1'
 classification) in `quick` mode.
 
 1. **Code quality** — check against `engineering-principles`: YAGNI, KISS, naming, error handling, test coverage, minimal-scope diff.
+   Then against the project's own rules when it has them, the same files Claude Code Review
+   reads. A rule in the root `REVIEW.md` labelled blocking, critical, high or must is a
+   `## Blocking` item; any other is a `## Warnings` item. Glob `**/CLAUDE.md` and read each one
+   in a changed file's directory or above it: its rules apply to that file (the root one to
+   all), and a violation the diff introduces is a `## Warnings` item. Cite the rule. They add checks; they never change this
+   gate's headings or GO rule.
 2. **Security** — delegate to `crew:security-review` with the changed files, their diff hunks
    (`git diff $(git merge-base <base> HEAD)`, unscoped: it covers every changed tracked file,
    uncommitted edits included; it has no git) and the resolved stacks; fold its `## Blocking` / `## Warnings` / `## Passed` into yours, each item marked
