@@ -11,11 +11,11 @@ in the product: the `zaius` global, `zaius_id`, `api.zaius.com`, `app.zaius.com`
 
 ## Detect
 
-- **Web tag:** a snippet that starts `var zaius = window['zaius']||(window['zaius']=[]);` and
-  loads `zaius-min.js` from `tag.odp.optimizely.com/v2/<tracker id>/` (older sites: a CloudFront
-  host), then `zaius.event('pageview')`. Cookies: `vuid`, `z_customer_id`.
-- **.NET:** `Optimizely.Cms.Odp` (official; 1.0 for CMS 12, 1.1+ for CMS 13), the community
-  `UNRVLD.ODP.VisitorGroups`, and `EPiServer.Commerce.ODP`.
+- **Web tag:** a snippet that defines the `zaius` global, loads `/v2/<tracker id>/zaius-min.js`
+  (from `cloudfront.net` in the ODP docs; the CMS package uses `tag.odp.optimizely.com`), and
+  calls `zaius.event('pageview')`. Cookies: `vuid`, `z_customer_id`.
+- **.NET:** `Optimizely.Cms.Odp` (official; 1.0 supports CMS 12, 1.1+ supports CMS 12 and 13),
+  the community `UNRVLD.ODP.VisitorGroups`, and `EPiServer.Commerce.ODP`.
 - **Node:** `@zaiusinc/node-sdk` (3.x needs Node 22+; main export `odp`), keyed by
   `ODP_SDK_API_KEY` (legacy `ZAIUS_SDK_API_KEY`).
 - **Feature Experimentation:** `fetchQualifiedSegments`, `isQualifiedFor`, `sendOdpEvent`, or
@@ -49,10 +49,12 @@ in the product: the `zaius` global, `zaius_id`, `api.zaius.com`, `app.zaius.com`
   - Batch: the docs allow 500 items per request; `@zaiusinc/node-sdk` caps a batch at 100. Use
     the SDK's limit when the SDK sends.
 - **JavaScript tag:** `zaius.event(type, { action, ... })` (adds the vuid),
-  `zaius.customer({ identifiers }, { attributes })`, `zaius.object({ type, ... })`,
+  `zaius.customer({ identifiers }, { attributes })`,
   `zaius.consent({ consent, identifier_field_name, identifier_value, ... })`, and
-  `zaius.anonymize()` on logout or a shared device. Do not use the legacy `zaius.entity`,
-  `subscribe` or `unsubscribe` in new code.
+  `zaius.anonymize()` on logout or a shared device. `consent` defaults to `true` when left out:
+  always pass it explicitly. For objects, `zaius.object(...)`'s documented example does not
+  parse: check the installed tag's signature before you use it. Do not use the legacy
+  `zaius.entity`, `subscribe` or `unsubscribe` in new code.
 - Send orders, refunds and cancellations from the server (REST or the SDK), never through the
   tag: ad blockers drop them.
 - **GraphQL** (`/v3/graphql`) is for point reads and joins, at most 1,000 results per page; use
@@ -66,17 +68,23 @@ in the product: the `zaius` global, `zaius_id`, `api.zaius.com`, `app.zaius.com`
   of events, and membership updates within about 90 seconds.
 - Read membership with GraphQL: `customer(vuid: "...") { audiences(subset: [...]) { edges {
   node { name } } } }`. Strip the hyphens from `zaius.VUID` before you query with it. Pass
-  `recent_events` (each with `type` and `idempotence_id`) to count events still in the pipeline.
+  `recent_events` (each with `type` and `idempotence_id`) to count events still in the pipeline;
+  send the same `idempotence_id` on the matching Events API call, or the event counts twice.
 - **CMS:** with `Optimizely.Cms.Odp`, register `services.AddCms().AddOptimizelyOdp(configuration)`
   and `app.UseOptimizelyOdp()` after `UseStaticFiles()`; settings live under `Optimizely:Odp`
   (`ApiBase`, `Instances:<name>:PrivateApiKey|PublicApiKey|Tracking:Sites`). Editors add the
   *Data platform > Audience Membership* criterion. Membership is a synchronous GraphQL call on a
   cache miss (60 s membership cache), and a failed call counts as "not a member": personalize
-  for a bonus, never gate access on it. CMS 13 also needs `EPiServer.Cms.UI.VisitorGroups`.
-- **Feature Experimentation:** `await user.fetchQualifiedSegments()` (returns `false` on
-  failure), then `user.isQualifiedFor(segment)` or a decision; `optimizely.sendOdpEvent(action,
-  type, identifiers, data)` sends an event. Needs JS SDK 6+ (5+ for the older Node/browser SDKs),
-  C# and Java 4+, Python 5+. The datafile carries the ODP host and key only while an ODP
+  for a bonus, never gate access on it. On CMS 13, install and register
+  `EPiServer.Cms.UI.VisitorGroups` too, and `Tracking:Sites` matches the site's Name or API ID
+  (on CMS 12, the site definition name).
+- **Feature Experimentation:** in JS SDK 6, ODP is on only when `createInstance` gets
+  `odpManager: createOdpManager()`; without it `fetchQualifiedSegments` always resolves `false`
+  and `sendOdpEvent` only logs an error. Then `await user.fetchQualifiedSegments()` (resolves
+  `false` on failure) and `user.isQualifiedFor(segment)` or a decision.
+  `optimizely.sendOdpEvent(action, type?, identifiers?, data?)` takes `Map`s for `identifiers`
+  and `data` in JS SDK 6, not plain objects. Needs JS SDK 6+ (5+ for the older Node/browser
+  SDKs), C# and Java 4+, Python 5+. The datafile carries the ODP host and key only while an ODP
   audience is on a running rule.
 - **Web Experimentation:** *Settings > Integrations > Real-Time Segments*. With *ODP • VUID* as
   the user ID, the ODP snippet loads before the Web snippet, and not async.
@@ -85,11 +93,13 @@ in the product: the `zaius` global, `zaius_id`, `api.zaius.com`, `app.zaius.com`
 
 - **Keys:** the public key (the tracker ID) sends data and may be in the browser. The private
   key reads profiles and manages audiences: server-side only, from configuration, never
-  committed. A revoked private key keeps working for 12 hours, so rotate it before you revoke.
+  committed. A revoked private key keeps working for 12 hours: deploy the new key within that
+  window.
   The docs disagree on which key GraphQL needs (the SDKs query audiences with the public key);
   use the key the integration's docs name, and keep profile reads on the private key.
 - **Consent** belongs to each identifier, not to the profile. Send it with `zaius.consent` or
-  `/v3/consent` when the user changes it; never infer opt-in.
+  `/v3/consent` when the user changes it, with `consent` always set explicitly; never infer
+  opt-in.
 - **Deletion:** `POST /v3/compliance/{gdpr|ccpa|lgpd}/delete`; data is gone within 30 days, and
   events for that person are dropped meanwhile.
 - **PII:** mark PII fields in *Data Setup > Objects & Fields*. Send only fields an audience or

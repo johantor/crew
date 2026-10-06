@@ -10,7 +10,7 @@ shared principles below apply regardless of which server template language the p
 uses; load the subsection matching the project's server template language (Razor or Blade)
 for the specifics.
 
-Search the layouts yourself for the ODP web tag (`zaius`, `tag.odp.optimizely.com`). If one
+Search the layouts yourself for the ODP web tag (`zaius`, `zaius-min.js`). If one
 loads it, also load `optimizely-odp`.
 
 ## Shared principles

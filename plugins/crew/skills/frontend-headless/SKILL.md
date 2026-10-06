@@ -6,7 +6,7 @@ description: Conventions for decoupled/headless frontends — a React SPA (or Ne
 # Headless frontend conventions
 Confirm the actual setup from the repo first (framework, data source, fetch client); follow its patterns over these defaults.
 
-Search the repo for Optimizely Graph markers yourself: `cg.optimizely.com`, `@optimizely/cms-sdk`, or `@remkoj/optimizely-graph-client`. If one is present, also load `optimizely-graph`. An `optimizely.config.mjs`, or a CMS URL on `*.cms.optimizely.com`, means content types in code (SaaS CMS, or CMS 13 through the SDK): also load `optimizely-cms-saas`, whose Detect section tells the two apart. The ODP web tag (a `zaius` global, `tag.odp.optimizely.com`) means Optimizely Data Platform: also load `optimizely-odp`.
+Search the repo for Optimizely Graph markers yourself: `cg.optimizely.com`, `@optimizely/cms-sdk`, or `@remkoj/optimizely-graph-client`. If one is present, also load `optimizely-graph`. An `optimizely.config.mjs`, or a CMS URL on `*.cms.optimizely.com`, means content types in code (SaaS CMS, or CMS 13 through the SDK): also load `optimizely-cms-saas`, whose Detect section tells the two apart. The ODP web tag (a `zaius` global, `zaius-min.js`) means Optimizely Data Platform: also load `optimizely-odp`.
 
 - **Data layer:** fetch content from the content API via a typed, centralized client; never hardcode CMS-owned content.
 - **Server vs UI state:** fetched/server state in a data-fetching layer (RTK Query/React Query) with caching + loading/error handling; only genuine UI state in Redux.
