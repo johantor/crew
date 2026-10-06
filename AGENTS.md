@@ -49,7 +49,8 @@ entry.
 - `.claude/crew.md` — this repo's own crew configuration. The repo carries no hook wiring of its
   own: work here with `claude --plugin-dir plugins/crew`.
 - `.github/` — `copilot-instructions.md` points Copilot at `skills/code-review/SKILL.md`, the one
-  review rubric (`.claude/skills/crew-review/` wraps it for Claude Code); `workflows/validate.yml`
+  review rubric (`.claude/skills/crew-review/` wraps it for Claude Code, and
+  `.claude/skills/steward/` says how a session drives a PR); `workflows/validate.yml`
   runs shellcheck, the validator, the release gate and the hook tests; `auto-release.yml` tags.
 
 ## How the crew works
@@ -330,6 +331,9 @@ line, two at most: *what changed*, with the PR as `(#N)`. The why belongs in the
   ("ran X, all green"), not a transcript.
 - **Every review comment gets a reply, then the thread is resolved.** Fixed — name the commit.
   Declining — say why. Duplicate — say which.
+- **A correct finding is fixed and pushed now**, whatever its label (nit, low, optional). Never
+  defer it to "the next code push": the PR can merge before one comes, and the wrong line ships.
+  Decline only a finding that is wrong, and say why.
 - A PR that resolves an issue links it with a closing keyword (`Closes #N`).
 - One branch and PR per issue, from the latest `main`: `git fetch origin main && git checkout -B
   <branch> origin/main`. A merged PR's branch is deleted; reusing the name leaves a stale tracking

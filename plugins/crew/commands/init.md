@@ -63,7 +63,8 @@ run until this command fills it (`branchNaming` is asked once per run instead, a
   otherwise.
 - **Frontend lane path(s)** (`frontendLanePaths`) — e.g. `apps/web/`; same caveat. A lane path
   is a directory: never `./` or `.` (it covers the whole tree, so the other lane can write
-  nothing). Files outside both lanes (a backend's root `Program.cs`) are open to both.
+  nothing). Files outside both lanes (a backend's root `Program.cs`) are open to both, except
+  route handlers (`app/**/route.ts`, `pages/api/**`), which stay `backend`'s.
 - **Backend test command** (`backendTestCommand`) — e.g. `dotnet test`.
 - **Frontend test command** (`frontendTestCommand`) — the **e2e** suite only (e.g. `npx playwright
   test`); `unit-tests` derives unit/component runs from the Frontend unit test tool instead.

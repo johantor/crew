@@ -35,7 +35,7 @@ Part of the [`johantor`](../../README.md) marketplace.
   delegates. Background workers can't prompt, so a step that still needs a decision has to get one
   from you first.
 - **The lane guards will refuse things.** They fail closed and detect nothing: an unset backend
-  stack, or a same-language backend and client-facing layer with no lane paths, gets a refusal
+  stack, or a Node backend beside a client-facing layer with no lane paths, gets a refusal
   naming `/crew:init` rather than a guess. `/crew:init` is not optional; it is the only place the
   crew learns what the project is.
 - **Nothing ships on its own.** No push, no PR, not even in loop mode. If you wanted
