@@ -14,9 +14,11 @@ incorporates WCAG 2.1 AA, and 2.2 AA is a superset of it. Treat an AA failure as
 - Use the native element: `<button>` for an action, `<a href>` for navigation, `<label>` for a
   field, `<table>` for tabular data, a list for a list. ARIA fixes what HTML cannot express; a
   wrong role is worse than none.
-- Landmarks: one `<main>`, plus `<header>`, `<nav>`, `<footer>`; label each `<nav>` when there
-  are several. Add a "skip to content" link.
-- Headings in order, one `h1` per page.
+- A way to bypass repeated blocks (2.4.1): landmarks (`<main>`, `<header>`, `<nav>`,
+  `<footer>`, each `<nav>` labelled when there are several), headings, or a skip link.
+- Headings and lists in the markup match the visual structure (1.3.1).
+- Recommended, not required by WCAG (report as a Warning): a skip link, one `h1` per page, and
+  no skipped heading level.
 - `<html lang>` is set, and a passage in another language has its own `lang`.
 
 ## Names and alternatives

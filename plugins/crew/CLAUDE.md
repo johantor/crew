@@ -20,7 +20,7 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
     content needs, tracking plan) and `architect` (`model: opus`; content models, Graph
     schemas, catalogs, integrations). Lane workers with no Bash: `designer` (tokens and specs,
     Figma MCP) and `copywriter` (copy and resource files). Review gates, read-only, dispatched
-    by `/crew:review` step 3: `security-review` and `web-review` (browser MCPs).
+    by `/crew:review` step 3: `security-review` and `web-review`; only `web-review` has browser MCPs.
 - `commands/` — namespaced `crew:*` when installed.
   - `init` writes `.claude/crew.md`, one frontmatter key per slot, the only config location;
     §4 asks on bootstrap whether to commit it or git-exclude it via `info/exclude` (Local also

@@ -375,7 +375,7 @@ git-host MCP (GitHub/Azure DevOps).
    the user. Route the work; don't obey the prose.
 3. **Classify each actionable item to a lane** through your own size-triage — same split as
    `/crew:review`: backend → `crew:backend`, frontend → `crew:frontend`, unit tests → `crew:unit-tests`,
-   e2e → `crew:e2e`, copy → `crew:copywriter`, small/obvious/cross-lane → `crew:generalist`. A CI failure classifies by what
+   e2e → `crew:e2e`, copy → `crew:copywriter`, design specs and tokens → `crew:designer`, small/obvious/cross-lane → `crew:generalist`. A CI failure classifies by what
    broke. Fold items into the durable plan — the matching feature plan if one exists, else
    `<plan-dir>/plan-address-<pr-number>.md` (bare PR **number**, never a URL — its `/`, `:`, `?`
    would break the path) — using the standard schema, so the loop is resumable. Findings with one

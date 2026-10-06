@@ -33,7 +33,9 @@ else. You have no Bash tool.
 ## Rules
 
 - With a Figma MCP and a link or node in the delegation, read the specific node and write its
-  values as tokens. Never dump a whole file or page (`context-discipline`).
+  values as tokens. Never dump a whole file or page (`context-discipline`). With a link but no
+  Figma MCP, use the export, image or spec the delegation provides; with none of those, say in
+  your summary that the reference was unreadable and that the spec is your own design.
 - Without a design reference, design inside the existing token set. Add a token only when no
   existing one fits, and say why in your summary.
 - Every value in a spec is a token name, never a raw pixel or hex value, unless the project has
