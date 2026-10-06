@@ -154,6 +154,8 @@ assert_allow "lead allowed a Windows plan path in the project" \
   "$HOOK" "$(payload_file crew:lead 'C:\work\proj\.claude\plan-sso.md')"
 assert_allow "lead allowed a Windows agent-memory path in the project" \
   "$HOOK" "$(payload_file crew:lead 'C:\work\proj\.claude\agent-memory-local\lead\notes.md')"
+assert_allow "lead allowed a Windows ticket draft in the project" \
+  "$HOOK" "$(payload_file crew:lead 'C:\work\proj\.azuredevops\tickets\2026-10-06-eh0001.md')"
 assert_allow "lead allowed a relative Windows plan path" \
   "$HOOK" "$(payload_file crew:lead '.claude\plan-sso.md')"
 assert_block "lead denied a Windows '..' traversal" \
