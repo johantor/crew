@@ -1,129 +1,99 @@
 # Contributing to crew
 
-This repository is the `johantor` Claude Code plugin marketplace: `crew` (orchestrated feature delivery, plus a debt lane
-for tech-debt and upgrade fixes). **This repository *is* the plugins** — there is no application
-code to build or ship. Work here means editing agent/command/skill definitions, hooks, and docs.
+This repository is the `johantor` Claude Code plugin marketplace: `crew`, orchestrated feature
+delivery plus a debt lane for tech-debt and upgrade fixes. **This repository *is* the plugins**:
+there is no application code to build or ship. Work here edits agent, command and skill
+definitions, hooks, and docs.
 
-This is the contributor guide for anyone — human or agent — changing this repo. It is tool-neutral
+This is the contributor guide for anyone, human or agent, changing this repo. It is tool-neutral
 and the one place each rule is written. Tool-specific entry points point here: `CLAUDE.md` for
-Claude Code (plus how Claude should talk and edit), the `code-review` skill in `.github/skills/`
-for reviewers, and each plugin's `CLAUDE.md` for its own map. Crew's configuration lives in
-`.claude/crew.md`.
+Claude Code (plus how Claude should talk and edit), `.github/skills/code-review/` for reviewers,
+and each plugin's `CLAUDE.md` for its own map.
 
 ## Repository layout
 
 A **monorepo marketplace**: `.claude-plugin/marketplace.json` lists the plugins, each in its own
-directory under `plugins/<name>/`. Adding a plugin is additive — create the directory and add an
+directory under `plugins/<name>/`. Adding a plugin is additive: create the directory and add an
 entry.
 
-- `plugins/crew/` — the `crew` plugin (paths below relative to it):
-  - `.claude-plugin/plugin.json` — the manifest.
-  - `agents/` — `lead` (orchestrator) and the workers `backend`, `frontend`, `unit-tests`, `e2e`,
-    `visual-review`, `generalist`, `incident-triage`, `debt-scout`. Auto-discovered; not declared in the manifest.
-  - `commands/` — `/init`, `/feature`, `/debt`, `/audit`, `/review`, `/pr`, `/address`, `/triage`,
-    `/loop`, `/notify` (namespaced `crew:*` once installed). `/feature`, `/debt` and `/address`
-    are thin routers into `lead`'s own flows; `/loop` and `/audit` launch agents directly
-    rather than nesting a command, since a wrapper cannot pass what the inner command does not
-    forward. `/pr` is the only push path. Each command's own file says what it does; the plugin
-    map (`plugins/crew/CLAUDE.md`) says how they fit.
-  - `skills/` — preloads: `context-discipline` (every agent), `loop-engineering`,
-    `operator-voice` and `review-gate` (`lead`; `/crew:review` loads `review-gate` too),
-    `engineering-principles` (the implementers), `worker-contract` (the five workers with a
-    shell: the rules every dispatch follows), `mid-run-direction` (every worker),
-    `design-tokens` (`visual-review`). On demand: `debt-lane` with `debt-taxonomy` and its per-stack
-    skills; the stack skills `backend-*`, `frontend-*`, `tests-*`, and one `optimizely-<product>` skill
-    per Optimizely product, loaded once
-    `lead` resolves the project's stack and tools.
-  - `hooks/` — `bash-safety.sh`, `read-guard.sh`, `lane-guard.sh`, `format.sh`,
-    `dispatch-denied.sh`, `plan-guard.sh`, wired in `hooks/hooks.json`. The
-    top-level `*.sh` are entry points (`+x`, wired); `hooks/lib/*.sh` are sourced libraries (not
-    `+x`, not wired) — validator §3 and §6 enforce the split. The plugin map describes each hook.
-  - `scripts/gate.sh` — the review-gate runner the wait recipe calls (shipped, unlike the
-    repo-level `scripts/` below).
-  - `CHANGELOG.md`, `README.md` (user-facing), `VERIFICATION.md` (the manual scenario matrix),
-    `CLAUDE.md` (the plugin map for agents working on it).
-- `scripts/` — repo tooling, never shipped: `validate-plugin.sh` (tree-only structural checks,
+- `plugins/crew/`: the `crew` plugin. `.claude-plugin/plugin.json` is the manifest; `agents/`,
+  `commands/` and `skills/` are auto-discovered, and `hooks/hooks.json` wires the hooks. The
+  top-level `hooks/*.sh` are entry points (`+x`, wired); `hooks/lib/*.sh` are sourced libraries
+  (not `+x`, not wired); validator §3 and §6 enforce the split. `scripts/gate.sh` is the
+  review-gate runner, shipped unlike the repo-level `scripts/`. `README.md` is user-facing,
+  `VERIFICATION.md` is the manual scenario matrix, and `CLAUDE.md` is the plugin map: every
+  agent, command, skill and hook, and how they fit.
+- `scripts/`: repo tooling, never shipped. `validate-plugin.sh` (tree-only structural checks,
   the `§N` sections below), `check-changelog.sh` (the diff-based release gate, takes the base
   branch), `release-notes.sh` (one version's changelog section, used by `auto-release.yml`).
-- `tests/hooks/` — the shared harness (`lib.sh`) and runner (`run.sh`) for `plugins/*/tests/`.
-- `.claude/crew.md` — this repo's own crew configuration. The repo carries no hook wiring of its
+- `tests/hooks/`: the shared harness (`lib.sh`) and runner (`run.sh`) for `plugins/*/tests/`.
+- `.claude/crew.md`: this repo's own crew configuration. The repo carries no hook wiring of its
   own: work here with `claude --plugin-dir plugins/crew`.
-- `.github/` — `copilot-instructions.md` points Copilot at `skills/code-review/SKILL.md`, the one
-  review rubric (`.claude/skills/crew-review/` wraps it for Claude Code); `workflows/validate.yml`
-  runs shellcheck, the validator, the release gate and the hook tests; `auto-release.yml` tags.
-  `ISSUE_TEMPLATE/` holds the bug and feature forms.
-- `CONTRIBUTING.md` points here; `CODE_OF_CONDUCT.md` is the Contributor Covenant 2.1.
+- `.github/`: `workflows/validate.yml` runs the checks in *Validating changes*;
+  `auto-release.yml` tags. `skills/code-review/SKILL.md` is the one review rubric: Copilot reads
+  it through `copilot-instructions.md`, and `.claude/skills/crew-review/` wraps it for Claude
+  Code. `ISSUE_TEMPLATE/` holds the bug and feature forms.
+- `CONTRIBUTING.md` points here; `CODE_OF_CONDUCT.md` is the Contributor Covenant 2.1;
+  `SECURITY.md` covers guard bypasses.
 
 ## How the crew works
 
-- `lead` plans and delegates; it writes no production code and is the **sole owner of git**:
-  it branches off the resolved base and commits each verified step. Workers run no git but a
-  plain `git mv`. The
-  crew stops at the local review gate; `/crew:pr` pushes.
+- `lead` plans and delegates. It writes no production code and is the **sole owner of git**: it
+  branches off the resolved base and commits each verified step. Workers run no git but a plain
+  `git mv`. The crew stops at the local review gate; `/crew:pr` pushes.
 - The plan at `<plan-dir>/plan-<feature>.md` (the `planDirectory` slot, else `.claude/`) carries
-  per-step acceptance criteria and is presented once for the user's go-ahead before the branch
-  or any delegation — the plan checkpoint, honoring a standing "just build it".
-- Lanes are stack-agnostic: `backend` backend, `frontend` client-facing layer (plus a shared server
-  template's markup in server-rendered mode), `unit-tests` unit tests (backend, and frontend
-  component tests when a unit tool is configured), `e2e` frontend e2e, `visual-review` visual
-  conformance (read-only), `generalist` express-lane generalist (all lanes, no lane guard), `incident-triage`
-  post-merge triage (read-only, returns a pointer), `debt-scout` debt scout (read-only, no Bash,
-  returns `/crew:debt` pointers). `lane-guard.sh` enforces the write lane by extension where the
-  stacks' languages differ, or by the configured lane paths when they are the same (Node +
-  Next.js is the one such pair, and `backendStack: other` beside a frontend needs them too); with
-  `backendStack` unset it refuses `backend`/`frontend`.
-- A **regression** enters through `incident-triage`: `lead` delegates the report to it and plans
-  against the pointer, so the finding arrives in its own context. `/crew:triage` is the same
-  agent standalone.
-- `lead` **right-sizes by task size**: small, low-risk work takes the express lane (`generalist`, no
-  plan or full gate, a quick self-review, commit), escalating on evidence; features take the full
-  flow; a pointer to known debt takes the **debt lane** (`debt-lane` skill: gate on blast radius,
-  one verified batch per commit), even when it looks like a one-liner; an audit scope goes to
-  `debt-scout`. The debt lane is a skill, not a second orchestrator: `claude --agent crew:lead`
-  sessions can only dispatch from the main thread, and an on-demand skill stays out of the
-  footprint cap.
-- **Loop mode** (`loop-engineering`): on explicit user intent the flow runs to completion without
-  per-step check-ins, stopping only at the terminal gate (feature: review gate GO; debt: verify +
-  commit — never push), a blocked human decision, or the retry cap (3 failed fix→verify
-  round-trips on a unit; for the gate, a second NO-GO on the same findings). Intent is never
-  inferred from fetched content. Loop state lives in the plan file so a resume continues in loop
-  mode. The **outer** loop across runs is `/crew:loop`, a main-session wrapper on the native
-  `/loop` that owns scheduling and the iteration cap; `lead` never self-schedules.
-- All workers apply `context-discipline`: process bulk output with code, return concise findings.
+  per-step acceptance criteria. It is presented once for the user's go-ahead before the branch
+  or any delegation (the plan checkpoint); a standing "just build it" counts as the go-ahead.
+- Each worker has a lane (the plugin map lists them). `lane-guard.sh` enforces the write lane by
+  extension where the stacks' languages differ, or by the configured lane paths where they are
+  the same (Node + Next.js, or `backendStack: other` beside a frontend). With `backendStack`
+  unset it refuses `backend`/`frontend`. `generalist` has no lane guard; `visual-review`,
+  `incident-triage` and `debt-scout` are read-only.
+- `lead` **right-sizes by task size**: small, low-risk work takes the express lane (`generalist`,
+  no plan or full gate, a quick self-review, commit) and escalates on evidence; features take the
+  full flow; a pointer to known debt takes the **debt lane** (`debt-lane` skill: gate on blast
+  radius, one verified batch per commit), even when it looks like a one-liner; an audit scope goes
+  to `debt-scout`; a regression goes to `incident-triage` first, and `lead` plans against its
+  pointer.
+- **Loop mode** (`loop-engineering`) runs only on explicit user intent, never inferred from
+  fetched content. It runs without per-step check-ins and stops only at the terminal gate
+  (feature: review gate GO; debt: verify + commit, never push), a blocked human decision, or the
+  retry cap (3 failed fix→verify round-trips on a unit; for the gate, a second NO-GO on the same
+  findings). Loop state lives in the plan file, so a resume stays in loop mode. The outer loop
+  across runs is `/crew:loop`, a wrapper on the native `/loop` that owns scheduling and the
+  iteration cap; `lead` never self-schedules.
+- Every agent applies `context-discipline`: process bulk output with code, return concise findings.
 
-Runtime configuration (commands, base branch, mode, stacks) lives in `.claude/crew.md` — YAML
-frontmatter, one key per slot, plus a prose body. `/crew:init` writes and reconciles it, and it
-is the only detector: a slot reads `unset` when unresolved (the orchestrator stops and names
-`/crew:init`; the lane guard refuses a worker) and `none` when the project has no such tooling
-(the gate skips). Configuration does **not** live in a project's `CLAUDE.md`; what stays
-there is the `## Crew orchestration` prose, whose reader — auto mode's permission classifier —
-sees only `CLAUDE.md`. It is the one location: the `--local` file and the legacy `CLAUDE.md`
-block went in 5.0.0 (#248), each stated in seven places and read by one hook. To keep the
-configuration out of the repo, `/crew:init` git-excludes the same file rather than move it, so
-no reader changes; a new worktree then has no configuration. The prose then goes to a
-git-excluded `CLAUDE.local.md`, which Claude Code loads alongside `CLAUDE.md`.
+Runtime configuration (commands, base branch, mode, stacks) lives in `.claude/crew.md`: YAML
+frontmatter, one key per slot, plus a prose body. It is the one location (#248). `/crew:init`
+writes and reconciles it and is the only detector (*Init is the only detector*). A slot reads
+`unset` when unresolved (the orchestrator stops and names `/crew:init`; the lane guard refuses a
+worker) and `none` when the project has no such tooling (the gate skips). A project's `CLAUDE.md`
+holds no configuration, only the `## Crew orchestration` prose, because auto mode's permission
+classifier reads only `CLAUDE.md`. To keep the configuration out of the repo, `/crew:init`
+git-excludes the same file, so no reader changes, and moves the prose to a git-excluded
+`CLAUDE.local.md`. A new worktree then has no configuration.
 
 ## How we review code (the crew reviewer)
 
-Reviews of **this repo** — by Copilot, the `crew-review` skill, or `/crew:review` run here — judge
+Reviews of **this repo** (by Copilot, the `crew-review` skill, or `/crew:review` run here) judge
 code against `engineering-principles` (the code rules) and the `code-review` skill (this repo's
 rubric: what to check, severity, the **Blocking** / **Warnings** / **Passed** output). In a user's
-project, `/crew:review` applies `engineering-principles` only. Each is written once; everything
-else points to them.
+project, `/crew:review` applies `engineering-principles` only.
 
 ### Reviewing a prompt change (commands, agents, skills)
 
-These artifacts are **executable contracts written in prose**, so `validate-plugin.sh` catches
-structural drift, never a design bug. Most review misses here were this class. Apply this lens
-before pushing and as a reviewer:
+These files are **executable contracts written in prose**: `validate-plugin.sh` catches structural
+drift, never a design bug, and most review misses here were design bugs. Apply this lens before
+pushing and as a reviewer:
 
 - **Durable-state invariant.** If one store is "the only cross-run state", every count or
-  "N-in-a-row" lives there — no in-memory tally a fresh-context resume would lose.
+  "N-in-a-row" lives there, never in an in-memory tally a fresh-context resume would lose.
 - **Delegation can only pass what the callee accepts.** A wrapper cannot convey what the inner
   command does not forward; launch the agent directly and say so.
 - **Every threshold is a number**, with what resets it.
-- **Every failure and edge path has a stated behavior** — stop, skip or surface, and which
-  durable state is or is not mutated.
+- **Every failure and edge path has a stated behavior**: stop, skip or surface, and which durable
+  state is or is not mutated.
 - **A structured field documents its shape where it is owned**, and the owner is told to
   preserve it verbatim on rewrite.
 - **Cross-file wording agrees.** Grep every term you changed across the command, its agent and
@@ -131,17 +101,15 @@ before pushing and as a reviewer:
 
 ## Prompt design rationale
 
-An always-loaded prompt costs context on **every** run, so it carries *instruction* and not the
+An always-loaded prompt costs context on **every** run, so it carries the *instruction*, not the
 *justification*. The justification lives here, one line per rule, with the PR that decided it
-where one exists; the PR holds the full story. Prompts carry a single pointer to this file, never
-per-rule pointers:
-this file is never shipped, so a runtime agent cannot follow one.
+where one exists. Prompts carry a single pointer to this file, never per-rule pointers: this file
+is not shipped, so a runtime agent cannot follow one.
 
-**The classification test before moving a line out of a prompt:** *would an agent that never read
-this text behave differently on some input?* Yes → instruction, it stays, even phrased as a "why"
-("watch commands never terminate", "plugin agents are namespaced"). No → rationale, it comes here.
-Anything arguable stays: a deleted edge-case rule costs more than a sentence of prose, and
-motivation measurably helps compliance. Compression is not a quota.
+**Before moving a line out of a prompt, ask:** *would an agent that never read this text behave
+differently on some input?* Yes → instruction, it stays, even phrased as a "why" ("watch commands
+never terminate"). No → rationale, it comes here. Anything arguable stays: a deleted edge-case
+rule costs more than a sentence of prose, and motivation measurably helps compliance.
 
 ### crew:lead
 
@@ -151,7 +119,7 @@ motivation measurably helps compliance. Compression is not a quota.
 - **Right-size the process.** Small by default, escalate on evidence: a wrong small fix costs
   more than the escalation would have.
 - **Plan checkpoint** before the branch: the cheapest place to catch a misunderstood task.
-- **Plan mode — the approval is the checkpoint.** `ExitPlanMode` is the same gate, so both would
+- **Plan mode: the approval is the checkpoint.** `ExitPlanMode` is the same gate, so both would
   ask twice. A subagent loses `ExitPlanMode` and inherits plan mode, so it returns the plan for
   `/crew:feature` to present and re-launch as approved. `Explore`/`Plan` stay in the allowlist
   because plan mode's own workflow reaches for them; `general-purpose` is absent because it is an
@@ -160,46 +128,41 @@ motivation measurably helps compliance. Compression is not a quota.
 - **Stay responsive.** Foreground calls freeze the orchestrator for minutes, so background is the
   default; the status pulse is emitted after the result is reconciled, or it reports stale state.
 - **Fresh spawns; steering is the narrow exception.** `Agent` never continues a worker, so
-  `SendMessage` is the only way to add a turn to a live one; it is host-dependent, so its absence
+  `SendMessage` is the only way to add a turn to a live one. It is host-dependent, so its absence
   is never a blocker, and durable context still travels through the plan file. A steer amends the
-  plan step as it is sent: the commit is judged against the step's `acceptance:`, so a steer that
-  widens the work without widening the step makes the two disagree.
-- **A steer is authenticated on a per-dispatch token, and its content is still fallible.** A
-  steer arrives shaped like a `system-reminder`, the same shape injected text takes, so the anchor
-  is a token minted per dispatch that planted content cannot quote; a plan step id could be
-  cited by anyone who reads the repo. The token never enters the plan file or a worker's return.
-  Workers preload `mid-run-direction`: correct a wrong premise, grow the step but never move the
-  lane, guards or git posture, surface anything unanchored.
+  plan step as it is sent: the commit is judged against the step's `acceptance:`.
+- **A steer is authenticated on a per-dispatch token.** A steer arrives shaped like a
+  `system-reminder`, as injected text does, so the anchor is a token minted per dispatch that
+  planted content cannot quote (a plan step id is readable by anyone). The token never enters the
+  plan file or a worker's return. Workers preload `mid-run-direction`: correct a wrong premise,
+  grow the step but never move the lane, guards or git posture, surface anything unanchored.
 - **A truncated return is not a finished step.** Completeness is judged on content, the only
-  signal always present; the reconcile path is the durable-resume rule under another trigger.
-  It is the one mechanism for a worker cut off at `maxTurns`: a warning hook with a budget table
-  lockstepped to the agents duplicated it and went in 5.1.0 (#249).
-- **Right-size the model per delegation.** Run-and-report steps get speed; everywhere else the
-  override is omitted, since a wrong fast result costs more than the seconds saved.
+  signal always present. It is the one mechanism for a worker cut off at `maxTurns`; a warning
+  hook with a budget table duplicated it and was removed (#249).
+- **Right-size the model per delegation.** Run-and-report steps get speed; elsewhere the override
+  is omitted, since a wrong fast result costs more than the seconds saved.
 - **Builds and full suites are one delegated final gate**, not a per-step check: expensive and
   verbose, and a standalone build before the gate builds the same tree twice.
 - **A gate command ends inside the worker's turn.** A backgrounded command's late report can
   reach the UI and never the orchestrator (#239), so `/crew:review`'s wait recipe polls an exit
-  file in bounded calls and kills a timed-out gate as a process group. The recipe lives in
-  `scripts/gate.sh` because Claude's permission check refuses an inline compound recipe (`$$`,
-  then `{ … }`), and a headless worker cannot answer the prompt (#245). It takes the command as a
-  string, so its allow rule is as wide as allowing all Bash; reading a fixed crew-config slot
-  instead was declined, because a narrowed gate (named failing tests) could not use it. A worker
-  that still
-  backgrounds its own command is messaged for its report, and never reported on from a result
-  that has not arrived. The runner caches a green log by the tree's git hash, the physical
-  directory and the command: the skip rule that had `lead` record `HEAD` and a clean
-  status was prose, and a run that forgot it built the same tree twice. Red is never cached
-  (it may be contention); a run that changed the tree is not cached either (the key is taken
-  again at exit); the key ignores ignored files and the toolchain (an accepted gap; the user
-  clears the cache) and skips a tree that hashes with a gitlink, an untracked embedded repo
-  included (its dirty content is invisible to the outer hash); its fields are NUL-delimited
-  (a path or command may hold a newline); a hit is trusted only from an absolute cache
-  directory this user owns and others cannot write, with a failed permission query counting as
-  writable, since `/tmp` is shared and `CREW_GATE_CACHE_DIR` can name anything, and only when
-  the whole cached log copies (a half-read entry runs the gate). A Parallel gates run
-  passes `nocache`: the key excludes ignored files, so a run the recipe's tree check later
-  rejects would otherwise seed a green entry that the serial rerun then hits.
+  file in bounded calls and kills a timed-out gate as a process group. A worker that still
+  backgrounds its own command is messaged for its report, never reported on from a result that
+  has not arrived.
+- **The recipe lives in `scripts/gate.sh`** because Claude's permission check refuses an inline
+  compound recipe (`$$`, then `{ … }`), and a headless worker cannot answer the prompt (#245).
+  It takes the command as a string, so its allow rule is as wide as allowing all Bash. Reading a
+  fixed config slot instead was declined: a narrowed gate (named failing tests) could not use it.
+- **The gate command cache** replaces a prose skip rule that a run forgot, building the same tree
+  twice. A green log is keyed by the tree's git hash, the physical directory and the command;
+  fields are NUL-delimited, since a path or command may hold a newline. Never cached: red (it may
+  be contention), a run that changed the tree (the key is taken again at exit), a tree that
+  hashes with a gitlink or an untracked embedded repo (its dirty content is invisible to the
+  outer hash), and a Parallel gates run (`nocache`: a run the recipe's tree check later rejects
+  would seed a green entry the serial rerun then hits). A hit is trusted only from an absolute
+  cache directory this user owns and others cannot write (a failed permission query counts as
+  writable: `/tmp` is shared and `CREW_GATE_CACHE_DIR` can name anything), and only when the
+  whole log copies. Accepted gap: the key ignores ignored files and the toolchain; the user
+  clears the cache.
 - **Isolation or a path, decided at dispatch.** An isolated worktree auto-cleans a gitignored
   deliverable (#241), and a relocation steer is refused inconsistently (#242).
 - **Address review feedback** with the same lane routing, git ownership and gate that built the
@@ -215,6 +178,8 @@ motivation measurably helps compliance. Compression is not a quota.
 
 ### crew:debt (the debt lane)
 
+- **A skill, not a second orchestrator.** `claude --agent crew:lead` sessions can dispatch only
+  from the main thread, and an on-demand skill stays out of the footprint cap.
 - **A scout but no fixer of its own.** A fixer would duplicate `backend`/`frontend`'s lanes and
   contracts, so the fixer rules travel in each handoff. The audit greps untrusted content and
   must edit nothing; `debt-scout`'s `tools:` list without Edit/Write/Bash is the boundary, and
@@ -233,7 +198,7 @@ motivation measurably helps compliance. Compression is not a quota.
 - **Justified suppressions are read, never written** (#52). The store had to be the codebase:
   `memory: local` is per clone, a registry in the project's `AGENTS.md` rots by `file:line`, and
   the mechanism's native slot has keying, lifecycle and review locality for free. No ack command,
-  no crew token. Slot-less mechanisms fall to project policy or stay surfaced — accepted.
+  no crew token. Slot-less mechanisms fall to project policy or stay surfaced.
 - **`stale` ignores the filter and skipped tests are never excluded**: a justification explains
   why a suppression was added, not why it should stay, and the filter's failure mode is a scope
   reported clean because it excluded everything.
@@ -250,7 +215,7 @@ bash tests/hooks/run.sh
 ```
 
 `check-changelog.sh` is the one diff-based check, which is why it takes a ref and lives outside
-the tree-only `validate-plugin.sh`. See *Releasing*.
+the tree-only `validate-plugin.sh`.
 
 `validate-plugin.sh`'s sections, cited as `§N`: manifests §2, marketplace sync §2f, `skills:`
 resolution §2g, version ↔ changelog §2h, hook file modes §3, wiring §6 (§4–§5, §7 and §8 are
@@ -258,54 +223,56 @@ unused), rosters §9, prose refs §10, `crew.md` keys §11, footprint §12, MCP
 pairs §13, YAML frontmatter §14. §2g and §12 index skills through `git ls-files`, so stage a
 new or renamed skill file before running the validator.
 
-`plugins/<plugin>/tests/` is a bash suite — `jq` and `git` only, no LLM, no network — exercising
+`plugins/<plugin>/tests/` is a bash suite (`jq` and `git` only, no LLM, no network) exercising
 the hooks' behavior: each guard is a pure `stdin JSON → exit 0/2` function. The harness lives
 once in `tests/hooks/`; `run.sh` discovers every suite and **fails when a plugin ships `hooks/`
-with no suite beside it**. `format.sh` is covered through a fixture `formatMatrix` whose rows name faked tools. **A change to a guard's logic adds or adjusts a
-case, covering both the allow and the block side.**
+with no suite beside it**. `format.sh` is covered through a fixture `formatMatrix` whose rows
+name faked tools. **A change to a guard's logic adds or adjusts a case, covering both the allow
+and the block side.**
 
 The suite also self-tests the validator: **every section carries a negative fixture and a silent
 control, and a new section or guard lands with its fixture in the same commit.** A check that
 silently stops checking is the worst failure for an enforcement tool. Assert on the guard's own
 FAIL message, not the exit code: a minimal fixture trips unrelated sections.
 
-What the lockstep sections protect, one line each:
+What the lockstep sections protect:
 
-- **§2g** — a `skills:` typo fails silently at runtime; the agent guesses.
-- **§9** — a name missing from a guard's roster **fails open**: unrestricted git, no lane. Each
+- **§2g**: a `skills:` typo fails silently at runtime; the agent guesses.
+- **§9**: a name missing from a guard's roster **fails open**: unrestricted git, no lane. Each
   agent declares `owns-git` and `lane-guarded`; each roster carries a `# crew-roster:` marker in
   the load-bearing `a|b|c)` arm shape; exactly one git owner.
-- **§10** — a `crew:` reference in prose that resolves to no agent, command or skill fails late.
-- **§11** — `init.md` §1's `- **Slot** (`key`) —` bullets and `.claude/crew.md`'s keys agree both
+- **§10**: a `crew:` reference in prose that resolves to no agent, command or skill fails late.
+- **§11**: `init.md` §1's `- **Slot** (`key`) —` bullets and `.claude/crew.md`'s keys agree both
   ways, paired on the key.
-- **§12** — the always-loaded footprint (agent + preloaded skills) is reported; an agent may set
+- **§12**: the always-loaded footprint (agent + preloaded skills) is reported; an agent may set
   `loaded-lines-cap` (today `lead`) so growth is a visible frontmatter edit. An unparseable
   cap or unreadable file fails rather than counting zero.
-- **§13** — a plugin-bundled MCP server's tools are `mcp__plugin_<plugin>_<server>__…`, so every
+- **§13**: a plugin-bundled MCP server's tools are `mcp__plugin_<plugin>_<server>__…`, so every
   bare `mcp__<key>` grant needs its plugin form and vice versa, matched by suffix. Tool-scoped
   grants and a bare `mcp__*` are rejected; hosted connectors (`mcp__claude_ai_Figma`) are exempt.
-- **§14** — an unquoted YAML scalar with `: ` drops the whole frontmatter, so a skill never
+- **§14**: an unquoted YAML scalar with `: ` drops the whole frontmatter, so a skill never
   triggers while reading fine to a human. Wrap the value in double quotes.
+
+**Behavioral verification means running the scenario** from the plugin's
+[`VERIFICATION.md`](plugins/crew/VERIFICATION.md) and citing the observed result. "Would pass" is
+not verification, and neither is "needs a person": most rows run headless (`VERIFICATION.md`,
+*Running a row headless*), so run them before asking the maintainer to.
 
 ## Releasing
 
-Versions are per-plugin, and there is one rule: **a shipped change bumps the version.**
+Versions are per plugin, and one rule holds: **a shipped change bumps the version.** A tag
+carries everything merged since the previous tag, so an unbumped change ships inside the next
+release, described nowhere. Shipped means everything under `plugins/<name>/` except `tests/`,
+`CLAUDE.md`, `VERIFICATION.md` and `CHANGELOG.md` itself; `README.md` counts, and so does a
+comment inside a shipped hook. Repo-wide changes (CI, root docs, `scripts/`, `tests/`) need no
+bump. Patch for a fix, minor for an addition, major for a break; several in a day is fine.
 
 1. Bump `version` in `plugins/<name>/.claude-plugin/plugin.json` and add a matching `CHANGELOG.md`
-   entry in the same PR; §2h fails CI unless they agree.
+   entry in the same PR. §2h fails CI unless they agree, and `check-changelog.sh` fails a shipped
+   change without a bump.
 2. Merge to `main`. `auto-release.yml` sees the version has no `<plugin>/v<version>` tag, and
    creates the tag and GitHub Release with that version's changelog section
    (`scripts/release-notes.sh`). No entry → it skips with a warning.
-
-### A shipped change bumps the version
-
-A tag carries **everything** merged since the previous tag, so an unbumped change ships inside
-the next release, described nowhere (`crew/v3.15.0` did that to a README rewrite). So every PR
-that touches shipped files bumps — patch for a fix, minor for an addition, major for a break — a
-reworded refusal, a changed prompt, a comment inside a shipped hook, a README line included.
-Several in a day is fine. `check-changelog.sh` enforces it. Shipped means everything under
-`plugins/<name>/` except `tests/`, `CLAUDE.md`, `VERIFICATION.md` and `CHANGELOG.md` itself;
-`README.md` counts. Repo-wide changes (CI, root docs, `scripts/`, `tests/`) need no bump.
 
 **Changelog entries are terse.** One bullet per change under its Keep-a-Changelog heading, one
 line, two at most: *what changed*, with the PR as `(#N)`. The why belongs in the PR and commit.
@@ -313,15 +280,23 @@ line, two at most: *what changed*, with the PR as `(#N)`. The why belongs in the
 ## Conventions
 
 - Hooks are Bash (`#!/usr/bin/env bash`), shellcheck-clean, and **BSD/macOS-portable**: `mktemp`
-  with an explicit `XXXXXX` template, `[[:space:]]` not `\s`, no GNU-only flags.
+  with an explicit `XXXXXX` template, `[[:space:]]` not `\s`, no GNU-only flags. Quote every
+  expansion, array subscripts included; `if ! var="$(cmd)"` still assigns `var`.
 - Guards run before every tool call, so they match with `[[ =~ ]]` and parameter expansion, never
   a fork per pattern.
+- Code comments explain *why* in one or two lines; a longer rationale lives once, here or in the
+  changelog, and the comment points to it.
 - Agent/command/skill files are Markdown with YAML frontmatter; match the field shape of their
   neighbours. In an agent, `skills:` is the last key (§2g).
 - Local agent memory (`.claude/agent-memory-local/`) is gitignored. It and an unset plan directory
   resolve inside a **git worktree**, so `git worktree remove` deletes both; only committed content
   outlives it, which is what pointing `planDirectory` at a tracked path is for.
 - Keep diffs minimal-scope; list unrelated improvements rather than bundling them.
+- **Self-review the diff before every PR and every push to one**, merge and conflict-resolution
+  pushes included (a resolution is new code nobody has read). Use the repo rubric
+  (`.github/skills/code-review/SKILL.md`; the `crew-review` skill runs it with the checks and
+  reproduces each finding) and fix every Blocking and Warning first. Copilot reviews with the
+  same rubric, so what it would find, you find.
 - PR titles follow Conventional Commits, `type(scope): summary`, with `(vX.Y.Z)` when the PR bumps.
   Types: `feat`/`fix`/`chore`/`docs`/`ci`/`refactor`; scope the plugin when the change is
   plugin-specific (`feat(crew): … (v1.9.0)`).
@@ -329,9 +304,10 @@ line, two at most: *what changed*, with the PR as `(#N)`. The why belongs in the
   under 400 words. The body says why, and what a reviewer needs to approve safely. Never a
   self-review, a bugs-found log, a narrative, design alternatives, or pasted output; those go in
   the commit message (not budgeted), the issue, or a review thread. Verification is a result
-  ("ran X, all green"), not a transcript.
-- **Every review comment gets a reply, then the thread is resolved.** Fixed — name the commit.
-  Declining — say why. Duplicate — say which.
+  ("ran X, all green"), not a transcript. After merging `main` into a branch, refresh the
+  description: version ranges go stale.
+- **Every review comment gets a reply, then the thread is resolved.** Fixed: name the commit.
+  Declining: say why. Duplicate: say which.
 - A PR that resolves an issue links it with a closing keyword (`Closes #N`).
 - One branch and PR per issue, from the latest `main`: `git fetch origin main && git checkout -B
   <branch> origin/main`. A merged PR's branch is deleted; reusing the name leaves a stale tracking
@@ -339,7 +315,7 @@ line, two at most: *what changed*, with the PR as `(#N)`. The why belongs in the
 
 ### Writing style (READMEs, changelogs, PR bodies, issues)
 
-Prose here reads like a person wrote it; generated-sounding text is a trust problem, because the
+Prose here reads like a person wrote it. Generated-sounding text is a trust problem, because the
 same patterns let a claim slide through unbacked.
 
 - **Name the catch** next to the claim. Two lane-guard overclaims survived #178 because the
@@ -355,15 +331,14 @@ same patterns let a claim slide through unbacked.
 
 ### The Bash guards are floors, not sandboxes
 
-`bash-safety.sh` refuses a few command shapes. Two rules read like enforcement and are not; each
-was widened once and reverted, and the hooks point here so it is not tried a third time.
+`bash-safety.sh` refuses a few command shapes. The rules below read like enforcement and are
+not; several were widened once and reverted, and the hooks point here so it is not tried again.
 
 - **The raw-read rule is a habit redirect**, so it applies to agent sessions only (#249). It
-  blocks `cat f` and names `Read`; `grep . f`,
-  `awk`, `tail -n 999999`, `python3 -c` dump the same file and are allowed. A missed read costs
-  nothing, a wrong refusal costs a turn, so the pattern is one line and any pipe or redirect ends
-  the match. Following bytes through redirects needs bash's tokenizer (#226: two regressions in
-  six rounds, reverted).
+  blocks `cat f` and names `Read`; `grep . f`, `awk`, `tail -n 999999` and `python3 -c` dump the
+  same file and are allowed. A missed read costs nothing and a wrong refusal costs a turn, so the
+  pattern is one line and any pipe or redirect ends the match. Following bytes through redirects
+  needs bash's tokenizer (#226: two regressions in six rounds, reverted).
 - **`guard_normalize` flattens newlines, leaving a gap**: `cd sub` + newline + `git status` reads
   as one command and the no-git block misses it. Splitting on newlines refuses ordinary heredocs
   and quoted strings (#226 tried three shapes). Both gaps stay open: the worker's prompt keeps it
@@ -377,14 +352,13 @@ was widened once and reverted, and the hooks point here so it is not tried a thi
 - **A redirect outside the project is exempt, by allow-list** (#240): lanes and formatting guard
   only the checkout, and an out-of-tree build root is where builds write. Only an absolute path
   of plain segments outside `$CLAUDE_PROJECT_DIR` passes; `$`, backticks, globs, `.`, `..`, `//`,
-  hidden segments, quotes and an unset project dir all count as inside. #264 first tried to
-  reason about what bash would expand and leaked three rounds running. Open gaps: a symlink
-  outside the project that points into it (as with `/tmp` before), and a main checkout written
-  from a worktree session.
+  hidden segments, quotes and an unset project dir all count as inside. Reasoning about what bash
+  would expand leaked three rounds running (#264). Open gaps: a symlink outside the project that
+  points into it, and a main checkout written from a worktree session.
 - **The write scan reads heredoc bodies too**, so HTML or prose in one (`<h3>`, "apply the
   patch") is refused as a write. Write the text with `Write` to a scratch path and pass the file
-  instead (`--description @file`). #295 tried a heredoc reader; two review rounds each found a
-  bypass, so it was dropped.
+  instead (`--description @file`). A heredoc reader drew a bypass in each of two review rounds
+  and was dropped (#295).
 - **`rm -rf` refuses every target starting with `/`, `~` or `*`**, build dirs included. A
   whole-token match let `/*/` and `/tmp/../*` through (#264). Out-of-tree cleanup is `rm -r`.
 - **The `git mv` carve-out reads line starts because it is an allowance**: a false separator can
@@ -401,24 +375,19 @@ A value that is a property of the project and that a human can confirm once (the
 tools, the paths, the commands) is a slot in `.claude/crew.md`, proposed by `/crew:init` from the
 stack skills' *Crew config* sections and confirmed by the user. Hooks and `lead` read slots;
 none of them detects, and a missing slot is a stop naming `/crew:init`, never a guess. Until
-7.0.0 there were four detectors: this command, `lead`'s resolution table (every marker
-duplicated from `init.md`, plus a memory tier that made agent memory a second config store),
-`lane-guard.sh`'s marker scan (two framework allowlists whose miss failed open, a per-session
-cache file), and `format.sh`'s per-edit detection below. A rule of behavior (who owns git, what
-a lane may touch, which commands hang) stays in the crew; the Bash guards' command lists are
+7.0.0, `lead`, `lane-guard.sh` and `format.sh` each detected too: duplicated markers, misses that
+failed open, and agent memory as a second config store. A rule of behavior (who owns git, what a
+lane may touch, which commands hang) stays in the crew; the Bash guards' command lists are
 floors, not project knowledge.
 
 ### Why `format.sh` runs a matrix and detects nothing
 
-Until 6.0.0 the hook decided per edit which formatter a project had chosen: nearest config up
-the tree, a `[tool.ruff.format]` section, a Cargo edition from the owning manifest, gofumpt out
-of golangci YAML, Spotless across build files. That was 340 lines of detection with two awk
-parsers, and every stack added a lane with fixtures. The question it answered is a property of
-the project that a human confirms once, so it moved to `/crew:init`: the stack skills say what
-to propose, init proposes rows, the user confirms, and the hook only runs them. Consequences:
+Which formatter a project uses is a property of the project, so `/crew:init` proposes
+`formatMatrix` rows from the stack skills, the user confirms them, and the hook only runs them.
+Per-edit detection (340 lines and two awk parsers until 6.0.0) is gone. Consequences:
 
 - **No fallback.** A missing slot, `none` or `unset` means per-edit formatting is off and the
-  lint gate catches the result. Keeping detection as a fallback would keep the 340 lines.
+  lint gate catches the result. A detection fallback would keep the 340 lines.
 - **Staleness has two signals, neither a scan.** A tool that is gone exits 127, which the hook
   reports with a `/crew:init` nudge the worker hands back; a config that is new fails the lint
   gate on formatting alone, which `review-gate` reports as a stale matrix. `lead` never
@@ -432,29 +401,16 @@ to propose, init proposes rows, the user confirms, and the hook only runs them. 
   the stale-matrix report; a directory is single-quoted when it holds a space, and one holding
   a quote has no row.
 
-## Recurring review findings — apply proactively
+## Recurring review findings
 
 Patterns that showed up more than once in review on this repo. Apply them up front:
 
 - **Verify before filing a "nothing enforces this" issue.** Grep the implementation and this file
   first; a drift-guard issue was filed against a check the validator already had.
-- **A validator or guard fails loudly on every path where it cannot verify its claim** — a missing
+- **A validator or guard fails loudly on every path where it cannot verify its claim**: a missing
   input, invalid input, an unreachable check. Never skip silently.
 - **Anchor a delimiter split on the trusted field.** Splitting on the first occurrence is safe
   only when the field before it is a small controlled value that cannot contain the delimiter;
   put untrusted text last, or split from the end.
 - **A new conditional in a multi-mode flow is spelled out for every mode**, not only the default.
 - **State heuristics as heuristics.** "X is unlikely" is not "X can't happen".
-- **Bash: `if ! var="$(cmd)"` still assigns `var`**; don't comment that it is "never set".
-- **Quote every expansion, array subscripts included.**
-- **Keep inline comments short; the rationale lives once, here or in the changelog, with a pointer.**
-- **After merging `main` into a branch, refresh the PR description**: version ranges go stale.
-- **Self-review the diff before every PR and every push to one**, merge and conflict-resolution
-  pushes included (a resolution is new code nobody has read), with the repo rubric
-  (`.github/skills/code-review/SKILL.md`; the `crew-review` skill runs it with the checks and
-  reproduces each finding). Fix every Blocking and Warning first; Copilot reviews with the same
-  rubric, so what it would find, you find. Reviewers are the backstop, not the first pass.
-- **Behavioral verification means running the scenario**, from the plugin's
-  [`VERIFICATION.md`](plugins/crew/VERIFICATION.md), and citing the observed result. "Would pass"
-  is not verification, and neither is "needs a person": most rows run headless
-  (`VERIFICATION.md`, *Running a row headless*), so run them before asking the maintainer to.
