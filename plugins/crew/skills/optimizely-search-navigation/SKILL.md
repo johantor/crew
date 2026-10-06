@@ -6,9 +6,10 @@ description: Optimizely Search & Navigation (formerly Find) on CMS 12 and Custom
 # Optimizely Search & Navigation
 
 Search & Navigation (S&N, formerly Episerver Find) is a hosted search index for CMS 12 and
-Customized Commerce 14. It does not exist on CMS 13 and no CMS 13 support is planned, so new
-search work on a site that will upgrade goes to Optimizely Graph. Optimizely calls the switch
-a recommended step before the upgrade.
+Customized Commerce 14. It does not exist on CMS 13 and no CMS 13 support is planned, so a site
+that upgrades moves its search to Optimizely Graph. Optimizely recommends doing that move with
+the CMS 13 upgrade, not before: the Graph schema changes between 12 and 13, so queries written
+on 12 are written twice.
 
 ## Detect
 
@@ -40,12 +41,16 @@ a recommended step before the upgrade.
 ## Querying
 
 - In a CMS site use the registered client (`SearchClient.Instance`, or `IClient` by
-  constructor injection); never construct a new client per request.
+  constructor injection). Never create an `IClient` yourself: a client built after the
+  conventions are applied overwrites them.
 - Typed search: `client.Search<T>().For(query).Filter(x => ...).Skip(n).Take(n)`, then
-  `.GetContentResult()` for CMS content (cached for 1 minute) or `.GetResult()` (not cached).
-- Always filter what a visitor may see: `.FilterForVisitor()` (excludes deleted, applies
-  language and read access), or `.CurrentlyPublished()` + `.ExcludeDeleted()` +
-  `.FilterOnReadAccess()`; `.FilterOnCurrentSite()` on a multi-site install.
+  `.GetContentResult()` for CMS content or `.GetResult()`. Both are cached for 10 minutes by
+  default (`DefaultSearchCacheDuration`, in seconds; `0` turns it off); a query that must see
+  fresh content sets its own duration.
+- Always filter what a visitor may see: `.FilterForVisitor()` (`ExcludeDeleted()` +
+  `PublishedInCurrentLanguage()` + `FilterOnReadAccess()`); `.FilterOnCurrentSite()` on a
+  multi-site install. Built from parts, use `PublishedInCurrentLanguage()`:
+  `CurrentlyPublished()` accepts content published in any language.
 - Unified search: `client.UnifiedSearchFor(query).GetResult()` over `ISearchContent`; register
   types through `Conventions.UnifiedSearchRegistry`. `MultiUnifiedSearch()` batches up to 10.
 - Facets: `TermsFacetFor(x => x.Tag, f => f.Size = 20)` (default 10 terms; set `Size`, not
@@ -56,32 +61,40 @@ a recommended step before the upgrade.
 ## Limits
 
 - `Take` defaults to 10 and throws above 1,000; `Skip` + `Take` cannot reach past hit 10,000.
-- An index request is at most 50 MB (about 37 MB of content after encoding); a term over 8,191
-  bytes is not indexed.
-- A developer index (from find.optimizely.com) holds 10,000 documents, takes 20 queries per
-  second and is deleted after 30 days. Never point a production config at one.
+- An index request is at most 50 MB (about 37 MB of content after encoding); a string field
+  over 8,191 characters is neither indexed nor stored.
+- A developer index (from find.optimizely.com) holds 10,000 documents, takes 5 MB per request
+  and 20 queries per second, and is deleted after 30 days. Never point a production config at
+  one.
 
 ## Migrating to Graph
 
-Follow Optimizely's *Overview of migrating from Search & Navigation* guide. Do it as steps, each
-reviewable: install Graph beside S&N, run both, compare results, switch traffic, then remove S&N.
+Follow Optimizely's *Overview of migrating from Search & Navigation* guide, as reviewable steps.
+`EPiServer.Find.Cms` 17 requires CMS 12, so S&N and the CMS 13 SDK never run in one site: the
+CMS 12 site with S&N is the baseline to compare against.
 
-1. **Sync on CMS 12.** Add `EPiServer.ContentDeliveryApi.Cms` and `Optimizely.ContentGraph.Cms`,
-   register `AddContentDeliveryApi()` then `AddContentGraph()`, and run the full sync
-   (`optimizely-graph`).
-2. **Port the queries.** On CMS 12 the queries are plain GraphQL; `Optimizely.Graph.Client` is
-   deprecated and the CMS 13 SDK does not run on 12. On CMS 13 the SDK maps the Find API:
-   `Search<T>` → `QueryContent<T>`, `For` → `SearchFor`, `Filter` → `Where`, `Take` → `Limit`,
-   `GetResult()` → `await GetAsContentAsync()`, `TotalMatching` → `Total`. Replace `AddFind()`
-   with `AddContentGraph()` and `AddGraphContentClient()`.
-3. **Port the features.** Best bets become pinned results and synonyms move to Graph's REST
-   API, per language; neither has an admin UI. Autocomplete works only on string filter fields.
-   Title and URL overrides on best bets, did-you-mean, spellcheck and the statistics dashboard
-   have no equivalent: list each one the site uses and ask the operator before you drop it.
-4. **Unified search** has no one-to-one equivalent; query the base type (`Content` on 12,
-   `_Content` on 13) with the fields the result list shows.
-5. **Compare** the top results for the site's most common queries on both engines before you
-   switch, and keep S&N as a fallback until the switch is confirmed.
+1. **Pick the path.** By default, port search as part of the CMS 13 upgrade
+   (`optimizely-cms-upgrade`). Move on CMS 12 only when the site must leave S&N before 13; then
+   sync with `EPiServer.ContentDeliveryApi.Cms` and `Optimizely.ContentGraph.Cms`
+   (`AddContentDeliveryApi()` then `AddContentGraph()`, full sync), and write plain GraphQL,
+   since `Optimizely.Graph.Client` is deprecated and the CMS 13 SDK does not run on 12. Tell
+   the operator that those queries are rewritten at the upgrade.
+2. **Port the queries (CMS 13).** For CMS content the SDK maps the Find API: `Search<T>` →
+   `QueryContent<T>`, `For` → `SearchFor` (with `.UsingFullText()` or `.UsingField(...)`),
+   `Filter` → `Where`, `Take` → `Limit`, `GetResult()` → `await GetAsContentAsync()`,
+   `TotalMatching` → `Total` (add `.IncludeTotal()`, or it is null). Startup: remove
+   `AddFind()`, add `AddContentGraph()`, `AddGraphContentClient()` and `AddVisitorGroupsCore()`,
+   and `app.UseGraphTrackingScripts()` for tracking. Follow the guide's full startup diff.
+3. **Port the features.** Best bets become pinned results and synonyms are set per language,
+   both through Graph's REST API or the Search Management portal (beta). Autocomplete works
+   only on fields of type `StringFilterInput`, not on searchable strings such as `Name`, and S&N
+   autocomplete phrases do not carry over. Title and URL overrides on best bets, did-you-mean
+   and spellcheck have no equivalent: list each one the site uses and ask the operator before
+   you drop it.
+4. **Unified search** has no one-to-one equivalent; query the base type (`_Content` on 13) with
+   the fields the result list shows.
+5. **Compare** the top results for the site's most common queries against the CMS 12 baseline
+   before you switch, and keep the CMS 12 deployment until the switch is confirmed.
 
 ## Security
 
