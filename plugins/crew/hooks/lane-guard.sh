@@ -157,11 +157,14 @@ case "$agent_type" in
       fi
     fi
     ;;
-  # lead writes plans, ledgers, config, memory and scratch: a filename shape
-  # at any depth, never a directory (AGENTS.md, "Why `lead` is lane-guarded").
-  lead) mode="--allow"
+  # lead writes plans, ledgers, tickets, config, memory and scratch: a filename
+  # shape at any depth, never a directory root, plus anything outside the project
+  # (AGENTS.md, "Why `lead` is lane-guarded").
+  lead) guard_outside_project "$path" && exit 0
+            mode="--allow"
             patterns='plan-*.md */plan-*.md debt-*.md */debt-*.md crew.md */crew.md'
             patterns+=' */agent-memory-local/*.md */agent-memory/*.md'   # Markdown only
+            patterns+=' tickets/*.md */tickets/*.md'
             patterns+=' /tmp/** /private/tmp/** /var/folders/** /private/var/folders/**' ;;
   *) exit 0 ;;  # read-only agents never reach this hook
 esac
