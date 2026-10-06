@@ -14,7 +14,9 @@ carries:
 - `optimizely-graph` for `Optimizely.Graph.*` or `Optimizely.ContentGraph.*`;
 - `optimizely-search-navigation` for `EPiServer.Find*`;
 - `optimizely-odp` for `Optimizely.Cms.Odp`, `UNRVLD.ODP.VisitorGroups` or
-  `EPiServer.Commerce.ODP`.
+  `EPiServer.Commerce.ODP`;
+- `optimizely-opal` and `optimizely-opal-tools-dotnet` for `Optimizely.Opal.Tools` (or the
+  legacy `OptimizelyOpal.OpalToolsSDK`).
 
 Each product skill names its own markers and neighbours.
 

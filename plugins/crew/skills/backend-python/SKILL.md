@@ -13,6 +13,10 @@ Read the project's own layout before adding to it. A `src/<package>/` layout, a 
 the repo root, and a Django project with per-app directories are all valid shapes — match the one
 that is there rather than importing a layout from another project.
 
+Search the dependencies yourself for `optimizely-opal.opal-tools-sdk` (or `opal_tools_sdk`
+imports): it means an Opal custom tool, so also load `optimizely-opal` and
+`optimizely-opal-tools-python`.
+
 ## Crew config
 
 `/crew:init` proposes: build is the static gate — `mypy .` from a `[tool.mypy]`/`mypy.ini`,
