@@ -98,7 +98,7 @@ CMP, ODP) and third parties. The Zaius name remains: `@zaiusinc/*` packages, `fu
 
 ## Data sync sources and destinations
 
-- **Source:** a `sources:` entry (`description`, `schema`), then `await sources.emit(name, { data })`
+- **Source:** a `sources:` entry (`description`, `schema`), then `await sources.emit(name, {data})`
   from any function or job; a delete emits the primary key with `_isDeleted: true`.
 - **Destination:** `destinations: { <name>: { entry_point, schema, supports_delete } }` and a
   `Destination<T>` class: `ready()`, and `deliver(batch)` returning `{ success, retryable }` (the
