@@ -5,6 +5,18 @@ All notable changes to the `crew` plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.6.0] - 2026-10-06
+
+### Added
+
+- `frontend-razor` skill: Razor view rules for ASP.NET Core, plus the Optimizely CMS 12/13 view
+  rules (`epi-property`, ContentArea, client resources); both halves of a view load it (#293).
+
+### Removed
+
+- The Blade (Laravel) section of `frontend-server-rendered`: the crew supports no PHP stack
+  (#293).
+
 ## [10.5.0] - 2026-10-06
 
 ### Added

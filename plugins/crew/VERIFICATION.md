@@ -92,6 +92,11 @@ cannot show that `/crew:init` detected a stack or that a worker loaded a skill.
   and `Optimizely.Cms.Odp` → `backend` loads `optimizely-cms12` and `optimizely-odp`; a
   server-rendered layout with the `zaius` web tag → `frontend` loads `optimizely-odp`. (#292:
   `backend` cited `Site.csproj`; `frontend` cited `_Layout.cshtml` once the skill said to search.)
+- [x] **A Razor view loads the Razor skill** — a dotnet scratch repo with `EPiServer.CMS` `12.*`,
+  a `.cshtml` layout and `frontendMode: server-rendered` → `frontend` loads
+  `frontend-server-rendered` and `frontend-razor`; `backend` asked to change a view model
+  loads `frontend-razor` too. (#293: `frontend` cited the `.cshtml` target; `backend` cited
+  `backend-dotnet`'s rule and also loaded `optimizely-cms12` from `Site.csproj`.)
 - [x] **A worker's tool calls arrive namespaced** — a `crew:backend` dispatch's Bash call carries
   `agent_type: crew:backend`, a project agent `.claude/agents/backend.md` carries `backend` and
   runs `git status` unrefused. (#272, observed through a logging `PreToolUse` hook.)
