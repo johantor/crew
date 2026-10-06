@@ -7,7 +7,9 @@ description: Node backend stack conventions — service framework conventions (N
 
 You are working in a Node backend: a service framework (NestJS, Express, or Fastify — follow
 whichever the project already uses), a headless-CMS/Graph client (e.g. Optimizely Graph), and
-an npm/pnpm/yarn workspace.
+an npm/pnpm/yarn workspace. Search the repo for Optimizely Graph markers yourself
+(`cg.optimizely.com`, `@optimizely/cms-sdk`, `@remkoj/optimizely-graph-client`); if one is
+present, also load `optimizely-graph`.
 
 In a SaaS-headless project shape, the "backend" may be thin — a BFF layer or a handful of API
 routes wrapping Graph queries. Don't invent backend surface area the project doesn't have; a

@@ -5,6 +5,14 @@ All notable changes to the `crew` plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.2.0] - 2026-10-05
+
+### Added
+
+- `optimizely-graph` skill: detection, sync, querying from .NET and headless front ends, keys,
+  caching, search and facets. The CMS skills, `backend-dotnet`, `backend-node` and
+  `frontend-headless` name its markers (#276).
+
 ## [10.1.1] - 2026-10-05
 
 ### Changed

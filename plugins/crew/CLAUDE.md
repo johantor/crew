@@ -66,6 +66,8 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
     load covers it; a migration between versions is its own skill (`optimizely-cms-upgrade`). Facts
     come from docs.optimizely.com: re-check a skill's sources when you touch it. Name a
     neighbour skill only once it ships; a missing skill makes the `Skill` call fail.
+    `optimizely-graph` is the one a non-.NET worker loads too: `backend-node` and
+    `frontend-headless` name its markers, and the worker greps for them itself.
 - `hooks/` — wired in `hooks/hooks.json`, the one copy; in this repo they load through
   `claude --plugin-dir plugins/crew`. `bash-safety` and `lane-guard` fail closed; `read-guard`, `format`,
   `dispatch-denied` and `plan-guard` fail open.
