@@ -9,13 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- `backendStack: other`, best effort, for a stack the crew ships no skill for: `/crew:init`
-  proposes it for a repo with only unsupported markers (and for a stale crew 6 pin) and asks
-  for the commands; the new `backendSkill` slot names the project's own skill, which `lead`
-  passes to `backend` and `unit-tests`.
-- `lane-guard` refuses `other` beside a frontend until lane paths are set, lets `backend` own
-  the tree when there is no frontend, and widens `unit-tests` to `test/`, `spec/`, `*_test.*`
-  and `*_spec.*` (#274).
+- `backendStack: other`, best effort, for a stack with no crew skill: `/crew:init` proposes it,
+  and the new `backendSkill` slot names the project's own skill (#274).
+- `lane-guard` refuses `other` beside a frontend without lane paths, and widens `unit-tests` to
+  `test/`, `spec/`, `*_test.*` and `*_spec.*` under it (#274).
 
 ## [10.9.1] - 2026-10-06
 
