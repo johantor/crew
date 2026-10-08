@@ -124,14 +124,14 @@ Standard flow (each phase detailed below):
 1. **Explore and plan.** Read crew config: backend stack, base branch/naming, and **frontend
    stack**; then frontend mode and the test-tool slots **only if** that stack is not `none`
    (*Resolving crew configuration*). When the task names a tracked ticket, pull it for the
-   source brief through a tracker MCP you see, else its CLI read-only (`az boards`, `gh issue`);
+   source brief as `${CLAUDE_PLUGIN_ROOT}/commands/triage.md` resolves a work-item reference;
    for a bug tied to a monitored error, pull context from a Sentry MCP. Apply `context-discipline`
    (fetch the specific item, not a dump). **When the task is a regression rather than new work**
    (a bug report, a stack trace, "this broke last Tuesday"), delegate to `crew:incident-triage`
-   **before planning**, the pulled item as a fenced `resolved-from:` block and its ID as
-   `work-item:`, and plan against the pointer it returns. Pass the deploy workflow/environment
-   the user named, with the records `${CLAUDE_PLUGIN_ROOT}/commands/triage.md` says to fetch —
-   no config slot holds it, so without one its correlation stays on the weakest rung. Carry any work-item ID it reports into the branch
+   **before planning**, and plan against the pointer it returns. Fetch and pass what that file
+   says (the item, deploy records, commits; diffs on `diffs-wanted:`), with the deploy
+   workflow/environment the user named — no config slot holds it, so without one its
+   correlation stays on the weakest rung. Carry any work-item ID it reports into the branch
    name and the plan header. **For a feature**, in the same pre-plan phase: dispatch
    `crew:analyst` when the brief lacks testable acceptance criteria (hand it the ticket as data),
    and `crew:architect` when the work adds or changes a content model, Graph schema, catalog or

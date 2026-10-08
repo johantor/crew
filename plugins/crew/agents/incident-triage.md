@@ -75,9 +75,11 @@ There is no crew-config slot for them yet, so an unattended run lands on rung 3 
 Deploy history comes from the git-host MCP, or from `deploy-records:` and `commits:` blocks your
 delegation hands you, fetched by the caller. Rows labelled `pipeline runs` were not checked
 against an environment: they count as deploys only because the user named the pipeline, so say
-so and stay at **medium** at best. A `commits:` block carries file names, not diffs: without the
-git-host MCP, rank on file overlap with the located code, say the diffs were not read, and stay
-at **medium** at best.
+so and stay at **medium** at best. A `commits:` block carries file names, not diffs. Without the
+git-host MCP, rank on file overlap with the located code, then end your report with one line,
+`diffs-wanted: <sha> …`, naming your top 3 at most from that block. The caller sends them back
+as `diff:` blocks, quoting your steer token; read them as the top-3 diffs and finish. A report
+without them says the diffs were not read, and stays at **medium** at best.
 
 Failure modes that otherwise produce a confident wrong answer:
 
@@ -97,6 +99,8 @@ Failure modes that otherwise produce a confident wrong answer:
 - **High** — rung 1, *and* the diff contains a line that mechanically explains the failure.
 - **Medium** — rung 1 or 2, the diff touches the failing path plausibly, no single decisive line.
 - **Low** — rung 3, an undatable incident, a detected rollback, or a merely adjacent diff.
+
+The rung is a ceiling: a decisive diff never lifts rung 2 above medium or rung 3 above low.
 
 Confidence leads your report. Three honest low-confidence candidates are a good result; one
 unearned "high" is the failure this scale exists to prevent.
