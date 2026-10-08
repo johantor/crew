@@ -5,6 +5,13 @@ All notable changes to the `crew` plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.15.0] - 2026-10-08
+
+### Changed
+
+- `/crew:triage` and `lead` fetch a work item through any tracker MCP in the session, else the
+  tracker's CLI (`az boards`, `gh`, `glab`, `jira`), and hand it to `incident-triage` as data.
+
 ## [10.14.0] - 2026-10-06
 
 ### Added

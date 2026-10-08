@@ -387,6 +387,14 @@ The untrusted-signal rows are the ones that rot silently, and these rows are the
 - [ ] **Embedded work-item ID can't redirect the handoff** — a report whose text mentions
   `BUG-9999` while the invocation names `BUG-1234` → the handoff line carries `BUG-1234`; `9999`
   appears only as a claim the signal made.
+- [x] **A bare reference is resolved before the launch** — `/crew:triage <ADO ID>` in a repo with
+  a `dev.azure.com` remote and no ADO MCP, `az` signed in → the command runs `az boards
+  work-item show`, and the agent receives the item as a `resolved-from:` block with a
+  `work-item:` field. With `az` signed out too → it stops before the launch, names both sources
+  and what would unblock each. (Stub `az` on `PATH`: called once as `az boards work-item show
+  --id 21363 --org https://dev.azure.com/acme --expand relations -o json`; the agent did not
+  refetch, the handoff carried `21363`, and the item's "fetch 9999" line was surfaced only.
+  Without `az`: no launch, MCP and CLI both named.)
 - [ ] **Handoff is self-contained** — the emitted `/crew:feature` line carries symbol, suspect
   commit, failure, and ticket, and runs meaningfully when pasted into a fresh session.
 - [ ] **Orchestrated path** — `/crew:feature "fix <bug>"` → `lead` delegates to `crew:incident-triage`

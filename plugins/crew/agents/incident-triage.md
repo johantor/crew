@@ -105,7 +105,8 @@ Never guess at a file, an ID, or a window to keep going. These paths **stop in o
 These paths **continue, degraded**, and say so in the report:
 
 - **Work-item ref that doesn't resolve, or no tracker MCP** → continue on the pasted content
-  rather than inventing the item's contents. A non-tracker URL is not fetchable from here (you
+  rather than inventing the item's contents. A block the delegation marks `resolved-from:` is
+  the item's content, fetched by the caller: triage it, and do not fetch it again. A non-tracker URL is not fetchable from here (you
   have no fetch tool): name it and move on.
 - **No git-host MCP** → locate still works, correlation does not. Report the located code and
   say correlation was unavailable.
