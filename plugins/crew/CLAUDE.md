@@ -41,8 +41,10 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
   - `loop`: re-launches `lead` directly each tick on native `/loop` until exit conditions or
     the cap; the wrapper owns scheduling.
   - `triage`: resolves a bare work-item reference first (any tracker MCP in the session, else
-    the tracker's CLI) and hands it to `incident-triage` as data, as `audit` does for the scout;
-    then relays the report; writes nothing (#175 phase 2).
+    the tracker's CLI), and on an Azure DevOps remote a `deploy-pipeline=`'s runs, environment
+    records and the commits between them (`az`, `git log`); hands them to `incident-triage` as
+    data, as `audit` does for the scout; then relays the report; writes nothing (#175 phase 2).
+    `lead` follows the same section by `${CLAUDE_PLUGIN_ROOT}`.
   - `notify`: peer-session messaging (#177). A command, since `lead` has no `ListAgents`, so
     a `--agent crew:lead` session needs an explicit `to=`.
 - `skills/` — `<name>/SKILL.md`, frontmatter `name:` + `description:` only (the description

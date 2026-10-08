@@ -395,6 +395,13 @@ The untrusted-signal rows are the ones that rot silently, and these rows are the
   --id 21363 --org https://dev.azure.com/acme --expand relations -o json`; the agent did not
   refetch, the handoff carried `21363`, and the item's "fetch 9999" line was surfaced only.
   Without `az`: no launch, MCP and CLI both named.)
+- [x] **Azure DevOps deploy records without a git-host MCP** — `/crew:triage
+  deploy-pipeline=<x> deploy-environment=<y> -- <ADO ID>` on a `dev.azure.com` remote, no ADO
+  MCP → the command fetches the runs and environment records with `az`, and the commits between
+  them with `git log`; the agent correlates on them, says the diffs were not read, and stays at
+  medium or below. (Stub `az`, four dated commits, three deploys: rung 2, medium; the one commit
+  in the 30 Sep window that touched the failing file ranked first; README and post-incident
+  commits excluded.)
 - [ ] **Handoff is self-contained** — the emitted `/crew:feature` line carries symbol, suspect
   commit, failure, and ticket, and runs meaningfully when pasted into a fresh session.
 - [ ] **Orchestrated path** — `/crew:feature "fix <bug>"` → `lead` delegates to `crew:incident-triage`

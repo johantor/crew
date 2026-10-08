@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `/crew:triage` and `lead` fetch a work item through any tracker MCP in the session, else the
   tracker's CLI (`az boards`, `gh`, `glab`, `jira`), and hand it to `incident-triage` as data.
+- On Azure DevOps, `/crew:triage` fetches a `deploy-pipeline=`'s runs, environment records and
+  commits with `az pipelines` and `git log`, so correlation works without a git-host MCP.
 
 ## [10.14.0] - 2026-10-06
 
