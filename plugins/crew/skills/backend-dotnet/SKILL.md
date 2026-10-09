@@ -1,6 +1,6 @@
 ---
 name: backend-dotnet
-description: .NET backend stack conventions — MVC controllers, Razor server-side ownership, dotnet build specifics. Load when the resolved backend stack is dotnet. If the project also uses Optimizely, also load the matching `optimizely-<product>` skill.
+description: .NET backend stack conventions — MVC controllers, Razor server-side ownership, DI lifetime changes, dotnet build specifics. Load when the resolved backend stack is dotnet. If the project also uses Optimizely, also load the matching `optimizely-<product>` skill.
 ---
 
 # Backend: .NET
@@ -43,6 +43,28 @@ flow over data, and data access. In server-rendered mode, frontend owns the *mar
 rather than reworking the markup yourself. In headless mode, Razor is entirely yours. Load
 `frontend-razor` before you change a `.cshtml` file: it holds the view rules, the Optimizely
 ones included.
+
+## Design judgment
+
+### A DI lifetime change moves cost; it does not remove it
+
+`AddTransient` → `AddScoped` → `AddSingleton` (or the reverse) is a one-word diff that reads as
+a free performance win. It moves work and state instead:
+
+- **Toward singleton:** construction moves to first resolution, and any per-request state the
+  type holds becomes shared, mutable state across concurrent requests.
+- **Toward transient:** the sharing goes, but construction multiplies — and with it whatever the
+  constructor does (a connection, a cache warm-up, an options bind, an `HttpClient`).
+- **Captive dependency:** a longer-lived service that takes a shorter-lived one (a singleton
+  holding a scoped `DbContext`) keeps it past its scope. Scope validation catches this only
+  where it is on (Development by default), so it fails in production, not in tests.
+
+Before you change a lifetime, or approve one, answer each of these in your findings:
+
+- What state does the type hold, and is it thread-safe at the new lifetime?
+- What does the constructor do, and how often does it now run?
+- Does it, or anything it resolves, depend on a shorter-lived service?
+- Which cost moved, and to where: startup, per request, or per resolution?
 
 ## Build
 
