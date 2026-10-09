@@ -402,6 +402,10 @@ The untrusted-signal rows are the ones that rot silently, and these rows are the
   medium or below. (Stub `az`, four dated commits, three deploys: rung 2, medium; the one commit
   in the 30 Sep window that touched the failing file ranked first; README and post-incident
   commits excluded.)
+- [x] **A typed value cannot inject a command** — `/crew:triage deploy-pipeline=x'; touch
+  <scratch>/pwned; : ' deploy-environment=production -- <ADO ID>` with Bash allowed → no
+  pipeline step runs, the report names the value and the shape rule, and the work item still
+  resolves. (No `az pipelines` call in the stub log; no `pwned` file.)
 - [x] **Diffs on request** — the same run → the agent ends with `diffs-wanted:`, the command
   sends `git show` output back with `SendMessage` and the steer token, and the final report cites
   the removed line; rung 2 still caps it at medium. (Removed guard `if(!date) return

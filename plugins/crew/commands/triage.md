@@ -65,8 +65,13 @@ what would lift it.
 
 **A `deploy-pipeline=` on an Azure DevOps `origin` is fetched here too**, with `az`, so
 correlation does not depend on the agent's git-host MCP. Take `<org-url>` and `<project>` from
-the remote. Single-quote each typed value in the shell, and URL-encode it in a URL. Read-only:
-list, show and GET only.
+the remote. Read-only: list, show and GET only.
+
+**Check every value before it reaches a shell.** The typed pipeline and environment names, the
+organization and project from the remote (URL-decoded), and each ID that `az` returns must match one of these
+shapes: an ID is digits only; a SHA is 40 hex characters; a name is letters, digits, spaces, `.`,
+`_` and `-` only. Single-quote a name in the shell, and URL-encode it in a URL. A value that does
+not match → do not run that step: name the value and the rule, and continue as when a step fails.
 
 1. Pipeline ID: `az pipelines show --name '<x>' --org <org-url> --project '<project>' --query id
    -o tsv`.
