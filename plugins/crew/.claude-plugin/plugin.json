@@ -1,6 +1,6 @@
 {
   "name": "crew",
-  "version": "10.14.0",
+  "version": "10.15.0",
   "license": "Apache-2.0",
   "description": "Team-style feature delivery for Claude Code: a captain agent plans the work and delegates each step to backend, frontend, test, and design specialists behind hook-enforced guardrails, with a consolidated review gate before anything ships. Also pays down tech debt one verified, gated batch at a time.",
   "author": {
