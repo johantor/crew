@@ -5,12 +5,21 @@ All notable changes to the `crew` plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [10.16.0] - 2026-10-09
+## [10.17.0] - 2026-10-09
 
 ### Changed
 
 - `lead` names the mechanism in each dispatch (extension point plus an existing call site), or
-  leaves it to the worker explicitly (#195).
+  leaves it to the worker explicitly (#312).
+
+## [10.16.0] - 2026-10-09
+
+### Added
+
+- `backend-dotnet` has a *Design judgment* section: a DI lifetime change moves cost and state,
+  and the four questions to answer before you make or approve one (#196).
+- `/crew:review` applies the `backend-<stack>` skill's *Design judgment* section to a backend
+  change (#311).
 
 ## [10.15.0] - 2026-10-08
 

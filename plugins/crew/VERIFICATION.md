@@ -165,6 +165,12 @@ cannot show that `/crew:init` detected a stack or that a worker loaded a skill.
   lists the first under Blocking, the root `CLAUDE.md` rule and `web/app.sh`'s `printf` under
   Warnings, each citing its file, and does not apply the `web/` rule to the root script.
   (#309: as described. Before the `Glob` step, `web/app.sh` passed.)
+- [x] **A DI lifetime change is reviewed as moved cost** — a dotnet scratch repo whose diff turns
+  `AddSingleton<PriceClient>` into `AddTransient`, with `new HttpClient` and a file read in the
+  constructor → `/crew:review quick` loads `backend-dotnet`, applies its *Design judgment*
+  checklist, and lists both costs, multiplied per resolution, under Blocking. (#311: as
+  described. Before step 3 named the skill, it loaded only for `review-gate`, and the same diff
+  landed under Warnings.)
 - [x] **Format matrix from init** — a scratch repo with a `.prettierrc` and a fake
   `node_modules/.bin/prettier` that logs its calls, `/crew:init` → the proposed `formatMatrix`
   has a `. ts node_modules/.bin/prettier --write {file}` row; after confirming, a `backend` edit
