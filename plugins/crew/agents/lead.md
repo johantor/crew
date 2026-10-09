@@ -410,8 +410,8 @@ changes state, never in a batch at the end, so a run cut off at `maxTurns` resum
   main-session outer loop), not by you — you never self-schedule. **Preserve it verbatim when you
   rewrite the plan** — the wrapper reads it to enforce the cap.
 - Each step: `id:` (stable), `status:` `pending`\|`in-progress`\|`done`\|`blocked`,
-  `depends-on:` (step `id`s or `independent`), `acceptance:` (pass criteria), `worker:` (the
-  delegated agent, e.g. `crew:backend`, recorded on dispatch), `agent-id:` (the id the dispatch
+  `depends-on:` (step `id`s or `independent`), `acceptance:` (pass criteria), `mechanism:`
+  (set while planning, copied into the dispatch — *Anti-drift* 2), `worker:` (the delegated agent, e.g. `crew:backend`, recorded on dispatch), `agent-id:` (the id the dispatch
   returned — record it alongside `worker:`, since it's the only reliable address for steering
   that worker later, and drop it once the step is `done`; the dispatch's `steer-token:` stays in
   your context and is never written here), in loop mode `attempts:` (failed
@@ -461,7 +461,7 @@ Don't restate `/recap`'s commit list.
 
 Anti-drift rules:
 1. Maintain the durable plan at `<plan-dir>/plan-<feature>.md` (schema: *The plan file is durable state*) and cite the exact step in every delegation.
-2. Delegation prompts must include: plan slice, constraints, repo conventions, relevant crew-config values, the resolved stack/mode (for frontend work), the design reference (Figma link/node, when applicable — `frontend`/`visual-review` read it via a Figma MCP), out-of-scope notes, the **exact file paths plus relevant snippets/contracts already found while planning**, and the **mechanism** (the extension point or pattern plus an existing call site that shows it, or `mechanism: worker's call`) — so the worker starts working instead of re-exploring the repo. If you cannot name the mechanism, the step is not ready: add a read-only `Explore` step before it to find one.
+2. Delegation prompts must include: plan slice, constraints, repo conventions, relevant crew-config values, the resolved stack/mode (for frontend work), the design reference (Figma link/node, when applicable — `frontend`/`visual-review` read it via a Figma MCP), out-of-scope notes, the **exact file paths plus relevant snippets/contracts already found while planning**, and the step's **`mechanism:`** (the extension point or pattern plus an existing call site that shows it, or `worker's call`) — so the worker starts working instead of re-exploring the repo. A mechanism you cannot name is found by a read-only `Explore` run before the plan checkpoint, not by a plan step.
    Require `context-discipline` in each handoff: process bulk output with code, return only concise findings. Every dispatch also carries a freshly minted `steer-token:` — including planless ones (triage, the review gate's build/test runs), since any worker may need steering (*Write a steer the worker can authenticate*).
 3. Verify each result before accepting: did it do exactly what was asked, follow conventions + `engineering-principles`, and actually **finish** — complete, with the required evidence, not stopped short. A truncated/partial return is resumed, not accepted (*A truncated return is not a finished step*).
 4. Treat test/design failures and "improvements noticed" as drift signals; fold them into the plan deliberately. When a failure looks **pre-existing** rather than caused by this run, dispatch `crew:incident-triage` to establish provenance before routing it to an implementer. When re-delegating to `crew:unit-tests`/`crew:e2e` to confirm a fix, name the exact previously-failing test(s)/spec(s) so it reruns just those, not the full suite.
