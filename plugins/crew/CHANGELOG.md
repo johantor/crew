@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `backend-dotnet` has a *Design judgment* section: a DI lifetime change moves cost and state,
   and the four questions to answer before you make or approve one (#196).
+- `/crew:review` applies the `backend-<stack>` skill's *Design judgment* section to a backend
+  change (#311).
 
 ## [10.15.0] - 2026-10-08
 

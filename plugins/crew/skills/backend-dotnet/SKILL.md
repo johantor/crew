@@ -56,9 +56,9 @@ a free performance win. It moves work and state instead:
 - **Toward transient:** the sharing goes, but construction multiplies — and with it whatever the
   constructor does (a connection, a cache warm-up, an options bind, an `HttpClient`).
 - **Captive dependency:** a longer-lived service that takes a shorter-lived one (a singleton
-  holding a scoped `DbContext`) keeps it past its scope. Where scope validation is on
-  (Development by default), resolving it throws; elsewhere the scoped object is silently shared
-  across requests until concurrency, stale state or disposal exposes it.
+  holding a scoped `DbContext`) keeps it past its scope. Scope validation (on in Development by
+  default) throws only for a scoped dependency; a captured transient, or a scoped one where
+  validation is off, is silently shared until concurrency, stale state or disposal exposes it.
 
 Before you change a lifetime, or approve one, answer each of these in your findings:
 
