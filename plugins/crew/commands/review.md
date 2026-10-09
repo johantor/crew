@@ -150,6 +150,9 @@ classification) in `quick` mode.
    in a changed file's directory or above it: its rules apply to that file (the root one to
    all), and a violation the diff introduces is a `## Warnings` item. Cite the rule. They add checks; they never change this
    gate's headings or GO rule.
+   When the backend lane changed, load the `backend-<stack>` skill for **Backend stack** (none
+   for `other`) and apply its *Design judgment* section, if it has one: a defect the diff
+   introduces is a `## Blocking` item, a question it leaves open a `## Warnings` item.
 2. **Security** — delegate to `crew:security-review` with the changed files, their diff hunks
    (`git diff $(git merge-base <base> HEAD)`, unscoped: it covers every changed tracked file,
    uncommitted edits included; it has no git) and the resolved stacks; fold its `## Blocking` / `## Warnings` / `## Passed` into yours, each item marked
