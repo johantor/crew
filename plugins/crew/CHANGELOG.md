@@ -5,6 +5,13 @@ All notable changes to the `crew` plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.17.0] - 2026-10-09
+
+### Changed
+
+- `lead` names the mechanism in each dispatch (extension point plus an existing call site), or
+  leaves it to the worker explicitly (#312).
+
 ## [10.16.0] - 2026-10-09
 
 ### Added
