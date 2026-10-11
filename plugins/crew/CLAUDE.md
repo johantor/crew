@@ -179,8 +179,8 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
   §"The plan file is durable state" — header `feature:`/`base-branch:`/`feature-branch:` +
   inner-loop fields (`loop:`, `exit-conditions:`, `gate:`) + outer-loop bookkeeping
   (`iterations: n/max`, written by the `/crew:loop` wrapper, not lead);
-  steps carry `id:`/`status:`/`depends-on:`/`acceptance:`/`worker:`/`attempts:`/`evidence:`, plus
-  `agent-id:` while in flight (cleared when the step leaves `in-progress`). The `steer-token:`
+  steps carry `id:`/`status:`/`depends-on:`/`acceptance:`/`mechanism:`/`worker:`/`attempts:`/
+  `evidence:`, plus `agent-id:` while in flight (cleared when the step leaves `in-progress`). The `steer-token:`
   **never** lands in the plan file, since a plan dir can be committed; a resumed run
   re-dispatches instead of steering orphans.
 - Loop mode: generic contract in the shared `loop-engineering` skill; crew bindings (gate GO

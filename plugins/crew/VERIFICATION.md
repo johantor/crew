@@ -43,6 +43,13 @@ Most rows run in one or two minutes without a person at the keyboard:
   against git, and resumes from the first unfinished step without re-planning or re-asking.
 - [ ] **`in-progress` reset on crash** — a step left `in-progress` by a lost round-trip is
   re-verified against the tree and reset to `pending` if unmet, not trusted as `done`.
+- [ ] **Mechanism reaches the dispatch** — a task whose extension point has one call site in the
+  repo → each plan step carries `mechanism:` naming that call site, and the dispatch quotes it; a
+  task with no visible mechanism → `lead` finds one before the checkpoint (`Explore`, or its own
+  reads under `/crew:feature`), not as a step.
+  (#312, partial: the `generalist` dispatch quoted the dispatcher and `hello.sh` as the
+  mechanism, and the full-lane plan named both; `-p` refused the plan-file write, so the
+  `mechanism:` field and the `Explore` case are not yet observed.)
 
 ### Plan mode
 
