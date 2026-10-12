@@ -11,10 +11,13 @@ HOOK="lane-guard.sh"
 assert_note() {
   local label="$1" hook="$2" payload="$3" substr="$4" cwd="${5:-}" ctx
   run_hook "$hook" "$payload" "$cwd"
-  ctx="$(jq -r '.hookSpecificOutput.additionalContext // empty' <<<"$_stdout" 2>/dev/null)"
+  # The whole contract: a PreToolUse event, no decision field, a `Lane note:` prefix.
+  ctx="$(jq -r 'select((.hookSpecificOutput | keys) == ["additionalContext","hookEventName"]
+                and .hookSpecificOutput.hookEventName == "PreToolUse" and (keys == ["hookSpecificOutput"]))
+                | .hookSpecificOutput.additionalContext' <<<"$_stdout" 2>/dev/null)"
   if [ "$_status" -ne 0 ] || [ -n "$_stderr" ]; then
     _fail "$label: expected a note (exit 0, no stderr), got exit $_status${_stderr:+ — stderr: $_stderr}"
-  elif [[ "$ctx" != *"$substr"* ]]; then
+  elif [[ "$ctx" != "Lane note: "* || "$ctx" != *"$substr"* ]]; then
     _fail "$label: expected a note with '$substr' (got: $_stdout)"
   else
     _pass
