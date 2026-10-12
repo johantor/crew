@@ -50,6 +50,11 @@ Most rows run in one or two minutes without a person at the keyboard:
   (#312, partial: the `generalist` dispatch quoted the dispatcher and `hello.sh` as the
   mechanism, and the full-lane plan named both; `-p` refused the plan-file write, so the
   `mechanism:` field and the `Explore` case are not yet observed.)
+- [x] **A ticket reaches the plan and the PR** — on a `github.com` remote with a stub `gh`,
+  `claude --agent crew:lead --permission-mode plan -p 'Implement GitHub issue #7.'` → the plan
+  header has `work-item: #7`, the branch is `feature/7-<slug>`, and each acceptance criterion is
+  quoted into a step's `acceptance:`; `/crew:pr` from that plan ends the body with `Closes #7`.
+  (#PR: observed all four; the PR run took the no-MCP path and pushed nothing.)
 
 ### Plan mode
 
