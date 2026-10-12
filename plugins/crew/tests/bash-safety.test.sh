@@ -81,6 +81,7 @@ for cmd in \
   'TOKEN=$(az account get-access-token --query accessToken -o tsv)' \
   'pwsh -c "az account get-access-token"' \
   'az --only-show-errors account get-access-token' \
+  'az --subscription demo account get-access-token' \
   '/usr/bin/az account get-access-token' \
   'az.cmd account get-access-token' \
   "pwsh -c '(Get-AzAccessToken -ResourceUrl https://management.azure.com).Token'" \

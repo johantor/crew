@@ -229,7 +229,7 @@ GUARD_RE_REDIRECT='([0-9]*|&)>>?\|?[[:space:]]*([^[:space:];|&<>]*)'
 # after `=`, since an agent wraps it in `powershell -Command "..."`. A floor of
 # three spellings: AGENTS.md, "The Bash guards are floors, not sandboxes".
 _g_tokpos='(^|[[:space:];|&(=`"'"'"'])'
-GUARD_RE_TOKEN_MINT="${_g_tokpos}"'(([^[:space:]]*/)?az(\.cmd|\.exe)?([[:space:]]+-[^[:space:]]+)*[[:space:]]+account[[:space:]]+get-access-token|Get-AzAccessToken|([^[:space:]]*/)?gh(\.exe)?[[:space:]]+auth[[:space:]]+token)([^A-Za-z0-9-]|$)'
+GUARD_RE_TOKEN_MINT="${_g_tokpos}"'(([^[:space:]]*/)?az(\.cmd|\.exe)?[[:space:]]+'"${_g_gitopt}"'account[[:space:]]+get-access-token|Get-AzAccessToken|([^[:space:]]*/)?gh(\.exe)?[[:space:]]+auth[[:space:]]+token)([^A-Za-z0-9-]|$)'
 
 # --------------------------------------------------------- blocking helpers
 #
