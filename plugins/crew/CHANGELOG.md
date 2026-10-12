@@ -10,8 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - `lane-guard` warns, never blocks: a write outside a worker's lane goes through with a
-  `Lane note:` the worker reports and `lead` checks. The safety guards still block.
-- `e2e`'s lane covers any file whose name contains `e2e`, such as a co-located `*.e2e-cy.ts`.
+  `Lane note:` the worker reports and `lead` checks. The safety guards still block (#316).
+- `e2e`'s lane covers any file whose name contains `e2e`, such as a co-located `*.e2e-cy.ts` (#316).
 
 ## [10.17.1] - 2026-10-12
 

@@ -235,6 +235,10 @@ cannot show that `/crew:init` detected a stack or that a worker loaded a skill.
   `remaining:` names the spec or state. Two finished steps carry **no** `remaining:` item:
   `incident-triage` with four plausible commits (it inspects three; the cap is the limit), and `visual-review`
   with no browser MCP (its static-only report is the whole result).
+- [x] **A lane miss is a note, not a block** — `frontendE2eTool: cypress`; ask `crew:e2e` to
+  write `src/Pub.ts` and `src/Pub/tests/pub.e2e-cy.ts` → both land, the worker quotes a
+  `Lane note:` for `src/Pub.ts` only and lists it in its summary. (#316: as described; the note
+  arrived as hook context after the writes.)
 
 ### Debt lane (`debt-lane`, `/crew:debt`, `/crew:audit`)
 
