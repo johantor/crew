@@ -179,7 +179,9 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
 ## Schemas & conventions
 
 - Durable run state: `<plan-dir>/plan-<feature>.md`, schema in `agents/lead.md`
-  §"The plan file is durable state" — header `feature:`/`base-branch:`/`feature-branch:` +
+  §"The plan file is durable state" — header `feature:`/`base-branch:`/`feature-branch:`, plus
+  `work-item:` when the task names a ticket (verbatim; on a GitHub PR, `/crew:pr` closes a GitHub
+  issue from it) +
   inner-loop fields (`loop:`, `exit-conditions:`, `gate:`) + outer-loop bookkeeping
   (`iterations: n/max`, written by the `/crew:loop` wrapper, not lead);
   steps carry `id:`/`status:`/`depends-on:`/`acceptance:`/`mechanism:`/`worker:`/`attempts:`/
@@ -194,7 +196,7 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
 - `omitClaudeMd: true` only on `incident-triage` and `visual-review` (read-only, fully briefed). Never on an
   implementer: the project's `CLAUDE.md` holds its conventions. Not on `debt-scout` either: the
   project's `CLAUDE.md` may carry the debt policy section it has to honor.
-- `lead` has `loaded-lines-cap: 612`, 4 lines of slack (raised from 595 when the gate rules
+- `lead` has `loaded-lines-cap: 612`, 1 line of slack (raised from 595 when the gate rules
   moved into the preloaded `review-gate` skill, whose frontmatter and heading count, and from
   609 for the six roles of #275). Skills it loads on demand (`debt-lane`) do not count.
 
