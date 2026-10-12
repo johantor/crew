@@ -5,6 +5,13 @@ All notable changes to the `crew` plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.17.1] - 2026-10-12
+
+### Fixed
+
+- `/crew:init` runs inside a `claude --agent crew:lead` session: `lead`'s lane admits
+  `CLAUDE.md`, `CLAUDE.local.md` and `.git/info/exclude` (#313).
+
 ## [10.17.0] - 2026-10-09
 
 ### Changed
