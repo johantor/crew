@@ -125,7 +125,8 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
     Pagers and `tail -f` are refused for every session, since they never end.
   - `read-guard.sh`: raw reads over 64 KiB; an explicit `limit` ≤ 2000 lines passes.
   - `lane-guard.sh`: Edit/Write lanes. `lead` is `--allow` on a filename shape at any depth —
-    `plan-*.md`, `debt-*.md`, `crew.md`, `agent-memory-local/*.md`, `tickets/*.md` — plus scratch
+    `plan-*.md`, `debt-*.md`, `crew.md`, `CLAUDE.md`, `CLAUDE.local.md`, `.git/info/exclude`
+    (what `/crew:init` writes), `agent-memory-local/*.md`, `tickets/*.md` — plus scratch
     and any path `guard_outside_project` accepts; no directory to anchor, no plan-directory slot
     read (AGENTS.md, "Why `lead` is lane-guarded"). The
     four code lane workers get their lanes below. `copywriter` (`.resx`, `.po`/`.pot`, XLIFF,

@@ -180,7 +180,8 @@ rule costs more than a sentence of prose, and motivation measurably helps compli
 - **Why `lead` is lane-guarded, and why its lane is a filename shape.** It writes plans,
   ledgers, config and memory, never production code. A directory allowlist needed a root and a
   slot that could overlap source, and three review rounds each found an edge case; production
-  code is never named `plan-*.md`. Ticket drafts (`tickets/*.md`) fit the same shape. Outside
+  code is never named `plan-*.md`. Ticket drafts (`tickets/*.md`) fit the same shape, and so
+  does what `/crew:init` writes (`CLAUDE.md`, `CLAUDE.local.md`, `.git/info/exclude`). Outside
   the project, `lead` writes anything (a scratchpad, an input file for a CLI): the lane guards
   the checkout only, by `guard_outside_project`. A `..` segment is refused for every lane agent.
 - **Class 4 waits for the user**: routing a skipped test on the pointer alone turns "investigate"
