@@ -364,6 +364,13 @@ not; several were widened once and reverted, and the hooks point here so it is n
   patch") is refused as a write. Write the text with `Write` to a scratch path and pass the file
   instead (`--description @file`). A heredoc reader drew a bypass in each of two review rounds
   and was dropped (#295).
+- **The token rule refuses three spellings** that print a raw access token: `az account
+  get-access-token`, `Get-AzAccessToken` and `gh auth token`, for every session. Endpoint
+  security reports the first as token theft, and a printed token lands in the transcript. It
+  matches inside quotes, so `powershell -Command "…"` is caught, and so is a quoted mention of
+  the full command (write that text with `Write`). Open gaps: another casing of the cmdlet,
+  `gh auth status --show-token`, an SDK call, and a script file. `az rest`, `gh api` and an MCP
+  server keep the token inside the tool.
 - **`rm -rf` refuses every target starting with `/`, `~` or `*`**, build dirs included. A
   whole-token match let `/*/` and `/tmp/../*` through (#264). Out-of-tree cleanup is `rm -r`.
 - **The `git mv` carve-out reads line starts because it is an allowance**: a false separator can
