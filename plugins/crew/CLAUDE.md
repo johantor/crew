@@ -108,8 +108,8 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
     Next.js, headless and server-rendered frontend skills; `optimizely-ocp`
     by `backend-node`, `optimizely-odp` and `optimizely-opal`.
 - `hooks/` — wired in `hooks/hooks.json`, the one copy; in this repo they load through
-  `claude --plugin-dir plugins/crew`. `bash-safety` and `lane-guard` fail closed; `read-guard`, `format`,
-  `dispatch-denied` and `plan-guard` fail open.
+  `claude --plugin-dir plugins/crew`. `bash-safety` fails closed; `lane-guard`, `read-guard`,
+  `format`, `dispatch-denied` and `plan-guard` fail open.
   - `bash-safety.sh`: workers run no git but a plain `git mv`; protected-branch commit backstop (reads the
     payload's `cwd`, not the hook's directory; AGENTS.md has the shapes); watch/dev
     commands refused; file-mutating Bash refused for agent sessions (in-place
@@ -122,20 +122,22 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
     Raw reads (`cat f`) are refused for agent sessions: a habit redirect, not a boundary.
     Pagers and `tail -f` are refused for every session, since they never end.
   - `read-guard.sh`: raw reads over 64 KiB; an explicit `limit` ≤ 2000 lines passes.
-  - `lane-guard.sh`: Edit/Write lanes. `lead` is `--allow` on a filename shape at any depth —
+  - `lane-guard.sh`: Edit/Write lanes, as notes: a miss exits 0 with a `Lane note:` in
+    PreToolUse `additionalContext` on stdout, never exit 2 (AGENTS.md, "Why lanes warn"). `lead` is `--allow` on a filename shape at any depth —
     `plan-*.md`, `debt-*.md`, `crew.md`, `CLAUDE.md`, `CLAUDE.local.md`, `.git/info/exclude`
     (what `/crew:init` writes), `agent-memory-local/*.md`, `tickets/*.md` — plus scratch
     and any path `guard_outside_project` accepts; no directory to anchor, no plan-directory slot
     read (AGENTS.md, "Why `lead` is lane-guarded"). The
-    four code lane workers get their lanes below. `copywriter` (`.resx`, `.po`/`.pot`, XLIFF,
+    four code lane workers get their lanes below; `e2e` also gets any file whose *name*
+    contains `e2e` (a spec pattern is project config), never a parent directory's name. `copywriter` (`.resx`, `.po`/`.pot`, XLIFF,
     and JSON/YAML/XML/`.po` under `locales/`, `locale/`, `i18n/`, `lang/`, `translations/`,
     `messages/`) and `designer` (`design/`, `docs/design/`, `design-tokens/`, JSON/YAML under
     `tokens/`, `*.tokens.json`) are `--allow` lanes that read no slot. The path goes through `guard_posix_path` first, so
     a Windows `D:\x\y` matches the `/` globs. The globs match with case on every OS (macOS
     too): ignoring it would widen `**/IT*.java` to `Item.java`. Only `format.sh`'s `$PWD` prefix
-    ignores case, on Windows. A `..` segment is refused for every lane agent, and on Windows a
+    ignores case, on Windows. A `..` segment gets a note for every lane agent, and on Windows a
     drive-relative `C:x` too.
-    `backend`/`frontend` are refused while `backendStack` is `unset`; the guard probes no markers.
+    `backend`/`frontend` get a note while `backendStack` is `unset`; the guard probes no markers.
     Reads crew config through `guard_config_load` (`.claude/crew.md` frontmatter by key,
     nothing else), called in the parent shell since `config_slot` runs in `$(...)`.
   - Roster shape: `# crew-roster: <name>` then an `a|b|c)` arm, in `bash-safety.sh` and
@@ -168,7 +170,8 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
   writes `log` and `exit` 0 and no `pid`. `/crew:review` and `lead` name it by
   `${CLAUDE_PLUGIN_ROOT}`, which Claude Code substitutes in command and agent bodies.
 - `tests/` — a guard is `stdin JSON → exit 0/2`: assert allow/block plus a stderr substring.
-  Exceptions: `format` asserts its stderr
+  Exceptions: `lane-guard` asserts its stdout note (`assert_note`) or silence (`assert_quiet`),
+  `format` asserts its stderr
   report through fake tools, `dispatch-denied` asserts its stdout JSON with `jq`,
   `plan-guard` uses real agents, then fixtures via `CREW_AGENTS_DIR`, and `gate` runs the script. Every validator section has
   a negative fixture and a silent control (assert on the FAIL message).

@@ -1,33 +1,32 @@
 #!/usr/bin/env bash
 # Per-agent file-write lanes for PreToolUse(Edit|Write), routed on the payload's
-# `agent_type` since plugin agents cannot carry their own hooks. Lane paths win
-# when configured, else extension globs; a same-language pair with no paths, or
-# an unset backend stack, fails closed, and an `other` stack with no paths is
-# open to both. The guard reads slots and detects nothing (AGENTS.md, "Init is the only
-# detector").
+# `agent_type` since plugin agents cannot carry their own hooks. A lane is a
+# note, not a wall: every write goes through (AGENTS.md, "Why lanes warn"). Lane
+# paths win when configured, else extension globs; an `other` stack with no paths
+# is open to both. The guard reads slots and detects nothing (AGENTS.md, "Init is
+# the only detector").
 
-# Fail closed: a guard that can't read its input must block, not allow.
+# Fail open: a note that cannot be computed is no note.
 _lib="${BASH_SOURCE[0]%/*}/lib/guard-lib.sh"
 # shellcheck source=plugins/crew/hooks/lib/guard-lib.sh
 # shellcheck disable=SC1090,SC1091
-if ! . "$_lib" 2>/dev/null; then
-  echo "Blocked: lane-guard could not load its guard library ($_lib)." >&2
-  exit 2
-fi
-if ! command -v jq >/dev/null 2>&1; then
-  echo "Blocked: lane-guard needs jq to enforce write lanes." >&2
-  exit 2
-fi
+. "$_lib" 2>/dev/null || exit 0
+command -v jq >/dev/null 2>&1 || exit 0
+
+# note <text>: the write goes through and the agent reads <text>. Stdout JSON,
+# since stderr at exit 0 never reaches the model.
+note() {
+  jq -nc --arg m "Lane note: $1 The write went through. Keep it only if your step names this file, and list the file in your summary under \"lane note\"." \
+    '{hookSpecificOutput: {hookEventName: "PreToolUse", additionalContext: $m}}'
+  exit 0
+}
 
 guard_read_payload
 # One jq pass; the path is only computed for a lane agent (see guard_jq2).
 # shellcheck disable=SC2016  # $at is a jq variable, not a shell one
-if ! guard_jq2 \
+guard_jq2 \
   '((.agent_type // "") | if startswith("crew:") then .[5:] else "" end) as $at | (if (["unit-tests","e2e","backend","frontend","copywriter","designer","lead"] | index($at)) then ((.tool_input.file_path // .tool_input.path) // "") else "" end)' \
-  '.agent_type // ""'; then
-  echo "Blocked: lane-guard could not parse the hook payload." >&2
-  exit 2
-fi
+  '.agent_type // ""' || exit 0
 guard_agent_type
 # The globs below and the `..` check use `/`; Windows hands over `D:\x\y`.
 guard_posix_path "$guard_untrusted"
@@ -44,17 +43,14 @@ esac
 [ -z "$path" ] && exit 0
 
 # A `..` segment dodges a prefix either way; this guard resolves nothing, so it
-# refuses the segment for every lane agent.
+# cannot place the file for any lane agent.
 case "/$path/" in
-  */../*)
-    echo "Blocked: $path has a '..' segment — name the file by its plain path." >&2
-    exit 2 ;;
+  */../*) note "$path has a '..' segment, so its lane is unknown. Name the file by its plain path." ;;
 esac
 # A drive-relative `C:x` resolves against that drive's current directory, which
 # the guard cannot see; the harness itself always sends a full path.
 if guard_is_windows && [[ $path =~ ^[A-Za-z]:([^/]|$) ]]; then
-  echo "Blocked: $path is drive-relative — name the file by its full path." >&2
-  exit 2
+  note "$path is drive-relative, so its lane is unknown. Name the file by its full path."
 fi
 
 # Loaded once in the parent shell: config_slot runs in `$(...)`.
@@ -79,6 +75,7 @@ lane_globs() {
 exempt=""
 confine=""
 exclude=""
+e2e_named=""
 case "$agent_type" in
   # The union of every stack's test convention, minus the e2e directories, which
   # are e2e's (a Playwright `e2e/foo.spec.ts` would otherwise be unit-tests's too).
@@ -98,7 +95,11 @@ case "$agent_type" in
   e2e)
     # The configured e2e tool's locations. A bare tests/** also matches backend
     # tests, so Playwright gets it only when a frontend lane path confines it.
+    # A file whose name says e2e is e2e's too: the spec pattern is project config
+    # (`Pub/tests/pub.e2e-cy.ts`), so no name list covers it. The name only, so a
+    # checkout under `shop-e2e/` does not open the whole tree.
     mode="--allow"
+    case "${path##*/}" in *e2e*) e2e_named=1 ;; esac
     frontend_lane="$(config_slot frontendLanePaths)"
     case "$(config_slot frontendE2eTool)" in
       cypress)    patterns='cypress/** **/*.cy.*' ;;
@@ -119,8 +120,7 @@ case "$agent_type" in
     backend_stack="$(config_slot backendStack)"
     frontend_stack="$(config_slot frontendStack)"
     if [ -z "$backend_stack" ]; then
-      echo "Blocked: Backend stack is not configured, so ${agent_type} has no lane. Run /crew:init before delegating." >&2
-      exit 2
+      note "Backend stack is not configured, so ${agent_type} has no lane. Run /crew:init to set it."
     elif [ -n "$backend_lane" ] && [ -n "$frontend_lane" ]; then
       # Route handlers live in the frontend tree but are backend's by concern.
       route_handlers='app/**/route.ts app/**/route.js pages/api/**'
@@ -132,20 +132,17 @@ case "$agent_type" in
         patterns="$(lane_globs "$backend_lane") $route_handlers"
       fi
     elif [ -n "$backend_lane" ] || [ -n "$frontend_lane" ]; then
-      echo "Blocked: only one of Backend lane path(s) / Frontend lane path(s) is configured. Set both in .claude/crew.md (see /crew:init) before delegating." >&2
-      exit 2
+      note "only one of Backend lane path(s) / Frontend lane path(s) is configured, so ${agent_type} has no lane. Set both in .claude/crew.md (see /crew:init)."
     elif [ "$backend_stack" = "other" ] || [ "$frontend_stack" = "other" ]; then
       # No extension list covers an `other` stack: lead's plan holds the split
       # (AGENTS.md, "Why an `other` stack has open lanes").
       exit 0
     elif [ "$backend_stack" = "node" ] && [ -n "$frontend_stack" ]; then
-      echo "Blocked: backend stack is node — backend and frontend can both touch .ts/.js files, so extension-based lanes can't tell them apart. Set Backend lane path(s) / Frontend lane path(s) in .claude/crew.md (see /crew:init) before delegating." >&2
-      exit 2
+      note "backend stack is node — backend and frontend can both touch .ts/.js files, so extension-based lanes can't tell them apart. Set Backend lane path(s) / Frontend lane path(s) in .claude/crew.md (see /crew:init)."
     elif [ "$backend_stack" = "node" ]; then
       # Backend-only Node: backend owns the tree; frontend has no lane to scope to.
       [ "$agent_type" = "backend" ] && exit 0
-      echo "Blocked: backend stack is node with no frontend configured — frontend has no frontend lane here. Set a Frontend stack / Frontend lane path(s) in .claude/crew.md (see /crew:init) before delegating frontend work." >&2
-      exit 2
+      note "backend stack is node with no frontend configured — frontend has no frontend lane here. Set a Frontend stack / Frontend lane path(s) in .claude/crew.md (see /crew:init)."
     else
       # Extension regime. .cshtml is shared by concern, so neither agent is denied
       # it; the prompts hold that split. frontend's list is the union of every
@@ -219,24 +216,18 @@ if [ -n "$exempt" ] && matches "$exempt"; then
   exit 0
 fi
 
-if matches "$patterns"; then match=1; else match=0; fi
+if matches "$patterns" || [ -n "$e2e_named" ]; then match=1; else match=0; fi
 
 if [ "$mode" = "--allow" ] && [ -n "$exclude" ] && matches "$exclude"; then
-  echo "Blocked: $path is in an e2e lane (e2e's), not ${agent_type}'s." >&2
-  exit 2
+  note "$path is in an e2e lane (e2e's), not ${agent_type}'s."
 fi
-
 if [ "$mode" = "--allow" ] && [ -n "$confine" ] && ! matches "$confine"; then
-  echo "Blocked: $path is outside ${agent_type}'s frontend lane." >&2
-  exit 2
+  note "$path is outside ${agent_type}'s frontend lane."
 fi
-
 if [ "$mode" = "--deny" ] && [ "$match" = 1 ]; then
-  echo "Blocked: $path is out of ${agent_type}'s lane." >&2
-  exit 2
+  note "$path is out of ${agent_type}'s lane."
 fi
 if [ "$mode" = "--allow" ] && [ "$match" = 0 ]; then
-  echo "Blocked: $path is outside ${agent_type}'s allowed paths." >&2
-  exit 2
+  note "$path is outside ${agent_type}'s allowed paths."
 fi
 exit 0

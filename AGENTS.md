@@ -46,10 +46,11 @@ entry.
 - The plan at `<plan-dir>/plan-<feature>.md` (the `planDirectory` slot, else `.claude/`) carries
   per-step acceptance criteria. It is presented once for the user's go-ahead before the branch
   or any delegation (the plan checkpoint); a standing "just build it" counts as the go-ahead.
-- Each worker has a lane (the plugin map lists them). `lane-guard.sh` enforces the write lane by
+- Each worker has a lane (the plugin map lists them). `lane-guard.sh` checks the write lane by
   extension where the stacks' languages differ, or by the configured lane paths where they are
-  the same (Node + Next.js); an `other` stack without lane paths has open lanes (*Why an `other`
-  stack has open lanes*). With `backendStack` unset it refuses `backend`/`frontend`.
+  the same (Node + Next.js), and notes a miss without blocking it (*Why lanes warn*); an `other`
+  stack without lane paths has open lanes (*Why an `other` stack has open lanes*). With
+  `backendStack` unset it notes that `backend`/`frontend` have no lane.
   `copywriter` (copy and resource files) and `designer` (tokens and specs) have lanes by
   filename, the same in every stack. `generalist` has no lane guard; `visual-review`,
   `incident-triage`, `debt-scout`, `analyst`, `architect`, `security-review` and `web-review`
@@ -76,8 +77,8 @@ entry.
 Runtime configuration (commands, base branch, mode, stacks) lives in `.claude/crew.md`: YAML
 frontmatter, one key per slot, plus a prose body. It is the one location (#248). `/crew:init`
 writes and reconciles it and is the only detector (*Init is the only detector*). A slot reads
-`unset` when unresolved (the orchestrator stops and names `/crew:init`; the lane guard refuses a
-worker) and `none` when the project has no such tooling (the gate skips). A project's `CLAUDE.md`
+`unset` when unresolved (the orchestrator stops and names `/crew:init`; the lane guard notes it
+on a worker's write) and `none` when the project has no such tooling (the gate skips). A project's `CLAUDE.md`
 holds no configuration, only the `## Crew orchestration` prose, because auto mode's permission
 classifier reads only `CLAUDE.md`. To keep the configuration out of the repo, `/crew:init`
 git-excludes the same file, so no reader changes, and moves the prose to a git-excluded
@@ -183,7 +184,7 @@ rule costs more than a sentence of prose, and motivation measurably helps compli
   code is never named `plan-*.md`. Ticket drafts (`tickets/*.md`) fit the same shape, and so
   does what `/crew:init` writes (`CLAUDE.md`, `CLAUDE.local.md`, `.git/info/exclude`). Outside
   the project, `lead` writes anything (a scratchpad, an input file for a CLI): the lane guards
-  the checkout only, by `guard_outside_project`. A `..` segment is refused for every lane agent.
+  the checkout only, by `guard_outside_project`. A `..` segment gets a note for every lane agent.
 - **Class 4 waits for the user**: routing a skipped test on the pointer alone turns "investigate"
   into "unskip".
 - **Exit contract and resume** make re-running a cleared pointer a cheap no-op.
@@ -232,7 +233,7 @@ FAIL message, not the exit code: a minimal fixture trips unrelated sections.
 What the lockstep sections protect:
 
 - **§2g**: a `skills:` typo fails silently at runtime; the agent guesses.
-- **§9**: a name missing from a guard's roster **fails open**: unrestricted git, no lane. Each
+- **§9**: a name missing from a guard's roster **fails open**: unrestricted git, no lane note. Each
   agent declares `owns-git` and `lane-guarded`; each roster carries a `# crew-roster:` marker in
   the load-bearing `a|b|c)` arm shape; exactly one git owner.
 - **§10**: a `crew:` reference in prose that resolves to no agent, command or skill fails late.
@@ -325,6 +326,15 @@ a list that will always miss a case, a parser, a new required slot, or a config 
 layout cannot express; or a second review round finds a new edge case of the same mechanism.
 Opening up removes code; locking down adds it and still leaks. The worked example is the next
 section. Reviewers: an opening documented here is not a fail-open finding.
+
+### Why lanes warn
+
+A lane is division of labour, so by the rule above it does not fail closed. `lane-guard` passes
+every write: a miss returns a `Lane note:` to the agent (PreToolUse `additionalContext`, since
+stderr at exit 0 never reaches the model), and the agent names the file in its summary. `lead`
+reads the summary and the diff, so a misplaced file shows up at the review gate. A block cost
+more than it bought: each project layout the globs missed (a co-located `*.e2e-cy.ts`) stopped a
+step that was right. The safety guards (git, destructive and file-mutating Bash) still block.
 
 ### Why an `other` stack has open lanes
 

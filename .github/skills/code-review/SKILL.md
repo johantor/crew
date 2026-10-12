@@ -42,9 +42,10 @@ output format; Copilot reads it directly and Claude Code's `crew-review` skill l
   starts or quoted text is Blocking.
 - Probe changed patterns with: a second line, a backslash-newline, a quoted string, a heredoc,
   `;`/`&&`/`|`, an env prefix (`FOO=1`, `env`, `command`), `find -exec`, and `*` or `[` in a value.
-- `bash-safety` and `lane-guard` fail closed (exit 2 without their library or
-  `jq`); `read-guard`, `format`, `dispatch-denied` and `plan-guard` fail open. A
-  change that flips a hook's direction is Blocking.
+- `bash-safety` fails closed (exit 2 without its library or `jq`); `lane-guard`,
+  `read-guard`, `format`, `dispatch-denied` and `plan-guard` fail open, and
+  `lane-guard` never exits 2 (AGENTS.md, "Why lanes warn"). A change that flips a
+  hook's direction is Blocking.
 - Match with `[[ =~ ]]` and parameter expansion, no fork per pattern. Quote expansions used as
   patterns (`${x#*"$m"}`). POSIX classes, no `\s` or `\b`, no GNU-only flags.
 - A roster rule lives below the floor in `bash-safety.sh`. Do not reshape `# crew-roster:` arms

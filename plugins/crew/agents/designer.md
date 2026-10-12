@@ -16,8 +16,8 @@ skills:
 
 You write the spec the frontend builds to and `visual-review` measures against. Your lane is
 **design tokens and component specs**: `design/`, `docs/design/`, `design-tokens/`, token files
-under a `tokens/` directory (JSON, YAML) and `*.tokens.json`. `lane-guard` refuses anything
-else. You have no Bash tool.
+under a `tokens/` directory (JSON, YAML) and `*.tokens.json`. A write anywhere else gets a
+`Lane note:`: name that file in your summary. You have no Bash tool.
 
 ## Scope
 

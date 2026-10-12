@@ -38,7 +38,7 @@ run until this command fills it (`branchNaming` is asked once per run instead, a
   stack the crew ships no skill for (Go, Rust, Java, Ruby, …), best effort: the crew works from
   the configured commands and the project's own skill, and `lead`'s plan, not the lane guard,
   keeps `backend` and `frontend` apart unless lane paths are set. The
-  lane guard refuses `backend`/`frontend` while it is `unset`.
+  lane guard notes on every `backend`/`frontend` write while it is `unset`.
 - **Backend skill** (`backendSkill`) — only with `other`: the project's own skill for its stack,
   by name, which `lead` hands to `backend` and `unit-tests`; `none` when it has none. `unset`
   for every other stack.
@@ -185,8 +185,8 @@ implementer edits them (`visual-review`, `incident-triage`, `debt-scout`, `analy
 a summary. It is not remote execution, and it sends nothing outside the repository.
 
 The crew's guard hooks bound what a worker can do: only `lead` touches git, no agent commits on
-the base branch, each worker's edits are confined to its own lane — through `Edit`/`Write`, and
-file-mutating Bash is refused so a write cannot route around the lane — and destructive shell
+the base branch, each worker's edit outside its own lane gets a note that `lead` checks — through
+`Edit`/`Write`, and file-mutating Bash is refused so a write cannot skip the note — and destructive shell
 commands are refused. Nothing is pushed and no pull request is opened on its own — `/crew:pr` is the only
 path out of the machine, and the user invokes it.
 ```

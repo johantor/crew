@@ -20,8 +20,9 @@ Part of the [`johantor`](../../README.md) marketplace.
   worker time is spent.
 - **Specialists, not one generalist.** Backend, the client-facing layer, unit tests, e2e, and
   design conformance each go to an agent scoped to that work, with only the tools it needs.
-- **Guardrails in code, not prose.** Workers are blocked from `git` outright, and their file edits
-  held to their lane by `PreToolUse` hooks, enforced by the harness rather than by asking politely.
+- **Guardrails in code, not prose.** Workers are blocked from `git` outright by `PreToolUse`
+  hooks, enforced by the harness rather than by asking politely. File edits get a lane note,
+  not a block: a write outside a worker's lane goes through, and the worker is told.
 - **A gate that can say no, and you hold the door.** `/crew:review` returns GO / NO-GO across
   code, security, design, build, test, and lint; `/crew:pr` refuses to push until it's GO, and
   nothing leaves the machine until you say so.
@@ -34,10 +35,9 @@ Part of the [`johantor`](../../README.md) marketplace.
 - **The checkpoint is a real stop.** `lead` waits for your go-ahead before it branches or
   delegates. Background workers can't prompt, so a step that still needs a decision has to get one
   from you first.
-- **The lane guards will refuse things.** They fail closed and detect nothing: an unset backend
-  stack, or a Node backend beside a client-facing layer with no lane paths, gets a refusal
-  naming `/crew:init` rather than a guess. `/crew:init` is not optional; it is the only place the
-  crew learns what the project is.
+- **`/crew:init` is not optional.** It is the only place the crew learns what the project is.
+  `lead` stops a run while a slot it needs is `unset`, and the lane guard notes the missing slot
+  on every `backend`/`frontend` write rather than guess.
 - **Nothing ships on its own.** No push, no PR, not even in loop mode. If you wanted
   fire-and-forget, this is the wrong tool.
 
@@ -78,7 +78,7 @@ reason `Blocked by classifier`. Crew is subagent dispatch end to end, so it feel
 most plugins. From **14 August 2026** auto mode is the default for new sessions on Pro, Max, and
 Team plans — a fresh install lands there unless you switch.
 
-What bounds a run is the crew's own guards — git ownership, write lanes, refused destructive
+What bounds a run is the crew's own guards — git ownership, lane notes, refused destructive
 commands, and `/crew:pr` as the only user-invoked way anything leaves your machine. Those apply in
 every permission mode.
 
@@ -181,13 +181,13 @@ it allows.
   plain `git mv` to rename a file, which lands in `lead`'s next commit. `lead` is the sole
   git owner, enforced in code. Every agent, `lead` included, is refused
   `git commit` while HEAD is `main`/`master`/`develop`.
-- **Each worker's edits stay in its lane.** `backend` and `frontend` are denied the other side's
-  files; `unit-tests`/`e2e` are restricted to their test paths, `copywriter` to copy and
-  resource files, `designer` to tokens and design specs; the review and planning agents are
-  read-only (`generalist` is
-  unrestricted by design; that's the express lane). This guards `Edit`/`Write` — and file-mutating
-  Bash (`sed -i`, `tee`, a `>` redirect, `cp`/`mv`) is refused outright, so a write cannot route
-  around the lane or skip formatting.
+- **Each worker has a lane, and a write outside it gets a note.** `backend` and `frontend` each
+  have their side's files; `unit-tests`/`e2e` their test paths, `copywriter` copy and resource
+  files, `designer` tokens and design specs. A write outside the lane goes through, and the
+  worker is told to name the file in its summary; `lead` checks the split. The review and
+  planning agents are read-only (`generalist` has no lane by design; that's the express lane).
+  This covers `Edit`/`Write` — and file-mutating Bash (`sed -i`, `tee`, a `>` redirect,
+  `cp`/`mv`) is refused outright, so a write cannot skip the note or the formatter.
 - **Destructive and hanging commands are refused.** Recursive force-`rm` of `/`/`~`/`*`,
   force-push, redirects into `.env` or `.git/`, and never-terminating watch/dev/serve commands.
 - **Context stays bounded.** Raw reads over 64 KiB are blocked in favour of grep/jq.
@@ -198,18 +198,21 @@ intercepted**.
 <details>
 <summary>Hook mechanics in detail</summary>
 
-- **lane-guard** routes on the payload's `agent_type` and guards `Edit`/`Write` only. File
-  writes via Bash (`sed -i`, `tee`, redirects) are refused by **bash-safety** instead, so there is
-  one enforcement point rather than two lane implementations that can drift.
+- **lane-guard** routes on the payload's `agent_type` and checks `Edit`/`Write` only. It never
+  blocks: a write outside the lane passes with a note to the agent (`additionalContext`), and a
+  payload it cannot read passes silently. File writes via Bash (`sed -i`, `tee`, redirects) are
+  refused by **bash-safety** instead, so there is one lane check rather than two lane
+  implementations that can drift.
   Two regimes: extension-based globs by default (correct when the backend and the client-facing
   layer are different languages — dotnet beside a JS frontend), or
   directory-based paths (the `backendLanePaths` / `frontendLanePaths` slots) when both resolved
   stacks are the same language (e.g. node+nextjs) and an extension alone can't tell the lanes
   apart. Node shares its extensions with a frontend, so beside one it needs the paths; without
-  them it fails closed rather than guessing. An `other` stack (backend or frontend) has no
-  extensions the guard knows: without lane paths both agents may write anywhere, and `lead`'s
-  plan keeps them apart. The regime comes from the stack slots alone: while it is `unset`, `backend` and `frontend`
-  are refused with a line naming `/crew:init`. The guard never probes the tree.
+  them every write gets a note naming them rather than a guess. An `other` stack (backend or
+  frontend) has no extensions the guard knows: without lane paths both agents write anywhere
+  with no note, and `lead`'s plan keeps them apart. The regime comes from the stack slots alone:
+  while it is `unset`, `backend` and `frontend` writes get a note naming `/crew:init`. The guard
+  never probes the tree. `e2e` also gets any file whose name contains `e2e`.
 - **read-guard** blocks raw reads of files over 64 KiB (65536 bytes); an explicit `limit` of
   ≤ 2000 lines passes. See the `context-discipline` skill.
 - **bash-safety** blocks destructive commands (recursive+force `rm` of `/`/`~`/`*` in any flag

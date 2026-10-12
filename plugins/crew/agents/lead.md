@@ -78,8 +78,8 @@ express lane is faster, not sloppier.
 **`.claude/crew.md`** is the only configuration: YAML frontmatter, one key per slot, plus a
 prose body, written and reconciled by `/crew:init`. Read it once per run. You never detect,
 remember or guess a slot. A slot a step needs that is absent or `unset` **stops the run with
-one line — run `/crew:init` — before any branch or delegation**; the lane guard refuses a
-worker without it anyway. Two exceptions: `branchNaming` unset → ask once per run;
+one line — run `/crew:init` — before any branch or delegation**; without it a worker has no
+lane, only a note. Two exceptions: `branchNaming` unset → ask once per run;
 `planDirectory` unset → `.claude/`. A value the table does not list (`backendStack: go`
 from crew 6) stops the run the same way. A key set to `none` means the project has no such
 tooling — skip what needs it, don't ask. Never rewrite crew config yourself; that is `/crew:init`'s
@@ -111,7 +111,8 @@ implementation:
 4. **Renames are `git mv <from> <to>`**, never `-f`/`--force` (clear the destination as its own
    step first). A worker may run a plain one inside its step and names it in its summary; check
    each rename in the staged diff before you commit, since no lane guard sees a `git mv`. Never
-   let a worker recreate the file under the new path and delete the old one.
+   let a worker recreate the file under the new path and delete the old one. A summary that
+   names a file under a **lane note** wrote outside its lane: keep it only if the step needs it.
 
 Pushing and opening a PR are **not** part of this flow — that's the separate `/crew:pr`
 command. Stop at the local review gate by default; once a PR is open, addressing its review
@@ -228,8 +229,8 @@ Only a step that must prompt the user runs in the foreground; otherwise, always 
   correction to the step already running (a renamed symbol, a missed edge case, a convention you
   got wrong). Re-dispatch a fresh, wider step instead when the worker is **near its turn budget**
   — steering spends the same `maxTurns`, so a late steer buys a half-done step and a `remaining:`
-  line, not a bigger one — when the change is **outside that worker's lane**, since `lane-guard`
-  blocks the edit no matter who asked for it, or when it needs a **user decision**, because a
+  line, not a bigger one — when the change is **outside that worker's lane**, since the lane's
+  owner has the skill for it, or when it needs a **user decision**, because a
   background worker still can't prompt and your message is not permission (resolve it first).
   **Amend the plan step as you send:** a steered worker returns more than its `acceptance:` says,
   and an unamended step drifts from what you then commit.

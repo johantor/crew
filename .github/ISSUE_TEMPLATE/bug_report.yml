@@ -6,7 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        A way to get past a guard (`bash-safety.sh`, `lane-guard.sh`) is a security bug.
+        A way to get past a guard (`bash-safety.sh`) is a security bug.
         Report it privately as SECURITY.md describes, not here.
   - type: textarea
     id: what-happened

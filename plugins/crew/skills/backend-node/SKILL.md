@@ -37,7 +37,7 @@ inside the frontend app directory but are **your lane by concern** — the same 
 `@functions`/`@code` blocks are yours inside a `.cshtml` file frontend otherwise owns the
 markup of. Implement route-handler business logic there rather than leaving it to frontend;
 coordinate the markup/data contract instead of avoiding the file. `lane-guard.sh` exempts
-these paths from your directory-based deny for this reason.
+these paths from your directory-based lane note for this reason.
 
 ## Build
 

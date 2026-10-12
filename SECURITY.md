@@ -2,8 +2,8 @@
 
 crew is a [Claude Code](https://code.claude.com/docs/en/overview) plugin distributed through the
 `johantor` marketplace. Much of its value is
-in *guardrails* — the Bash hooks that block unsafe commands and enforce write
-lanes — so a way to bypass a guard is a security bug, and we want to hear about
+in *guardrails* — the Bash hooks that block unsafe commands — so a way to bypass
+a guard is a security bug, and we want to hear about
 it privately before it's public.
 
 ## Reporting a vulnerability
@@ -26,10 +26,10 @@ example:
 - A command that `plugins/*/hooks/bash-safety.sh` should block (destructive
   `rm`, force-push, writes into `.git/`, a worker running `git`, a protected-
   branch commit) but doesn't.
-- A file write that `plugins/*/hooks/lane-guard.sh` should keep in-lane but lets through.
 - A guard that fails **open** where it's documented to fail **closed**
-  (`bash-safety.sh` and `lane-guard.sh` must block when they can't inspect their
-  input; `read-guard.sh` is context-hygiene and fails open by design).
+  (`bash-safety.sh` must block when it can't inspect its input; `lane-guard.sh`
+  only notes a write outside a lane and `read-guard.sh` is context-hygiene, so
+  both fail open by design).
 - A bypass of the drift/wiring checks in `scripts/validate-plugin.sh` that would
   let a diverged shared skill or an unwired hook ship undetected.
 
