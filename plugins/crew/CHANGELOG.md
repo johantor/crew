@@ -10,7 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - `bash-safety` refuses CLI calls that print a raw access token (`az account get-access-token`,
-  `Get-AzAccessToken`, `gh auth token`) and names `az rest`, `gh api` or an MCP server instead.
+  `Get-AzAccessToken`, `gh auth token`) and names `az rest`, `gh api` or an MCP server instead
+  (#314).
 
 ## [10.17.0] - 2026-10-09
 
