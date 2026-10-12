@@ -225,6 +225,12 @@ GUARD_RE_WRITE_CMD="${_g_anypos}"'(tee|patch|cp|mv)([[:space:]]|$)'"|${_g_anypos
 # redirect writes nothing.
 GUARD_RE_REDIRECT='([0-9]*|&)>>?\|?[[:space:]]*([^[:space:];|&<>]*)'
 
+# A CLI call that prints a raw access token. Matched inside quotes, `$(...)` and
+# after `=`, since an agent wraps it in `powershell -Command "..."`. A floor of
+# three spellings: AGENTS.md, "The Bash guards are floors, not sandboxes".
+_g_tokpos='(^|[[:space:];|&(=`"'"'"'])'
+GUARD_RE_TOKEN_MINT="${_g_tokpos}"'(([^[:space:]]*/)?az(\.cmd|\.exe)?([[:space:]]+-[^[:space:]]+)*[[:space:]]+account[[:space:]]+get-access-token|Get-AzAccessToken|([^[:space:]]*/)?gh(\.exe)?[[:space:]]+auth[[:space:]]+token)([^A-Za-z0-9-]|$)'
+
 # --------------------------------------------------------- blocking helpers
 #
 # The floor, as functions: each inspects $guard_cmd and exits 2 with the message
@@ -233,6 +239,13 @@ GUARD_RE_REDIRECT='([0-9]*|&)>>?\|?[[:space:]]*([^[:space:];|&<>]*)'
 guard_block_destructive() {
   if [[ $guard_cmd =~ $GUARD_RE_DESTRUCTIVE ]]; then
     echo "Blocked: unsafe command." >&2
+    exit 2
+  fi
+}
+
+guard_block_token_mint() {
+  if [[ $guard_cmd =~ $GUARD_RE_TOKEN_MINT ]]; then
+    echo "Blocked: this command copies a raw access token out of its CLI, which endpoint security reports as token theft. Make the call through a tool that keeps the token inside it: \`az rest --resource <app-id>\`, \`az boards\` or \`az devops invoke\`, \`gh api\`, or the service's MCP server. Quoted text matches too: put a message that names the command in a file (\`git commit -F\`, \`--body-file\`)." >&2
     exit 2
   fi
 }
