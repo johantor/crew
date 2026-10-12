@@ -54,7 +54,7 @@ Most rows run in one or two minutes without a person at the keyboard:
   `claude --agent crew:lead --permission-mode plan -p 'Implement GitHub issue #7.'` → the plan
   header has `work-item: #7`, the branch is `feature/7-<slug>`, and each acceptance criterion is
   quoted into a step's `acceptance:`; `/crew:pr` from that plan ends the body with `Closes #7`.
-  (#PR: observed all four; the PR run took the no-MCP path and pushed nothing.)
+  (#315: observed all four; the PR run took the no-MCP path and pushed nothing.)
 
 ### Plan mode
 

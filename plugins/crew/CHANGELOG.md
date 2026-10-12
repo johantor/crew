@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - `lead` records a ticket as the plan's `work-item:` and quotes its acceptance criteria into the
-  steps; `/crew:pr` closes a GitHub issue from it (#261).
+  steps; `/crew:pr` closes a GitHub issue from it (#315).
 
 ## [10.17.1] - 2026-10-12
 
