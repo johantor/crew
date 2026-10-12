@@ -73,6 +73,39 @@ assert_block "redirect into .git/config" "$HOOK" "$(payload_bash 'echo x > .git/
 assert_block "noclobber redirect into .env" "$HOOK" "$(payload_bash 'echo secret >| .env' crew:backend)"   "unsafe command"
 assert_block "rm inside .git/"           "$HOOK" "$(payload_bash 'rm .git/index' crew:backend)"             "unsafe command"
 
+# --- Token-printing CLI calls (every session) ----------------------------------
+tok="raw access token"
+# shellcheck disable=SC2016  # $tok and $(...) are command text for the hook
+for cmd in \
+  'powershell -NoProfile -Command "$tok = az account get-access-token --resource 499b84ac-1321-427f-aa17-267ca6975798 --query accessToken -o tsv; $tok"' \
+  'TOKEN=$(az account get-access-token --query accessToken -o tsv)' \
+  'pwsh -c "az account get-access-token"' \
+  'az --only-show-errors account get-access-token' \
+  'az --subscription demo account get-access-token' \
+  $'az \\\n  account get-access-token --query accessToken -o tsv' \
+  $'echo start\naz account get-access-token' \
+  '/usr/bin/az account get-access-token' \
+  'az.cmd account get-access-token' \
+  "pwsh -c '(Get-AzAccessToken -ResourceUrl https://management.azure.com).Token'" \
+  'gh auth token' \
+  'GH_TOKEN=$(gh auth token) npm publish'; do
+  assert_block "token mint: $cmd" "$HOOK" "$(payload_bash "$cmd")" "$tok"
+  assert_block "token mint (agent): $cmd" "$HOOK" "$(payload_bash "$cmd" crew:lead)" "$tok"
+done
+for cmd in \
+  'az rest --method patch --resource 499b84ac-1321-427f-aa17-267ca6975798 --uri https://dev.azure.com/o/p/_apis/wit/workitems/1' \
+  'az account show' \
+  'az boards work-item show --id 1' \
+  'gh auth status' \
+  'gh api repos/o/r' \
+  'grep -rn get-access-token plugins' \
+  'az account get-access-tokens'; do
+  assert_allow "no token mint: $cmd" "$HOOK" "$(payload_bash "$cmd")"
+done
+# Quoted text is read on purpose (the wrapped call is quoted); the message names the file route.
+assert_block "token mint named in a commit message" "$HOOK" \
+  "$(payload_bash 'git commit -m "never run az account get-access-token"' crew:lead)" "git commit -F"
+
 # --- Watch/dev/serve commands (agent sessions only) ---------------------------
 for cmd in 'dotnet watch' 'npm run dev' 'pnpm dev' 'vite' 'next dev' 'ng serve' 'nodemon' 'webpack serve'; do
   assert_block "watch: $cmd" "$HOOK" "$(payload_bash "$cmd" crew:backend)" "never terminate"

@@ -217,7 +217,9 @@ intercepted**.
   ≤ 2000 lines passes. See the `context-discipline` skill.
 - **bash-safety** blocks destructive commands (recursive+force `rm` of `/`/`~`/`*` in any flag
   spelling, force-push via `--force` or `-f`, redirects into `.env`, redirects or `rm` into
-  `.git/`) and raw/streaming reads (`cat`, `less`, `tail -f`). For agent sessions it also refuses
+  `.git/`), CLI calls that print a raw access token (`az account get-access-token`,
+  `Get-AzAccessToken`, `gh auth token`; use `az rest`, `gh api` or an MCP server, which keep the
+  token inside the tool) and raw/streaming reads (`cat`, `less`, `tail -f`). For agent sessions it also refuses
   file-mutating Bash — an in-place `sed`/`perl`/`ruby`/`awk`, `tee`, `patch`, `cp`/`mv`, and any
   redirect whose target is not an exempt sink (`/dev/null`, an fd dup, the temp directories, an
   unquoted absolute path of plain segments outside the project, such as an out-of-tree build

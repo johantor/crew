@@ -403,6 +403,8 @@ assert_note "frontmatter: e2e denied an e2e spec outside its frontend lane" \
 fm_cy="$(make_crew_md 'frontendE2eTool: cypress')"
 assert_quiet "frontmatter: e2e allowed a co-located Cypress spec named e2e" \
   "$HOOK" "$(payload_file crew:e2e src/Site/Features/Pub/tests/pub-page.e2e-cy.ts)" "$fm_cy"
+assert_quiet "frontmatter: e2e allowed a co-located Cypress spec named .cy" \
+  "$HOOK" "$(payload_file crew:e2e src/Site/Features/Pub/PubPage.cy.tsx)" "$fm_cy"
 assert_note "frontmatter: an e2e directory up the path opens nothing" \
   "$HOOK" "$(payload_file crew:e2e /work/shop-e2e/src/Site/Pub.ts)" "allowed paths" "$fm_cy"
 assert_note "frontmatter: the frontend lane still confines an e2e-named spec" \
