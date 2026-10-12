@@ -172,8 +172,9 @@ another plugin's command of the same short name.
 
 ## Safety guarantees
 
-Three `PreToolUse` guards enforce the boundaries and **fail closed**; three advisory hooks
-(formatting, denied dispatches, plan-mode dispatches) fail open — `plan-guard` does
+The bash-safety guard enforces the boundaries and **fails closed**. The read guard blocks large
+raw reads, the lane guard only notes, and both fail open, as do the advisory hooks
+(formatting, denied dispatches, plan-mode dispatches) — `plan-guard` does
 block a dispatch, but only one plan mode would have refused anyway, and on any path it can't read
 it allows.
 
@@ -343,7 +344,7 @@ resolve relative to the project directory — memory at `.claude/agent-memory-lo
 **Plan directory** slot or `.claude/` when it is unset — so they sit inside the worktree, and
 `git worktree remove` deletes those copies. Configuration is never in memory: it lives in
 `.claude/crew.md`, which travels with the branch when committed. A local, git-excluded
-`.claude/crew.md` is not in a new worktree, so `backend` and `frontend` are refused there. Point **Plan directory** at a
+`.claude/crew.md` is not in a new worktree, so `lead` stops there and `backend`/`frontend` writes get a lane note. Point **Plan directory** at a
 tracked path (e.g. `docs/plans/`) so a plan you commit lands on the branch instead of in the
 untracked `.claude/` fallback.
 

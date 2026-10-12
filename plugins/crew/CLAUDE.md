@@ -125,13 +125,15 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
     Pagers and `tail -f` are refused for every session, since they never end.
   - `read-guard.sh`: raw reads over 64 KiB; an explicit `limit` ≤ 2000 lines passes.
   - `lane-guard.sh`: Edit/Write lanes, as notes: a miss exits 0 with a `Lane note:` in
-    PreToolUse `additionalContext` on stdout, never exit 2 (AGENTS.md, "Why lanes warn"). `lead` is `--allow` on a filename shape at any depth —
+    PreToolUse `additionalContext` on stdout, never exit 2 (AGENTS.md, "Why lanes warn"); a
+    worker's note says keep-if-named, `lead`'s says undo and delegate. `lead` is `--allow` on a filename shape at any depth —
     `plan-*.md`, `debt-*.md`, `crew.md`, `CLAUDE.md`, `CLAUDE.local.md`, `.git/info/exclude`
     (what `/crew:init` writes), `agent-memory-local/*.md`, `tickets/*.md` — plus scratch
     and any path `guard_outside_project` accepts; no directory to anchor, no plan-directory slot
     read (AGENTS.md, "Why `lead` is lane-guarded"). The
     four code lane workers get their lanes below; `e2e` also gets any file whose *name*
-    contains `e2e` (a spec pattern is project config), never a parent directory's name. `copywriter` (`.resx`, `.po`/`.pot`, XLIFF,
+    contains `e2e` (a spec pattern is project config), never a parent directory's name, and
+    `unit-tests` gets a note for one. `copywriter` (`.resx`, `.po`/`.pot`, XLIFF,
     and JSON/YAML/XML/`.po` under `locales/`, `locale/`, `i18n/`, `lang/`, `translations/`,
     `messages/`) and `designer` (`design/`, `docs/design/`, `design-tokens/`, JSON/YAML under
     `tokens/`, `*.tokens.json`) are `--allow` lanes that read no slot. The path goes through `guard_posix_path` first, so

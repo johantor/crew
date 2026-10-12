@@ -134,7 +134,7 @@ cannot show that `/crew:init` detected a stack or that a worker loaded a skill.
 - [x] **An unset stack stops the run** — no `.claude/crew.md`, `/crew:feature <task>` →
   `lead` stops with one line naming `/crew:init` before any branch or delegation; a
   `crew:backend` edit in the same repo gets a `lane-guard` note with the same name (a refusal
-  until 10.19.0). (#269: the
+  until 11.0.0). (#269: the
   run ended on `main` with no branch, plan or worker; the worker's hand-back quoted the
   refusal and ended `remaining: … blocked until /crew:init has run`.)
 - [x] **A Vue frontend is `other`** — a scratch repo with a `*.csproj` and a `package.json`

@@ -12,8 +12,8 @@ assert_note() {
   local label="$1" hook="$2" payload="$3" substr="$4" cwd="${5:-}" ctx
   run_hook "$hook" "$payload" "$cwd"
   ctx="$(jq -r '.hookSpecificOutput.additionalContext // empty' <<<"$_stdout" 2>/dev/null)"
-  if [ "$_status" -ne 0 ]; then
-    _fail "$label: expected a note (exit 0), got exit $_status${_stderr:+ — stderr: $_stderr}"
+  if [ "$_status" -ne 0 ] || [ -n "$_stderr" ]; then
+    _fail "$label: expected a note (exit 0, no stderr), got exit $_status${_stderr:+ — stderr: $_stderr}"
   elif [[ "$ctx" != *"$substr"* ]]; then
     _fail "$label: expected a note with '$substr' (got: $_stdout)"
   else
@@ -24,8 +24,8 @@ assert_note() {
 assert_quiet() {
   local label="$1" hook="$2" payload="$3" cwd="${4:-}"
   run_hook "$hook" "$payload" "$cwd"
-  if [ "$_status" -ne 0 ] || [ -n "$_stdout" ]; then
-    _fail "$label: expected a silent pass, got exit $_status${_stdout:+ — stdout: $_stdout}"
+  if [ "$_status" -ne 0 ] || [ -n "$_stdout" ] || [ -n "$_stderr" ]; then
+    _fail "$label: expected a silent pass, got exit $_status${_stdout:+ — stdout: $_stdout}${_stderr:+ — stderr: $_stderr}"
   else
     _pass
   fi
@@ -146,6 +146,9 @@ assert_quiet "lead allowed project agent memory (absolute)" "$HOOK" "$(payload_f
 assert_quiet "lead allowed scratch under /tmp"    "$HOOK" "$(payload_file crew:lead /tmp/crew/outline.md)"
 assert_note "lead denied a source file"          "$HOOK" "$(payload_file crew:lead src/app.ts)" "allowed paths"
 assert_note "lead denied a test file"            "$HOOK" "$(payload_file crew:lead tests/app.test.ts)" "allowed paths"
+# lead writes no production code, so its note says undo; a worker's says keep-if-named.
+assert_note "lead's note tells it to undo"       "$HOOK" "$(payload_file crew:lead src/app.ts)" "Undo it and delegate"
+assert_note "a worker's note tells it to report" "$HOOK" "$(payload_file crew:e2e src/app.ts)" "Keep it only if your step names"
 assert_note "lead denied source under a nested .claude directory" \
   "$HOOK" "$(payload_file crew:lead src/.claude/app.ts)" "allowed paths"
 assert_note "lead denied a Markdown file that is not a plan or ledger" \
@@ -405,6 +408,10 @@ assert_quiet "frontmatter: e2e allowed a co-located Cypress spec named e2e" \
   "$HOOK" "$(payload_file crew:e2e src/Site/Features/Pub/tests/pub-page.e2e-cy.ts)" "$fm_cy"
 assert_quiet "frontmatter: e2e allowed a co-located Cypress spec named .cy" \
   "$HOOK" "$(payload_file crew:e2e src/Site/Features/Pub/PubPage.cy.tsx)" "$fm_cy"
+assert_note "frontmatter: an e2e-named spec is not unit-tests's" \
+  "$HOOK" "$(payload_file crew:unit-tests src/Pub/checkout.e2e.spec.ts)" "e2e lane" "$fm_cy"
+assert_quiet "frontmatter: backend keeps a .cs file named e2e" \
+  "$HOOK" "$(payload_file crew:backend src/Api/e2e-seed.cs)" "$fm_ext"
 assert_note "frontmatter: an e2e directory up the path opens nothing" \
   "$HOOK" "$(payload_file crew:e2e /work/shop-e2e/src/Site/Pub.ts)" "allowed paths" "$fm_cy"
 assert_note "frontmatter: the frontend lane still confines an e2e-named spec" \

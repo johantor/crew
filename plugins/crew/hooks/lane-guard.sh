@@ -14,9 +14,12 @@ _lib="${BASH_SOURCE[0]%/*}/lib/guard-lib.sh"
 command -v jq >/dev/null 2>&1 || exit 0
 
 # note <text>: the write goes through and the agent reads <text>. Stdout JSON,
-# since stderr at exit 0 never reaches the model.
+# since stderr at exit 0 never reaches the model. lead writes no production code,
+# so its note says undo, never keep.
 note() {
-  jq -nc --arg m "Lane note: $1 The write went through. Keep it only if your step names this file, and list the file in your summary under \"lane note\"." \
+  local next='Keep it only if your step names this file, and list the file in your summary under "lane note".'
+  [ "$agent_type" = lead ] && next="Undo it and delegate the change to that lane's worker."
+  jq -nc --arg m "Lane note: $1 The write went through. $next" \
     '{hookSpecificOutput: {hookEventName: "PreToolUse", additionalContext: $m}}'
   exit 0
 }
@@ -75,10 +78,14 @@ lane_globs() {
 exempt=""
 confine=""
 exclude=""
+# A file whose name says e2e is e2e's, not unit-tests's: the spec pattern is
+# project config (`Pub/tests/pub.e2e-cy.ts`), so no name list covers it. The name
+# only, so a checkout under `shop-e2e/` does not open the whole tree.
 e2e_named=""
+case "${path##*/}" in *e2e*) e2e_named=1 ;; esac
 case "$agent_type" in
-  # The union of every stack's test convention, minus the e2e directories, which
-  # are e2e's (a Playwright `e2e/foo.spec.ts` would otherwise be unit-tests's too).
+  # The union of every stack's test convention, minus the e2e directories and
+  # e2e-named files, which are e2e's (`e2e/foo.spec.ts` would match both lanes).
   unit-tests) mode="--allow"
           patterns='**/*Tests/** **/*.Tests.* tests/** **/__tests__/** **/*.test.* **/*.spec.*'
           patterns+=' **/test*.py **/*_test.py **/conftest.py'    # pytest + unittest discover
@@ -95,11 +102,7 @@ case "$agent_type" in
   e2e)
     # The configured e2e tool's locations. A bare tests/** also matches backend
     # tests, so Playwright gets it only when a frontend lane path confines it.
-    # A file whose name says e2e is e2e's too: the spec pattern is project config
-    # (`Pub/tests/pub.e2e-cy.ts`), so no name list covers it. The name only, so a
-    # checkout under `shop-e2e/` does not open the whole tree.
     mode="--allow"
-    case "${path##*/}" in *e2e*) e2e_named=1 ;; esac
     frontend_lane="$(config_slot frontendLanePaths)"
     case "$(config_slot frontendE2eTool)" in
       cypress)    patterns='cypress/** **/*.cy.*' ;;
@@ -216,9 +219,13 @@ if [ -n "$exempt" ] && matches "$exempt"; then
   exit 0
 fi
 
-if matches "$patterns" || [ -n "$e2e_named" ]; then match=1; else match=0; fi
+if matches "$patterns" || { [ "$agent_type" = e2e ] && [ -n "$e2e_named" ]; }; then
+  match=1
+else
+  match=0
+fi
 
-if [ "$mode" = "--allow" ] && [ -n "$exclude" ] && matches "$exclude"; then
+if [ "$mode" = "--allow" ] && [ -n "$exclude" ] && { matches "$exclude" || [ -n "$e2e_named" ]; }; then
   note "$path is in an e2e lane (e2e's), not ${agent_type}'s."
 fi
 if [ "$mode" = "--allow" ] && [ -n "$confine" ] && ! matches "$confine"; then
