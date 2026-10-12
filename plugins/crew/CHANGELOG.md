@@ -14,6 +14,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `e2e`'s lane covers any file whose name contains `e2e`, such as a co-located `*.e2e-cy.ts`;
   `unit-tests` gets a note for one (#316).
 
+## [10.19.0] - 2026-10-12
+
+### Added
+
+- `lead` records a ticket as the plan's `work-item:` and quotes its acceptance criteria into the
+  steps; `/crew:pr` closes a GitHub issue from it (#315).
+
 ## [10.18.0] - 2026-10-12
 
 ### Added
