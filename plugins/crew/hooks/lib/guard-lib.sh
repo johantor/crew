@@ -98,7 +98,8 @@ guard_normalize() { guard_cmd_raw="${1//\\$'\n'/ }"; guard_cmd="${1//$'\n'/ }"; 
 # ------------------------------------------------- command-shape patterns
 
 # Assembled once at source time. Patterns expect the normalized command in
-# $guard_cmd unless noted otherwise; GUARD_RE_GIT_MV reads $guard_cmd_raw.
+# $guard_cmd unless noted otherwise; GUARD_RE_GIT_MV and GUARD_RE_TOKEN_MINT read
+# $guard_cmd_raw.
 
 _g_flag='-[^[:space:]]*'                                     # any single flag token
 _g_word='[^[:space:];|&<>]+'                                 # any token within one command
@@ -226,7 +227,8 @@ GUARD_RE_WRITE_CMD="${_g_anypos}"'(tee|patch|cp|mv)([[:space:]]|$)'"|${_g_anypos
 GUARD_RE_REDIRECT='([0-9]*|&)>>?\|?[[:space:]]*([^[:space:];|&<>]*)'
 
 # A CLI call that prints a raw access token. Matched inside quotes, `$(...)` and
-# after `=`, since an agent wraps it in `powershell -Command "..."`. A floor of
+# after `=`, since an agent wraps it in `powershell -Command "..."`. Read from
+# $guard_cmd_raw, so a backslash-newline between words is whitespace. A floor of
 # three spellings: AGENTS.md, "The Bash guards are floors, not sandboxes".
 _g_tokpos='(^|[[:space:];|&(=`"'"'"'])'
 GUARD_RE_TOKEN_MINT="${_g_tokpos}"'(([^[:space:]]*/)?az(\.cmd|\.exe)?[[:space:]]+'"${_g_gitopt}"'account[[:space:]]+get-access-token|Get-AzAccessToken|([^[:space:]]*/)?gh(\.exe)?[[:space:]]+auth[[:space:]]+token)([^A-Za-z0-9-]|$)'
@@ -244,7 +246,7 @@ guard_block_destructive() {
 }
 
 guard_block_token_mint() {
-  if [[ $guard_cmd =~ $GUARD_RE_TOKEN_MINT ]]; then
+  if [[ $guard_cmd_raw =~ $GUARD_RE_TOKEN_MINT ]]; then
     echo "Blocked: this command copies a raw access token out of its CLI, which endpoint security reports as token theft. Make the call through a tool that keeps the token inside it: \`az rest --resource <app-id>\`, \`az boards\` or \`az devops invoke\`, \`gh api\`, or the service's MCP server. Quoted text matches too: put a message that names the command in a file (\`git commit -F\`, \`--body-file\`)." >&2
     exit 2
   fi
