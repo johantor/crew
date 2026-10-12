@@ -93,7 +93,7 @@ implementer edits them (`visual-review`, `incident-triage`, `debt-scout`, `analy
 a summary. It is not remote execution, and it sends nothing outside the repository.
 
 The crew's guard hooks bound what a worker can do: only `lead` touches git, no agent commits on
-the base branch, each worker's edits are confined to its own lane — through `Edit`/`Write`, and
-file-mutating Bash is refused so a write cannot route around the lane — and destructive shell
+the base branch, each worker's edit outside its own lane gets a note that `lead` checks — through
+`Edit`/`Write`, and file-mutating Bash is refused so a write cannot skip the note — and destructive shell
 commands are refused. Nothing is pushed and no pull request is opened on its own — `/crew:pr` is the only
 path out of the machine, and the user invokes it.

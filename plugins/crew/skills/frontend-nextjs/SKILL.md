@@ -24,8 +24,8 @@ Route handlers (`app/**/route.ts`) are server logic that happens to live inside 
 app directory — that makes them **backend's lane by concern**, not yours, the same way Razor's
 `@functions`/`@code` blocks are backend's inside a `.cshtml` file you otherwise own the markup
 of. Don't implement route-handler business logic yourself; coordinate the data contract with
-backend. `lane-guard.sh` enforces this by path when lanes are directory-based (same-language
-stacks); don't rely on that alone — the rule holds regardless of enforcement mode.
+backend. `lane-guard.sh` notes a miss by path when lanes are directory-based (same-language
+stacks), but never blocks it — the rule holds either way.
 
 ## Build
 

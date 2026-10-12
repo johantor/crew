@@ -140,7 +140,8 @@ cannot show that `/crew:init` detected a stack or that a worker loaded a skill.
   asks which is the backend rather than breaking the tie.
 - [x] **An unset stack stops the run** — no `.claude/crew.md`, `/crew:feature <task>` →
   `lead` stops with one line naming `/crew:init` before any branch or delegation; a
-  `crew:backend` edit in the same repo is refused by `lane-guard` with the same name. (#269: the
+  `crew:backend` edit in the same repo gets a `lane-guard` note with the same name (a refusal
+  until 11.0.0). (#269: the
   run ended on `main` with no branch, plan or worker; the worker's hand-back quoted the
   refusal and ended `remaining: … blocked until /crew:init has run`.)
 - [x] **A Vue frontend is `other`** — a scratch repo with a `*.csproj` and a `package.json`
@@ -241,6 +242,10 @@ cannot show that `/crew:init` detected a stack or that a worker loaded a skill.
   `remaining:` names the spec or state. Two finished steps carry **no** `remaining:` item:
   `incident-triage` with four plausible commits (it inspects three; the cap is the limit), and `visual-review`
   with no browser MCP (its static-only report is the whole result).
+- [x] **A lane miss is a note, not a block** — `frontendE2eTool: cypress`; ask `crew:e2e` to
+  write `src/Pub.ts` and `src/Pub/tests/pub.e2e-cy.ts` → both land, the worker quotes a
+  `Lane note:` for `src/Pub.ts` only and lists it in its summary. (#316: as described; the note
+  arrived as hook context after the writes.)
 
 ### Debt lane (`debt-lane`, `/crew:debt`, `/crew:audit`)
 

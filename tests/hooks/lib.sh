@@ -62,8 +62,9 @@ _fail() {
 # dir so the guard can't accidentally read this repo's .git or CLAUDE.md. Sets
 # _status (exit code), _stderr and _stdout (both captured).
 #
-# The guards say everything on stderr, so _stdout is empty for them.
-# dispatch-denied.sh is the exception: its whole decision is the JSON on stdout.
+# The guards say everything on stderr, so _stdout is empty for them. The
+# exceptions put JSON on stdout: dispatch-denied.sh (its whole decision) and
+# lane-guard.sh (its lane note).
 run_hook() {
   local hook="$1" payload="$2" cwd="${3:-}"
   local tmp_cwd="" err_file out_file
