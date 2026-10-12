@@ -27,7 +27,8 @@ the flow in two launches, passing the plan between them as data:
 1. Launch `crew:lead` with `$ARGUMENTS` and, in place of the instructions above: *this session
    is in plan mode — explore, run any read-only triage, and return the plan you would present at
    your checkpoint (scope, the ordered steps with acceptance criteria, the resolved base branch
-   and frontend mode, the `work-item:`, assumptions). Write nothing and dispatch no writer.*
+   and frontend mode, the `work-item:` when the task names one, assumptions). Write nothing and
+   dispatch no writer.*
 2. Present the returned plan for approval through plan mode's own flow (`ExitPlanMode`), verbatim.
    If the user keeps planning, re-launch `crew:lead` with the draft plan and their correction,
    and present the revision the same way.

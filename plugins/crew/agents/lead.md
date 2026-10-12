@@ -404,7 +404,7 @@ changes state, never in a batch at the end, so a run cut off at `maxTurns` resum
 **Schema.** A header plus one block per step:
 
 - Header: `feature:`, `base-branch:`, `feature-branch:` — re-establishes git context on resume.
-  `work-item:` (only when the task names one) is the item `/crew:pr` links the PR to.
+  `work-item:` (only when the task names one): the reference as typed, kept verbatim on rewrite.
 - Loop-mode header fields (`loop-engineering`): `loop: on`, `exit-conditions:` (the agreed stop
   rules), and `gate:` — the review gate's latest outcome plus its NO-GO count, so a resume
   never re-runs a gate that already hit its cap. A resumed plan with `loop: on` continues in

@@ -180,7 +180,8 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
 
 - Durable run state: `<plan-dir>/plan-<feature>.md`, schema in `agents/lead.md`
   §"The plan file is durable state" — header `feature:`/`base-branch:`/`feature-branch:`, plus
-  `work-item:` when the task names a ticket (`/crew:pr` turns a GitHub issue into `Closes #n`) +
+  `work-item:` when the task names a ticket (verbatim; on a GitHub PR, `/crew:pr` closes a GitHub
+  issue from it) +
   inner-loop fields (`loop:`, `exit-conditions:`, `gate:`) + outer-loop bookkeeping
   (`iterations: n/max`, written by the `/crew:loop` wrapper, not lead);
   steps carry `id:`/`status:`/`depends-on:`/`acceptance:`/`mechanism:`/`worker:`/`attempts:`/

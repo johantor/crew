@@ -21,9 +21,10 @@ PR are **outward actions** — confirm with the user before pushing.
    Build the title and body from `<plan-dir>/plan-<feature>.md` (the resolved plan directory —
    the `Plan directory` crew-config slot, or `.claude/` when unset) and the review-gate summary: what
    changed, which acceptance criteria are met, and the `## Blocking` / `## Warnings` review
-   notes. When the plan header's `work-item:` is a GitHub issue, end the body with `Closes #<n>`
-   (`Closes <owner>/<repo>#<n>` for another repository's issue). Any other tracker gets no link:
-   Azure DevOps' `AB#<id>` does not link cleanly. Report the PR URL when done.
+   notes. When the PR is on GitHub and the plan header's `work-item:` is a GitHub issue, end the
+   body with `Closes #<n>` (`Closes <owner>/<repo>#<n>` for another repository's issue). Any
+   other host or tracker gets no link: Azure DevOps' `AB#<id>` does not link cleanly. Report the
+   PR URL when done.
 4. **No host MCP available?** Do not guess. Print the exact `git push` command and a
    ready-to-paste PR title + body, and tell the user to open it manually (or to add the
    host MCP — see the plugin README).
