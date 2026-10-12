@@ -98,14 +98,20 @@ assert_block "e2e denied a source file"     "$HOOK" "$(payload_file crew:e2e src
 
 # --- lead writes plans, ledgers and tickets only ----------------------------
 # The orchestrator never edits production code. Its Edit/Write lane is a filename
-# shape at any depth (plan-*.md, debt-*.md, crew.md, agent-memory/**,
-# tickets/*.md) plus scratch, whether the path is repo-relative or absolute, and whatever the plan
+# shape at any depth (plan-*.md, debt-*.md, crew.md, CLAUDE[.local].md,
+# .git/info/exclude, agent-memory/**, tickets/*.md) plus scratch, whether the path is repo-relative or absolute, and whatever the plan
 # directory is configured as -- so there is no directory to anchor or to overlap.
 assert_allow "lead allowed a plan file"           "$HOOK" "$(payload_file crew:lead .claude/plan-sso.md)"
 assert_allow "lead allowed a debt ledger"         "$HOOK" "$(payload_file crew:lead .claude/debt-cs8602.md)"
 assert_allow "lead allowed a plan in another plan directory" "$HOOK" "$(payload_file crew:lead docs/plans/plan-sso.md)"
 assert_allow "lead allowed a plan at the repo root" "$HOOK" "$(payload_file crew:lead plan-sso.md)"
 assert_allow "lead allowed crew config"           "$HOOK" "$(payload_file crew:lead .claude/crew.md)"
+# /crew:init's other writes, so init runs inside a `claude --agent crew:lead` session.
+assert_allow "lead allowed CLAUDE.md"             "$HOOK" "$(payload_file crew:lead CLAUDE.md)"
+assert_allow "lead allowed CLAUDE.local.md"       "$HOOK" "$(payload_file crew:lead CLAUDE.local.md)"
+assert_allow "lead allowed the git exclude file"  "$HOOK" "$(payload_file crew:lead /repo/.git/info/exclude)"
+assert_block "lead denied another file under .git" \
+  "$HOOK" "$(payload_file crew:lead .git/config)" "allowed paths"
 assert_allow "lead allowed its local agent memory" "$HOOK" "$(payload_file crew:lead .claude/agent-memory-local/lead/MEMORY.md)"
 assert_allow "lead allowed project agent memory (absolute)" "$HOOK" "$(payload_file crew:lead /repo/.claude/agent-memory/lead/MEMORY.md)"
 assert_allow "lead allowed scratch under /tmp"    "$HOOK" "$(payload_file crew:lead /tmp/crew/outline.md)"
@@ -156,6 +162,8 @@ assert_allow "lead allowed a Windows agent-memory path in the project" \
   "$HOOK" "$(payload_file crew:lead 'C:\work\proj\.claude\agent-memory-local\lead\notes.md')"
 assert_allow "lead allowed a Windows ticket draft in the project" \
   "$HOOK" "$(payload_file crew:lead 'C:\work\proj\.azuredevops\tickets\2026-10-06-eh0001.md')"
+assert_allow "lead allowed a Windows CLAUDE.local.md in the project" \
+  "$HOOK" "$(payload_file crew:lead 'C:\work\proj\CLAUDE.local.md')"
 assert_allow "lead allowed a relative Windows plan path" \
   "$HOOK" "$(payload_file crew:lead '.claude\plan-sso.md')"
 assert_block "lead denied a Windows '..' traversal" \

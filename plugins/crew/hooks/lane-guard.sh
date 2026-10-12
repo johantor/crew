@@ -191,6 +191,9 @@ case "$agent_type" in
   lead) guard_outside_project "$path" && exit 0
             mode="--allow"
             patterns='plan-*.md */plan-*.md debt-*.md */debt-*.md crew.md */crew.md'
+            # What /crew:init writes besides crew.md, so it also runs as lead.
+            patterns+=' CLAUDE.md */CLAUDE.md CLAUDE.local.md */CLAUDE.local.md'
+            patterns+=' .git/info/exclude */.git/info/exclude'
             patterns+=' */agent-memory-local/*.md */agent-memory/*.md'   # Markdown only
             patterns+=' tickets/*.md */tickets/*.md'
             patterns+=' /tmp/** /private/tmp/** /var/folders/** /private/var/folders/**' ;;
