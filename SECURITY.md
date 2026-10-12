@@ -24,8 +24,8 @@ Anything that lets an agent do something the guards are meant to prevent — for
 example:
 
 - A command that `plugins/*/hooks/bash-safety.sh` should block (destructive
-  `rm`, force-push, writes into `.git/`, a worker running `git`, a protected-
-  branch commit) but doesn't.
+  `rm`, force-push, writes into `.git/`, a CLI call that prints an access token,
+  a worker running `git`, a protected-branch commit) but doesn't.
 - A file write that `plugins/*/hooks/lane-guard.sh` should keep in-lane but lets through.
 - A guard that fails **open** where it's documented to fail **closed**
   (`bash-safety.sh` and `lane-guard.sh` must block when they can't inspect their

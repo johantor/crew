@@ -5,12 +5,19 @@ All notable changes to the `crew` plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [10.18.0] - 2026-10-12
+## [10.19.0] - 2026-10-12
 
 ### Added
 
 - `lead` records a ticket as the plan's `work-item:` and quotes its acceptance criteria into the
   steps; `/crew:pr` closes a GitHub issue from it (#315).
+
+## [10.18.0] - 2026-10-12
+
+### Added
+
+- `bash-safety` refuses CLI calls that print an access token (`az account get-access-token`,
+  `Get-AzAccessToken`, `gh auth token`) and names `az rest` or `gh api` instead (#314).
 
 ## [10.17.1] - 2026-10-12
 

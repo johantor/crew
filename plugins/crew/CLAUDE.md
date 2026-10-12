@@ -110,7 +110,9 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
 - `hooks/` — wired in `hooks/hooks.json`, the one copy; in this repo they load through
   `claude --plugin-dir plugins/crew`. `bash-safety` and `lane-guard` fail closed; `read-guard`, `format`,
   `dispatch-denied` and `plan-guard` fail open.
-  - `bash-safety.sh`: workers run no git but a plain `git mv`; protected-branch commit backstop (reads the
+  - `bash-safety.sh`: token-printing CLI calls refused for every session (`az account
+    get-access-token`, `Get-AzAccessToken`, `gh auth token`; AGENTS.md has the gaps);
+    workers run no git but a plain `git mv`; protected-branch commit backstop (reads the
     payload's `cwd`, not the hook's directory; AGENTS.md has the shapes); watch/dev
     commands refused; file-mutating Bash refused for agent sessions (in-place
     `sed`/`perl`/`ruby`/`awk`, `tee`, `patch`, `cp`/`mv`, a redirect to a non-exempt sink; #192).
