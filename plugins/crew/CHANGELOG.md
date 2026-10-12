@@ -9,8 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Breaking:** `lane-guard` warns, never blocks: a write outside a worker's lane goes through
-  with a `Lane note:` the worker reports and `lead` checks. The safety guards still block (#316).
+- **Breaking:** `lane-guard` warns instead of blocking: a write outside a worker's lane goes
+  through with a `Lane note:` the worker reports and `lead` checks (#316).
+- `lane-guard` blocks an `Edit`/`Write` into `.git/` for every lane worker, `backend` and
+  `frontend` included (#316).
 - `e2e`'s lane covers any file whose name contains `e2e`, such as a co-located `*.e2e-cy.ts`;
   `unit-tests` gets a note for one (#316).
 

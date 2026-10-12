@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Per-agent file-write lanes for PreToolUse(Edit|Write), routed on the payload's
 # `agent_type` since plugin agents cannot carry their own hooks. A lane is a
-# note, not a wall: every write goes through (AGENTS.md, "Why lanes warn"). Lane
+# note, not a wall: every write but one into .git/ goes through (AGENTS.md, "Why
+# lanes warn"). Lane
 # paths win when configured, else extension globs; an `other` stack with no paths
 # is open to both. The guard reads slots and detects nothing (AGENTS.md, "Init is
 # the only detector").
@@ -44,6 +45,18 @@ case "$agent_type" in
   *) exit 0 ;;
 esac
 [ -z "$path" ] && exit 0
+
+# .git/ is safety, not a lane, so it blocks, before any note can pass the write
+# (AGENTS.md, "Why lanes warn"). Case-blind: macOS and Windows file systems are.
+_had_nocase=0
+shopt -q nocasematch && _had_nocase=1
+shopt -s nocasematch
+if [[ "/$path/" == */.git/* ]] &&
+   ! { [ "$agent_type" = lead ] && [[ "/$path" == */.git/info/exclude ]]; }; then
+  echo "Blocked: $path is inside .git/, which no Edit/Write may change. Repository state changes go through git, which only lead runs." >&2
+  exit 2
+fi
+[ "$_had_nocase" -eq 1 ] || shopt -u nocasematch
 
 # A `..` segment dodges a prefix either way; this guard resolves nothing, so it
 # cannot place the file for any lane agent.

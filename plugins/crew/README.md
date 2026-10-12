@@ -173,7 +173,7 @@ another plugin's command of the same short name.
 ## Safety guarantees
 
 The bash-safety guard enforces the boundaries and **fails closed**. The read guard blocks large
-raw reads, the lane guard only notes, and both fail open, as do the advisory hooks
+raw reads, the lane guard blocks `.git/` writes and notes the rest, and both fail open, as do the advisory hooks
 (formatting, denied dispatches, plan-mode dispatches) — `plan-guard` does
 block a dispatch, but only one plan mode would have refused anyway, and on any path it can't read
 it allows.
@@ -199,9 +199,9 @@ intercepted**.
 <details>
 <summary>Hook mechanics in detail</summary>
 
-- **lane-guard** routes on the payload's `agent_type` and checks `Edit`/`Write` only. It never
-  blocks: a write outside the lane passes with a note to the agent (`additionalContext`), and a
-  payload it cannot read passes silently. File writes via Bash (`sed -i`, `tee`, redirects) are
+- **lane-guard** routes on the payload's `agent_type` and checks `Edit`/`Write` only. It blocks
+  only a write into `.git/` (`lead` keeps `.git/info/exclude`): a write outside the lane passes
+  with a note to the agent (`additionalContext`), and a payload it cannot read passes silently. File writes via Bash (`sed -i`, `tee`, redirects) are
   refused by **bash-safety** instead, so there is one lane check rather than two lane
   implementations that can drift.
   Two regimes: extension-based globs by default (correct when the backend and the client-facing

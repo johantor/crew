@@ -26,10 +26,12 @@ example:
 - A command that `plugins/*/hooks/bash-safety.sh` should block (destructive
   `rm`, force-push, writes into `.git/`, a CLI call that prints an access token,
   a worker running `git`, a protected-branch commit) but doesn't.
+- An `Edit`/`Write` into `.git/` by a lane worker that `plugins/*/hooks/lane-guard.sh`
+  lets through.
 - A guard that fails **open** where it's documented to fail **closed**
   (`bash-safety.sh` must block when it can't inspect its input; `lane-guard.sh`
-  only notes a write outside a lane and `read-guard.sh` is context-hygiene, so
-  both fail open by design).
+  mostly notes and `read-guard.sh` is context-hygiene, so both fail open by
+  design).
 - A bypass of the drift/wiring checks in `scripts/validate-plugin.sh` that would
   let a diverged shared skill or an unwired hook ship undetected.
 

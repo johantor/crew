@@ -44,7 +44,7 @@ output format; Copilot reads it directly and Claude Code's `crew-review` skill l
   `;`/`&&`/`|`, an env prefix (`FOO=1`, `env`, `command`), `find -exec`, and `*` or `[` in a value.
 - `bash-safety` fails closed (exit 2 without its library or `jq`); `lane-guard`,
   `read-guard`, `format`, `dispatch-denied` and `plan-guard` fail open, and
-  `lane-guard` never exits 2 (AGENTS.md, "Why lanes warn"). A change that flips a
+  `lane-guard` exits 2 only for a write into `.git/` (AGENTS.md, "Why lanes warn"). A change that flips a
   hook's direction is Blocking.
 - Match with `[[ =~ ]]` and parameter expansion, no fork per pattern. Quote expansions used as
   patterns (`${x#*"$m"}`). POSIX classes, no `\s` or `\b`, no GNU-only flags.

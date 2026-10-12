@@ -330,11 +330,16 @@ section. Reviewers: an opening documented here is not a fail-open finding.
 ### Why lanes warn
 
 A lane is division of labour, so by the rule above it does not fail closed. `lane-guard` passes
-every write: a miss returns a `Lane note:` to the agent (PreToolUse `additionalContext`, since
+every lane miss: it returns a `Lane note:` to the agent (PreToolUse `additionalContext`, since
 stderr at exit 0 never reaches the model), and the agent names the file in its summary. `lead`
 reads the summary and the diff, so a misplaced file shows up at the review gate. A block cost
 more than it bought: each project layout the globs missed (a co-located `*.e2e-cy.ts`) stopped a
 step that was right. The safety guards (git, destructive and file-mutating Bash) still block.
+
+One `Edit`/`Write` is safety, not a lane: a path inside `.git/` is refused for every lane agent
+(`lead` keeps `.git/info/exclude`), checked before any note, case-blind, whatever the stack. It is
+a floor like the Bash guards: like the lanes it fails open on a broken install (no library, no
+`jq`), and the main session and `generalist` have no lane agent type, so it does not see them.
 
 ### Why an `other` stack has open lanes
 

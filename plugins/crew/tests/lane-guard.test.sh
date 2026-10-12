@@ -5,8 +5,8 @@
 source "$(dirname "${BASH_SOURCE[0]}")/../../../tests/hooks/lib.sh"
 HOOK="lane-guard.sh"
 
-# The guard never blocks. A lane miss is exit 0 plus a PreToolUse note on stdout;
-# an in-lane write is exit 0 and silent.
+# The guard blocks only a write into .git/. A lane miss is exit 0 plus a
+# PreToolUse note on stdout; an in-lane write is exit 0 and silent.
 # assert_note <label> <hook> <payload> <expect_substr> [cwd]
 assert_note() {
   local label="$1" hook="$2" payload="$3" substr="$4" cwd="${5:-}" ctx
@@ -142,8 +142,21 @@ assert_quiet "lead allowed crew config"           "$HOOK" "$(payload_file crew:l
 assert_quiet "lead allowed CLAUDE.md"             "$HOOK" "$(payload_file crew:lead CLAUDE.md)"
 assert_quiet "lead allowed CLAUDE.local.md"       "$HOOK" "$(payload_file crew:lead CLAUDE.local.md)"
 assert_quiet "lead allowed the git exclude file"  "$HOOK" "$(payload_file crew:lead /repo/.git/info/exclude)"
-assert_note "lead denied another file under .git" \
-  "$HOOK" "$(payload_file crew:lead .git/config)" "allowed paths"
+assert_block "lead denied another file under .git" \
+  "$HOOK" "$(payload_file crew:lead .git/config)" "inside .git/"
+
+# --- .git/ is safety, not a lane: every lane agent is blocked -------------------
+for _a in e2e unit-tests backend frontend copywriter designer; do
+  assert_block "$_a denied .git/config" "$HOOK" "$(payload_file "crew:$_a" .git/config)" "inside .git/" "$fm_ext"
+done
+assert_block "the .git block ignores case"    "$HOOK" "$(payload_file crew:e2e .GIT/config)" "inside .git/"
+assert_block "a '..' path cannot dodge it"    "$HOOK" "$(payload_file crew:e2e src/../.git/hooks/pre-commit)" "inside .git/"
+assert_block "a worktree's .git file too"     "$HOOK" "$(payload_file crew:backend /repo/wt/.git)" "inside .git/" "$fm_ext"
+assert_block "lead's exclude exemption is the file only" \
+  "$HOOK" "$(payload_file crew:lead .git/info/exclude/../../config)" "inside .git/"
+assert_quiet "backend keeps .gitignore"       "$HOOK" "$(payload_file crew:backend .gitignore)" "$fm_ext"
+assert_quiet "backend keeps .github/"         "$HOOK" "$(payload_file crew:backend .github/workflows/ci.yml)" "$fm_ext"
+assert_quiet "the main session is not guarded" "$HOOK" "$(jq -nc '{tool_input:{file_path:".git/config"}}')"
 assert_quiet "lead allowed its local agent memory" "$HOOK" "$(payload_file crew:lead .claude/agent-memory-local/lead/MEMORY.md)"
 assert_quiet "lead allowed project agent memory (absolute)" "$HOOK" "$(payload_file crew:lead /repo/.claude/agent-memory/lead/MEMORY.md)"
 assert_quiet "lead allowed scratch under /tmp"    "$HOOK" "$(payload_file crew:lead /tmp/crew/outline.md)"
