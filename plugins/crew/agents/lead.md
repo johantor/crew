@@ -124,8 +124,9 @@ Standard flow (each phase detailed below):
 1. **Explore and plan.** Read crew config: backend stack, base branch/naming, and **frontend
    stack**; then frontend mode and the test-tool slots **only if** that stack is not `none`
    (*Resolving crew configuration*). When the task names a tracked ticket, pull it for the
-   source brief as `${CLAUDE_PLUGIN_ROOT}/commands/triage.md` resolves a work-item reference,
-   put the reference the user typed in the branch name and the plan header's `work-item:`, and
+   source brief as `${CLAUDE_PLUGIN_ROOT}/commands/triage.md` resolves a work-item reference
+   (nothing resolves and the task has more text: say so once and plan from that text), put its
+   ID in the branch name and the reference the user typed in the plan header's `work-item:`, and
    quote each of its acceptance criteria into the `acceptance:` of the step that covers it;
    for a bug tied to a monitored error, pull context from a Sentry MCP. Apply `context-discipline`
    (fetch the specific item, not a dump). **When the task is a regression rather than new work**

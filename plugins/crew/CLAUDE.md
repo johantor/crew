@@ -193,7 +193,7 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
 - `omitClaudeMd: true` only on `incident-triage` and `visual-review` (read-only, fully briefed). Never on an
   implementer: the project's `CLAUDE.md` holds its conventions. Not on `debt-scout` either: the
   project's `CLAUDE.md` may carry the debt policy section it has to honor.
-- `lead` has `loaded-lines-cap: 612`, 2 lines of slack (raised from 595 when the gate rules
+- `lead` has `loaded-lines-cap: 612`, 1 line of slack (raised from 595 when the gate rules
   moved into the preloaded `review-gate` skill, whose frontmatter and heading count, and from
   609 for the six roles of #275). Skills it loads on demand (`debt-lane`) do not count.
 
