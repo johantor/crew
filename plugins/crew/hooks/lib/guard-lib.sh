@@ -391,8 +391,11 @@ guard_mask_quotes() {
 }
 
 # guard_write_refuse <what> -- the one message both halves below report with.
+# The heredoc hint names the fix for a documented gap (AGENTS.md, #295).
 guard_write_refuse() {
-  echo "Blocked: $1 writes a file from Bash, which reaches no Edit|Write hook — write lanes and formatting are wired to Edit/Write, so the write would land unguarded. Use Edit/Write for files in the checkout; send scratch output under /tmp." >&2
+  local hint=''
+  case "$guard_cmd_raw" in *'<<'*) hint=' A heredoc body is scanned too: write its text with Write to a scratch file and pass the file.' ;; esac
+  echo "Blocked: $1 writes a file from Bash, which reaches no Edit|Write hook — write lanes and formatting are wired to Edit/Write, so the write would land unguarded. Use Edit/Write for files in the checkout; send scratch output under /tmp.$hint" >&2
   exit 2
 }
 
