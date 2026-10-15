@@ -255,6 +255,8 @@ assert_block "mv inside the tree"     "$HOOK" "$(payload_bash 'mv src/a.cs src/b
 assert_block "patch"                  "$HOOK" "$(payload_bash 'patch -p1 < fix.diff' crew:backend)"  "$gap"
 # A heredoc body is scanned, quoted delimiter or not (AGENTS.md, #295); the refusal names the fix.
 assert_block "angle brackets in a quoted heredoc" "$HOOK" "$(payload_bash $'clip <<\'EOF\'\nmcp__plugin_<plugin>_mssql\nEOF' crew:lead)" "heredoc body is scanned"
+run_hook "$HOOK" "$(payload_bash 'cp /tmp/x src/Foo.cs' crew:backend)"
+if [[ $_stderr == *heredoc* ]]; then _fail "no heredoc hint without a heredoc (got: $_stderr)"; else _pass; fi
 # `git mv` is a rename recorded in the index, not a write: no bytes change, so no
 # lane guard or formatter has anything to inspect, and the rename lands in a
 # commit, where it is reviewed. The floor lets any agent run it, and crew's own

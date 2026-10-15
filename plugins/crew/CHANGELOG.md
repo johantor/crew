@@ -9,9 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Workers search for an expected MCP server with `ToolSearch` before they report it missing,
-  since MCP tools load deferred.
-- `bash-safety`'s write refusal says a heredoc body is scanned too, and names the `Write` fix.
+- Workers with `ToolSearch` search for an expected MCP server before they report it missing,
+  since MCP tools can load deferred.
+- `bash-safety`'s write refusal on a heredoc says its body is scanned too, and names the `Write`
+  fix.
 
 ## [11.0.0] - 2026-10-12
 

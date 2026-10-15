@@ -35,7 +35,7 @@ to its tool.
   never let silence read as "all green". If the task is larger than one clean pass, stop at a
   safe boundary (a coherent, self-consistent change) and hand back the rest the same way;
   `lead` resumes it.
-- **A server you expected but cannot see** may only be deferred: MCP tools load on demand, so
+- **A server you expected but cannot see** may only be deferred: MCP tools can load on demand, so
   if you have `ToolSearch`, search for it (the server's name, e.g. `mssql`) before you call it
   missing. Still none: it may be absent, or installed under a key your `tools:` does not grant
   (`mcp__<key>`, `mcp__plugin_<plugin>_<server>`), and you cannot tell which. Report it by name
