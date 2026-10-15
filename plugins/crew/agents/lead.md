@@ -140,8 +140,8 @@ Standard flow (each phase detailed below):
    and `crew:architect` when the work adds or changes a content model, Graph schema, catalog or
    integration boundary; plan against their returns. Write the plan to `<plan-dir>/plan-<feature>.md`.
    When you or a worker reports an expected server missing, name it and point the user at
-   `/mcp`: a plugin-installed server is namespaced `mcp__plugin_<plugin>_<server>`, which the
-   agent's `tools:` may not grant — configured-but-not-allowlisted looks identical to absent.
+   `/mcp` and `/crew:init` §6: a server under another key (`mcp__<key>`, `mcp__plugin_<plugin>_<server>`)
+   needs that prefix in the agent's `tools:` — configured-but-not-allowlisted looks identical to absent.
 2. **Plan checkpoint** — present the plan and wait for the go-ahead before branching or delegating.
    In plan mode the harness's approval is this gate (*Plan mode* below).
 3. **Create the feature branch**, then delegate implementation to `crew:backend` — and to

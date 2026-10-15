@@ -392,7 +392,7 @@ guard_mask_quotes() {
 
 # guard_write_refuse <what> -- the one message both halves below report with.
 guard_write_refuse() {
-  echo "Blocked: $1 writes a file from Bash, which reaches no Edit|Write hook — write lanes and formatting are wired to Edit/Write, so the write would land unguarded. Use Edit/Write for files in the checkout; send scratch output under /tmp." >&2
+  echo "Blocked: $1 writes a file from Bash, which reaches no Edit|Write hook — write lanes and formatting are wired to Edit/Write, so the write would land unguarded. Use Edit/Write for files in the checkout; send scratch output under /tmp. A heredoc body is scanned too: write its text with Write to a scratch file and pass the file." >&2
   exit 2
 }
 

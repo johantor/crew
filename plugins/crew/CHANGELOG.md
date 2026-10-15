@@ -5,6 +5,14 @@ All notable changes to the `crew` plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [11.0.1] - 2026-10-15
+
+### Fixed
+
+- Workers search for an expected MCP server with `ToolSearch` before they report it missing,
+  since MCP tools load deferred.
+- `bash-safety`'s write refusal says a heredoc body is scanned too, and names the `Write` fix.
+
 ## [11.0.0] - 2026-10-12
 
 ### Changed

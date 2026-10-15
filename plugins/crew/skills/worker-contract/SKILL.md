@@ -35,10 +35,12 @@ to its tool.
   never let silence read as "all green". If the task is larger than one clean pass, stop at a
   safe boundary (a coherent, self-consistent change) and hand back the rest the same way;
   `lead` resumes it.
-- **A server you expected but cannot see** may be plugin-installed
-  (`mcp__plugin_<plugin>_<server>`) and simply not in your `tools:`. Report it by name in your
-  hand-back rather than silently working without it. From any MCP, fetch the specific item, not
-  a dump (`context-discipline`).
+- **A server you expected but cannot see** may only be deferred: MCP tools load on demand, so
+  search for it with `ToolSearch` (the server's name, e.g. `mssql`) before you call it missing.
+  Still none: it may be absent, or installed under a key your `tools:` does not grant
+  (`mcp__<key>`, `mcp__plugin_<plugin>_<server>`), and you cannot tell which. Report it by name
+  and the search you ran in your hand-back rather than silently working without it. From any
+  MCP, fetch the specific item, not a dump (`context-discipline`).
 - **When a docs MCP (e.g. Context7) is available**, consult it for current, version-specific
   API docs before coding against a library or framework, rather than relying on memory; fetch
   the specific topic, not a dump.
