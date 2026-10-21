@@ -23,7 +23,7 @@ opens `http://127.0.0.1:7428/`.
 | Earlier | The last 7 days. Search reaches back 30 days (`--days`). |
 
 Each card shows the title (a `/rename` name, else the first prompt), the repo and branch, the
-latest activity, and how long ago it happened. Click a card to copy
+latest activity, and how long ago it happened. **Copy resume** (or a click on the card) copies
 `cd "<dir>"; claude --resume <id>`, which runs in bash, zsh and PowerShell. **More** shows the
 last reply, the last tool calls and the subagents. **Archive** hides a card; the **Archived**
 filter brings it back.

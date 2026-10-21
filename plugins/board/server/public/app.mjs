@@ -71,16 +71,36 @@ function matches(c, f) {
   return true;
 }
 
+const STATE_LABEL = { needs: 'Needs me', working: 'Working', yourTurn: 'Your turn', closed: 'Closed' };
+
+function button(text, cls, onClick) {
+  const b = el('button', cls, text);
+  b.type = 'button';
+  b.addEventListener('click', (ev) => {
+    ev.stopPropagation();
+    onClick();
+  });
+  return b;
+}
+
 function renderCard(c, t) {
   const node = el('article', 'card');
-  node.dataset.state = c.state === 'closed' || isGone(c, t) ? 'closed' : c.state;
+  const state = c.state === 'closed' || isGone(c, t) ? 'closed' : c.state;
+  node.dataset.state = state;
   if (c.archived) node.classList.add('archived');
+  // A mouse shortcut; the Copy resume button is the keyboard path.
   node.title = 'Click to copy the resume command';
   node.addEventListener('click', () => copyResume(c));
 
-  node.append(el('div', 'title', c.title || c.id.slice(0, 8)));
-  const where = [c.repo, c.branch].filter(Boolean).join(' · ');
-  if (where) node.append(el('div', 'where', where));
+  const head = el('div', 'card-head');
+  head.append(el('span', 'dot'), el('span', '', STATE_LABEL[state]), el('span', 'time', ago(c.lastTs)));
+  node.append(head, el('h3', 'title', c.title || c.id.slice(0, 8)));
+  if (c.repo || c.branch) {
+    const chips = el('div', 'chips');
+    if (c.repo) chips.append(el('span', 'chip repo', c.repo));
+    if (c.branch) chips.append(el('span', 'chip mono', `⎇ ${c.branch}`));
+    node.append(chips);
+  }
   if (c.activity) node.append(el('div', 'activity', c.activity));
 
   const badges = el('div', 'badges');
@@ -100,34 +120,28 @@ function renderCard(c, t) {
     const strip = el('div', 'workers');
     for (const w of running) {
       const row = el('div', 'worker');
-      row.append(el('span', 'type', w.type));
-      if (w.activity) row.append(document.createTextNode(` · ${w.activity}`));
+      row.append(el('span', 'dot'), el('span', 'type', w.type));
+      if (w.activity) {
+        row.append(el('span', 'mono', w.activity));
+        row.title = `${w.type}: ${w.activity}`;
+      }
       strip.append(row);
     }
-    if (done) strip.append(el('div', 'done', `${done} subagent${done === 1 ? '' : 's'} finished`));
+    if (done) strip.append(el('div', 'done', `✓ ${done} subagent${done === 1 ? '' : 's'} finished`));
     node.append(strip);
   }
 
-  const row = el('div', 'row');
-  row.append(el('span', 'meta', ago(c.lastTs)));
-  const actions = el('span');
-  const more = el('button', '', expanded.has(c.id) ? 'Less' : 'More');
-  more.type = 'button';
-  more.addEventListener('click', (ev) => {
-    ev.stopPropagation();
-    if (expanded.has(c.id)) expanded.delete(c.id);
-    else expanded.add(c.id);
-    render();
-  });
-  const arch = el('button', '', c.archived ? 'Restore' : 'Archive');
-  arch.type = 'button';
-  arch.addEventListener('click', (ev) => {
-    ev.stopPropagation();
-    setArchived(c, !c.archived);
-  });
-  actions.append(more, ' ', arch);
-  row.append(actions);
-  node.append(row);
+  const actions = el('div', 'actions');
+  actions.append(
+    button('Copy resume', 'primary', () => copyResume(c)),
+    button(expanded.has(c.id) ? 'Less' : 'More', '', () => {
+      if (expanded.has(c.id)) expanded.delete(c.id);
+      else expanded.add(c.id);
+      render();
+    }),
+    button(c.archived ? 'Restore' : 'Archive', '', () => setArchived(c, !c.archived)),
+  );
+  node.append(actions);
 
   if (expanded.has(c.id)) node.append(renderDetail(c));
   return node;
@@ -195,7 +209,7 @@ function render() {
       const section = el('section', 'column');
       section.dataset.col = col.id;
       const h = el('h2');
-      h.append(el('span', '', col.label), el('span', '', String(list.length)));
+      h.append(el('span', '', col.label), el('span', 'count', String(list.length)));
       section.append(h);
       if (!list.length) section.append(el('div', 'empty', 'Nothing here'));
       for (const c of list) section.append(renderCard(c, t));
