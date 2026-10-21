@@ -91,8 +91,9 @@ export function readSession(file, stat = fs.statSync(file)) {
   return rec;
 }
 
-// Every session file touched since `sinceMs`, as History records.
-export function scanHistory(dir, sinceMs) {
+// Every session file touched since `sinceMs`, as History records. `seen` maps a
+// file to the mtime and size it was read at, so a rescan reads only what changed.
+export function scanHistory(dir, sinceMs, seen = new Map()) {
   const out = [];
   let projects;
   try {
@@ -115,6 +116,9 @@ export function scanHistory(dir, sinceMs) {
       try {
         const stat = fs.statSync(file);
         if (!stat.isFile() || stat.mtimeMs < sinceMs) continue;
+        const key = `${stat.mtimeMs}:${stat.size}`;
+        if (seen.get(file) === key) continue;
+        seen.set(file, key);
         out.push(readSession(file, stat));
       } catch {
         // One unreadable transcript must not hide the rest.

@@ -5,13 +5,14 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { apply, createBoard } from '../server/reduce.mjs';
 import { columnOf, isGone, isStale, STALE_MS } from '../server/public/columns.mjs';
 import { readSession, scanHistory } from '../server/history.mjs';
 import { createTail, parseArgs } from '../server/board.mjs';
-import { distill, summarizeTool } from '../server/capture.mjs';
+import { distill, summarizeTool, where } from '../server/capture.mjs';
+import { resumeCommand } from '../server/public/resume.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const tmp = () => fs.mkdtempSync(path.join(os.tmpdir(), 'board-test-'));
@@ -179,7 +180,7 @@ test('distill keeps the fields the reducer reads, nothing more', () => {
     },
     42,
   );
-  assert.deepEqual(rec, { v: 1, ts: 42, e: 'Stop', sid: 's', cwd: '/nowhere', msg: 'line one line two' });
+  assert.deepEqual(rec, { v: 1, ts: 42, e: 'Stop', sid: 's', cwd: '/nowhere', msg: 'line one line two', repo: 'nowhere', branch: '' });
 });
 
 function writeTranscript(dir, sid, lines) {
@@ -286,54 +287,222 @@ test('the server serves state, refuses foreign hosts, and archives', async (t) =
     path.join(boardDir, 'events.jsonl'),
     `${JSON.stringify({ v: 1, ts: Date.now(), e: 'UserPromptSubmit', sid: 'live', prompt: 'live work' })}\n`,
   );
-  const port = 20000 + Math.floor(Math.random() * 20000);
-  const child = spawn(process.execPath, [path.join(HERE, '../server/board.mjs'), '--port', String(port)], {
+  // Port 0: the OS picks a free port, which the server prints.
+  const child = spawn(process.execPath, [path.join(HERE, '../server/board.mjs'), '--port', '0'], {
     env: { ...process.env, CLAUDE_BOARD_DIR: boardDir, CLAUDE_CONFIG_DIR: configDir },
-    stdio: 'ignore',
+    stdio: ['ignore', 'pipe', 'inherit'],
   });
   t.after(() => child.kill());
+  let out = '';
+  child.stdout.on('data', (d) => (out += d));
+  const port = Number(await waitFor(() => /Board: http:\/\/127\.0\.0\.1:(\d+)\//.exec(out)?.[1]));
   const base = `http://127.0.0.1:${port}`;
   await waitFor(async () => (await fetch(`${base}/api/health`)).ok);
 
-  const state = await (await fetch(`${base}/api/state`)).json();
+  // Without the token, other local users get nothing.
+  const token = fs.readFileSync(path.join(boardDir, 'token'), 'utf8').trim();
+  assert.equal((fs.statSync(path.join(boardDir, 'token')).mode & 0o777).toString(8), '600');
+  assert.equal((await fetch(`${base}/api/state`)).status, 401);
+  assert.equal((await fetch(`${base}/`)).status, 401);
+  assert.equal((await (await fetch(`${base}/api/health`)).json()).auth, false);
+  const login = await fetch(`${base}/?t=${token}`, { redirect: 'manual' });
+  assert.equal(login.status, 302);
+  assert.match(login.headers.get('set-cookie'), /^board_token=[0-9a-f]{48}; HttpOnly; SameSite=Strict/);
+  const cookie = login.headers.get('set-cookie').split(';')[0];
+  assert.equal((await fetch(`${base}/`, { headers: { Cookie: cookie } })).status, 200);
+
+  const realFetch = fetch;
+  const fetch2 = (url, init = {}) => realFetch(url, { ...init, headers: { 'X-Board-Token': token, ...init.headers } });
+
+  const state = await (await fetch2(`${base}/api/state`)).json();
   const byId = Object.fromEntries(state.cards.map((c) => [c.id, c]));
   assert.equal(byId.live.state, 'working');
   assert.equal(byId.hist.state, 'closed');
   assert.equal(byId.hist.title, 'old question');
 
-  const page = await fetch(`${base}/`);
+  const page = await fetch2(`${base}/`);
   assert.equal(page.status, 200);
   assert.match(page.headers.get('content-security-policy'), /default-src 'self'/);
 
   // DNS rebinding: a request naming another host is refused.
   const http = await import('node:http');
   const foreign = await new Promise((resolve) => {
-    http.get({ host: '127.0.0.1', port, path: '/api/state', headers: { Host: 'evil.example:80' } }, (res) => resolve(res.statusCode));
+    http.get({ host: '127.0.0.1', port, path: '/api/state', headers: { Host: 'evil.example:80', 'X-Board-Token': token } }, (res) =>
+      resolve(res.statusCode),
+    );
   });
   assert.equal(foreign, 403);
 
-  const formPost = await fetch(`${base}/api/archive`, { method: 'POST', body: 'sid=live' });
+  const formPost = await fetch2(`${base}/api/archive`, { method: 'POST', body: 'sid=live' });
   assert.equal(formPost.status, 403, 'a non-JSON post is refused');
-  const crossSite = await fetch(`${base}/api/archive`, {
+  const crossSite = await fetch2(`${base}/api/archive`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Origin: 'https://evil.example' },
     body: JSON.stringify({ sid: 'live' }),
   });
   assert.equal(crossSite.status, 403, 'another origin is refused');
+  const nullBody = await fetch2(`${base}/api/archive`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: 'null' });
+  assert.equal(nullBody.status, 404, 'a null body is refused, and the server lives on');
 
-  const ok = await fetch(`${base}/api/archive`, {
+  const ok = await fetch2(`${base}/api/archive`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ sid: 'live', on: true }),
   });
   assert.equal(ok.status, 200);
-  const after = await (await fetch(`${base}/api/state`)).json();
+  const after = await (await fetch2(`${base}/api/state`)).json();
   assert.equal(after.cards.find((c) => c.id === 'live').archived, true);
 
   // A new hook line shows up without a restart.
   fs.appendFileSync(path.join(boardDir, 'events.jsonl'), `${JSON.stringify({ v: 1, ts: Date.now(), e: 'Stop', sid: 'live', msg: 'done' })}\n`);
   await waitFor(async () => {
-    const s = await (await fetch(`${base}/api/state`)).json();
+    const s = await (await fetch2(`${base}/api/state`)).json();
     return s.cards.find((c) => c.id === 'live').state === 'yourTurn';
   });
+});
+
+test('the resume command never lets a folder name run code', () => {
+  const id = '0f5a2c1e-1111-4abc-9def-123456789abc';
+  assert.deepEqual(resumeCommand({ id, cwd: '/w/shop web' }), { command: `cd '/w/shop web'; claude --resume ${id}`, cdOmitted: false });
+  assert.equal(resumeCommand({ id, cwd: '/w/$(touch PWNED)' }).command, `cd '/w/$(touch PWNED)'; claude --resume ${id}`);
+  assert.deepEqual(resumeCommand({ id, cwd: "/w/it's" }), { command: `claude --resume ${id}`, cdOmitted: true });
+  assert.deepEqual(resumeCommand({ id, cwd: '/w/a\nb' }), { command: `claude --resume ${id}`, cdOmitted: true });
+  assert.equal(resumeCommand({ id: 'x; rm -rf ~', cwd: '/w' }).command, '');
+  assert.equal(resumeCommand({ id, cwd: '' }).command, `claude --resume ${id}`);
+});
+
+test('a worker event leaves the parent session waiting in Needs me', () => {
+  for (const ask of [
+    { e: 'PermissionRequest', tool: 'Bash git commit' },
+    { e: 'StopFailure', error: 'rate_limit' },
+  ]) {
+    const c = run([
+      { e: 'SubagentStart', aid: 'w1', agent: 'crew:backend' },
+      ask,
+      { e: 'PreToolUse', aid: 'w1', tool: 'Edit a.ts' },
+      { e: 'PostToolUse', aid: 'w1', tool: 'Edit a.ts' },
+      { e: 'SubagentStop', aid: 'w1', msg: 'done' },
+    ]);
+    assert.equal(c.state, 'needs', `after ${ask.e}`);
+  }
+});
+
+test('the session own turn leaves a worker prompt in Needs me until that worker moves', () => {
+  const c = run([
+    { e: 'SubagentStart', aid: 'w1', agent: 'crew:backend' },
+    { e: 'PermissionRequest', aid: 'w1', tool: 'Bash dotnet test' },
+    { e: 'PreToolUse', tool: 'Read plan.md' },
+    { e: 'Stop', msg: 'waiting on the worker' },
+  ]);
+  assert.equal(c.state, 'needs');
+  assert.match(c.activity, /crew:backend asks/);
+  assert.equal(c.summary, 'waiting on the worker');
+  const d = run([
+    { e: 'UserPromptSubmit', prompt: 'build it' },
+    { e: 'SubagentStart', aid: 'w1', agent: 'crew:backend' },
+    { e: 'PermissionRequest', aid: 'w1', tool: 'Bash dotnet test' },
+    { e: 'SubagentStop', aid: 'w1', msg: 'denied, stopped' },
+  ]);
+  assert.equal(d.state, 'working', 'the worker stopping answers its own prompt');
+});
+
+test('a planted .git/HEAD cannot hang the hook', { skip: process.platform === 'win32' }, () => {
+  const dir = tmp();
+  fs.mkdirSync(path.join(dir, '.git'));
+  const fifo = spawnSync('mkfifo', [path.join(dir, '.git', 'HEAD')]);
+  assert.equal(fifo.status, 0, 'mkfifo is needed for this case');
+  const probe = `import { gitInfo } from ${JSON.stringify(path.join(HERE, '../server/capture.mjs'))}; console.log(JSON.stringify(gitInfo(${JSON.stringify(dir)})));`;
+  const res = spawnSync(process.execPath, ['--input-type=module', '-e', probe], { timeout: 5000, encoding: 'utf8' });
+  assert.equal(res.signal, null, 'gitInfo hung on a FIFO');
+  assert.deepEqual(JSON.parse(res.stdout), { repo: path.basename(dir) });
+
+  const link = tmp();
+  fs.mkdirSync(path.join(link, '.git'));
+  fs.symlinkSync('/dev/zero', path.join(link, '.git', 'HEAD'));
+  const res2 = spawnSync(process.execPath, ['--input-type=module', '-e', probe.replace(JSON.stringify(dir), JSON.stringify(link))], {
+    timeout: 5000,
+    encoding: 'utf8',
+  });
+  assert.equal(res2.signal, null, 'gitInfo hung on a symlink to /dev/zero');
+});
+
+test('a PreToolUse appended after its PermissionRequest keeps the card in Needs me', () => {
+  const c = run([
+    { e: 'UserPromptSubmit', prompt: 'p' },
+    { e: 'PermissionRequest', tool: 'Bash rm x' },
+    { e: 'PreToolUse', tool: 'Bash rm x' },
+  ]);
+  assert.equal(c.state, 'needs');
+  assert.equal(c.activity, 'Allow: Bash rm x?');
+  const d = run([{ e: 'PermissionRequest', tool: 'Bash x' }, { e: 'PostToolUseFailure', tool: 'Bash x' }]);
+  assert.equal(d.state, 'working', 'an approved tool that failed also leaves Needs me');
+});
+
+test('an idle notification ends a turn that had no Stop', () => {
+  assert.equal(run([{ e: 'UserPromptSubmit', prompt: 'p' }, { e: 'Notification', ntype: 'idle_prompt' }]).state, 'yourTurn');
+  assert.equal(run([{ e: 'PermissionRequest', tool: 'Bash x' }, { e: 'Notification', ntype: 'idle_prompt' }]).state, 'yourTurn');
+  assert.equal(run([{ e: 'StopFailure', error: 'rate_limit' }, { e: 'Notification', ntype: 'idle_prompt' }]).state, 'needs');
+  assert.equal(run([{ e: 'SessionEnd' }, { e: 'Notification', ntype: 'idle_prompt' }]).state, 'closed');
+});
+
+test('answering a background subagent returns an idle card to Your turn', () => {
+  const c = run([
+    { e: 'Stop', msg: 'over to you' },
+    { e: 'PreToolUse', aid: 'bg', agent: 'Explore', tool: 'Bash ls' },
+    { e: 'PermissionRequest', aid: 'bg', agent: 'Explore', tool: 'Bash ls' },
+    { e: 'PostToolUse', aid: 'bg', agent: 'Explore', tool: 'Bash ls' },
+  ]);
+  assert.equal(c.state, 'yourTurn');
+  assert.equal(c.activity, 'over to you');
+});
+
+test('a session that leaves the repo drops its branch', () => {
+  const c = run([
+    { e: 'SessionStart', source: 'startup', repo: 'shop', branch: 'main' },
+    { e: 'UserPromptSubmit', prompt: 'p', repo: 'tmp', branch: '' },
+  ]);
+  assert.equal(c.repo, 'tmp');
+  assert.equal(c.branch, '');
+  assert.deepEqual(where('/no/such/dir/notes'), { repo: 'notes', branch: '' });
+});
+
+test('a sibling folder with a shared prefix is not inside the cwd', () => {
+  assert.equal(summarizeTool('Edit', { file_path: '/w/shop-api/src/a.ts' }, '/w/shop'), 'Edit /w/shop-api/src/a.ts');
+});
+
+test('the hook and the server run through a symlinked install', { skip: process.platform === 'win32' }, () => {
+  const dir = tmp();
+  const link = path.join(dir, 'plugin');
+  fs.symlinkSync(path.join(HERE, '..'), link);
+  const boardDir = path.join(dir, 'board');
+  const res = spawnSync(process.execPath, [path.join(link, 'server/capture.mjs')], {
+    input: JSON.stringify({ session_id: 's', hook_event_name: 'Stop', last_assistant_message: 'hi' }),
+    env: { ...process.env, CLAUDE_BOARD_DIR: boardDir },
+    encoding: 'utf8',
+    timeout: 5000,
+  });
+  assert.equal(res.status, 0);
+  assert.equal(fs.readFileSync(path.join(boardDir, 'events.jsonl'), 'utf8').split('\n').filter(Boolean).length, 1);
+  const bad = spawnSync(process.execPath, [path.join(link, 'server/board.mjs'), '--serve'], { encoding: 'utf8', timeout: 5000 });
+  assert.match(bad.stderr, /unknown option/, 'board.mjs ran its main through the symlink');
+});
+
+test('the tail replays a log replaced by a longer one', () => {
+  const file = path.join(tmp(), 'events.jsonl');
+  const tail = createTail(file);
+  fs.writeFileSync(file, '{"a":1}\n');
+  tail.read();
+  fs.writeFileSync(`${file}.new`, '{"b":1}\n{"b":2}\n{"b":3}\n');
+  fs.renameSync(`${file}.new`, file);
+  assert.equal(tail.read().truncated, true);
+  tail.reset();
+  assert.equal(tail.read().records.length, 3);
+});
+
+test('a history rescan skips transcripts that did not change', () => {
+  const dir = tmp();
+  writeTranscript(dir, 'one', [{ type: 'user', message: { content: 'hi' } }]);
+  const seen = new Map();
+  assert.equal(scanHistory(dir, 0, seen).length, 1);
+  assert.equal(scanHistory(dir, 0, seen).length, 0);
 });

@@ -221,8 +221,9 @@ unused), rosters §9, prose refs §10, `crew.md` keys §11, footprint §12, MCP
 pairs §13, YAML frontmatter §14. §2g and §12 index skills through `git ls-files`, so stage a
 new or renamed skill file before running the validator.
 
-`plugins/<plugin>/tests/` is a bash suite (`jq` and `git` only, no LLM, no network) exercising
-the hooks' behavior: each guard is a pure `stdin JSON → exit 0/2` function. The harness lives
+`plugins/<plugin>/tests/` is a bash suite (`jq` and `git` only, no LLM, no network; `board`'s
+also needs Node and serves on 127.0.0.1) exercising the hooks' behavior: each guard is a pure
+`stdin JSON → exit 0/2` function. The harness lives
 once in `tests/hooks/`; `run.sh` discovers every suite and **fails when a plugin ships `hooks/`
 with no suite beside it**. `format.sh` is covered through a fixture `formatMatrix` whose rows
 name faked tools. **A change to a guard's logic adds or adjusts a case, covering both the allow

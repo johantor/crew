@@ -9,11 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- A local kanban board of every Claude Code session in five columns: Needs me, Working, Your
-  turn, Closed today, Earlier. Async hooks append each session's state to
-  `~/.claude/board/events.jsonl`, and `/board:open` starts the server on 127.0.0.1.
-- History from `~/.claude/projects` fills Closed today and Earlier with sessions from before the
-  board.
+- A local kanban of every Claude Code session; hooks log to `~/.claude/board/events.jsonl`.
+- `/board:open` starts the server on 127.0.0.1, behind a per-user token.
+- Transcripts in `~/.claude/projects` fill the board with sessions from before the plugin.
 - Subagents show on their session's card; a Crew run gets a Crew badge.
-- A click copies `cd "<dir>"; claude --resume <id>`. Light, dark or browser theme, saved in the
-  browser.
+- Copy resume copies `cd '<dir>'; claude --resume <id>`; light, dark or browser theme.

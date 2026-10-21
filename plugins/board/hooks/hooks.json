@@ -12,6 +12,9 @@
     "PostToolUse": [
       { "hooks": [{ "type": "command", "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/capture.sh", "async": true }] }
     ],
+    "PostToolUseFailure": [
+      { "hooks": [{ "type": "command", "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/capture.sh", "async": true }] }
+    ],
     "PermissionRequest": [
       { "hooks": [{ "type": "command", "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/capture.sh", "async": true }] }
     ],

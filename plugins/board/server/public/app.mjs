@@ -1,4 +1,5 @@
 import { COLUMNS, columnOf, isGone, isStale } from './columns.mjs';
+import { resumeCommand } from './resume.mjs';
 
 // Earlier shows a week; the server holds more, which search reaches.
 const EARLIER_DAYS = 7;
@@ -26,12 +27,6 @@ function ago(ts) {
   return new Date(ts).toLocaleString(undefined, { weekday: 'short', hour: '2-digit', minute: '2-digit' });
 }
 
-// bash, zsh and PowerShell all run `cd "<dir>"; claude --resume <id>`.
-function resumeCommand(c) {
-  const cd = c.cwd ? `cd "${c.cwd}"; ` : '';
-  return `${cd}claude --resume ${c.id}`;
-}
-
 function toast(text) {
   const t = $('toast');
   t.textContent = text;
@@ -41,12 +36,14 @@ function toast(text) {
 }
 
 async function copyResume(c) {
-  const cmd = resumeCommand(c);
+  const { command, cdOmitted } = resumeCommand(c);
+  if (!command) return toast('This session id cannot be resumed from here.');
+  const note = cdOmitted ? ` (no cd: the folder name holds a quote; cd to ${c.cwd} first)` : '';
   try {
-    await navigator.clipboard.writeText(cmd);
-    toast(`Copied: ${cmd}`);
+    await navigator.clipboard.writeText(command);
+    toast(`Copied: ${command}${note}`);
   } catch {
-    window.prompt('Copy this command:', cmd);
+    window.prompt(`Copy this command${note}:`, command);
   }
 }
 
@@ -73,9 +70,11 @@ function matches(c, f) {
 
 const STATE_LABEL = { needs: 'Needs me', working: 'Working', yourTurn: 'Your turn', closed: 'Closed' };
 
-function button(text, cls, onClick) {
+// `action` names the button so focus can return to it after the card is rebuilt.
+function button(text, cls, action, onClick) {
   const b = el('button', cls, text);
   b.type = 'button';
+  b.dataset.action = action;
   b.addEventListener('click', (ev) => {
     ev.stopPropagation();
     onClick();
@@ -87,14 +86,18 @@ function renderCard(c, t) {
   const node = el('article', 'card');
   const state = c.state === 'closed' || isGone(c, t) ? 'closed' : c.state;
   node.dataset.state = state;
+  node.dataset.sid = c.id;
   if (c.archived) node.classList.add('archived');
-  // A mouse shortcut; the Copy resume button is the keyboard path.
-  node.title = 'Click to copy the resume command';
+  // A click anywhere is a mouse shortcut; the Copy resume button is the keyboard path.
   node.addEventListener('click', () => copyResume(c));
+  const titleId = `t-${c.id}`;
+  node.setAttribute('aria-labelledby', titleId);
 
   const head = el('div', 'card-head');
   head.append(el('span', 'dot'), el('span', '', STATE_LABEL[state]), el('span', 'time', ago(c.lastTs)));
-  node.append(head, el('h3', 'title', c.title || c.id.slice(0, 8)));
+  const title = el('h3', 'title', c.title || c.id.slice(0, 8));
+  title.id = titleId;
+  node.append(head, title);
   if (c.repo || c.branch) {
     const chips = el('div', 'chips');
     if (c.repo) chips.append(el('span', 'chip repo', c.repo));
@@ -111,6 +114,7 @@ function renderCard(c, t) {
   if (isGone(c, t)) badges.append(el('span', 'badge', 'no end event'));
   if (c.endReason && c.endReason !== 'other') badges.append(el('span', 'badge', `ended: ${c.endReason}`));
   if (!c.hooks) badges.append(el('span', 'badge', 'history'));
+  if (c.archived) badges.append(el('span', 'badge', 'archived'));
   if (badges.childElementCount) node.append(badges);
 
   // Subagents are part of this session: running ones show here, finished ones count.
@@ -131,24 +135,29 @@ function renderCard(c, t) {
     node.append(strip);
   }
 
+  const open = expanded.has(c.id);
+  const more = button(open ? 'Less' : 'More', '', 'more', () => {
+    if (expanded.has(c.id)) expanded.delete(c.id);
+    else expanded.add(c.id);
+    render();
+  });
+  more.setAttribute('aria-expanded', String(open));
+  more.setAttribute('aria-controls', `d-${c.id}`);
   const actions = el('div', 'actions');
   actions.append(
-    button('Copy resume', 'primary', () => copyResume(c)),
-    button(expanded.has(c.id) ? 'Less' : 'More', '', () => {
-      if (expanded.has(c.id)) expanded.delete(c.id);
-      else expanded.add(c.id);
-      render();
-    }),
-    button(c.archived ? 'Restore' : 'Archive', '', () => setArchived(c, !c.archived)),
+    button('Copy resume', 'primary', 'copy', () => copyResume(c)),
+    more,
+    button(c.archived ? 'Restore' : 'Archive', '', 'archive', () => setArchived(c, !c.archived)),
   );
   node.append(actions);
 
-  if (expanded.has(c.id)) node.append(renderDetail(c));
+  if (open) node.append(renderDetail(c));
   return node;
 }
 
 function renderDetail(c) {
   const d = el('div', 'detail');
+  d.id = `d-${c.id}`;
   d.addEventListener('click', (ev) => ev.stopPropagation());
   if (c.summary) {
     d.append(el('h3', '', 'Last reply'), el('p', '', c.summary));
@@ -169,7 +178,8 @@ function renderDetail(c) {
     }
     d.append(ul);
   }
-  d.append(el('h3', '', 'Resume'), el('p', '', resumeCommand(c)));
+  const { command } = resumeCommand(c);
+  if (command) d.append(el('h3', '', 'Resume'), el('p', 'mono', command));
   return d;
 }
 
@@ -182,13 +192,51 @@ function filters() {
   };
 }
 
+let repoList = '';
 function renderRepoOptions() {
+  const repos = [...new Set([...cards.values()].map((c) => c.repo).filter(Boolean))].sort();
+  if (repos.join('\n') === repoList) return;
+  repoList = repos.join('\n');
   const select = $('repo');
   const current = select.value;
-  const repos = [...new Set([...cards.values()].map((c) => c.repo).filter(Boolean))].sort();
   select.replaceChildren(el('option', '', 'All repos'), ...repos.map((r) => el('option', '', r)));
   select.firstChild.value = '';
   select.value = repos.includes(current) ? current : '';
+}
+
+// Columns are built once; a card's node is rebuilt only when what it shows changes,
+// so a push every second neither costs a full layout nor drops keyboard focus.
+const columnEls = new Map();
+const cardEls = new Map(); // sid -> { key, node }
+
+function columnEl(col) {
+  let entry = columnEls.get(col.id);
+  if (!entry) {
+    const section = el('section', 'column');
+    section.dataset.col = col.id;
+    const count = el('span', 'count', '0');
+    const h = el('h2');
+    h.append(el('span', '', col.label), count);
+    const list = el('div', 'list');
+    section.append(h, list);
+    entry = { section, count, list, empty: el('div', 'empty', 'Nothing here') };
+    columnEls.set(col.id, entry);
+    $('board').append(section);
+  }
+  return entry;
+}
+
+function cardEl(c, t) {
+  // Everything the card shows except the relative time, which is patched in place.
+  const key = JSON.stringify([c, expanded.has(c.id), isStale(c, t), isGone(c, t)]);
+  let entry = cardEls.get(c.id);
+  if (!entry || entry.key !== key) {
+    entry = { key, node: renderCard(c, t) };
+    cardEls.set(c.id, entry);
+  } else {
+    entry.node.querySelector('.time').textContent = ago(c.lastTs);
+  }
+  return entry.node;
 }
 
 function render() {
@@ -202,20 +250,25 @@ function render() {
     if (col === 'earlier' && !f.q && c.lastTs < earliest) continue;
     groups[col]?.push(c);
   }
-  const board = $('board');
-  board.replaceChildren(
-    ...COLUMNS.map((col) => {
-      const list = groups[col.id].sort((a, b) => b.lastTs - a.lastTs);
-      const section = el('section', 'column');
-      section.dataset.col = col.id;
-      const h = el('h2');
-      h.append(el('span', '', col.label), el('span', 'count', String(list.length)));
-      section.append(h);
-      if (!list.length) section.append(el('div', 'empty', 'Nothing here'));
-      for (const c of list) section.append(renderCard(c, t));
-      return section;
-    }),
-  );
+
+  const active = document.activeElement;
+  const focusSid = active?.closest?.('.card')?.dataset.sid;
+  const focusAction = active?.dataset?.action;
+
+  for (const col of COLUMNS) {
+    const entry = columnEl(col);
+    const nodes = groups[col.id].sort((a, b) => b.lastTs - a.lastTs).map((c) => cardEl(c, t));
+    entry.count.textContent = String(nodes.length);
+    const want = nodes.length ? nodes : [entry.empty];
+    const have = [...entry.list.children];
+    if (want.length !== have.length || want.some((n, i) => n !== have[i])) entry.list.replaceChildren(...want);
+  }
+  for (const sid of cardEls.keys()) if (!cards.has(sid)) cardEls.delete(sid);
+
+  // A rebuilt card replaced the focused button: focus its successor.
+  if (focusSid && focusAction && !document.contains(active)) {
+    cardEls.get(focusSid)?.node.querySelector(`[data-action="${focusAction}"]`)?.focus({ preventScroll: true });
+  }
 }
 
 async function load() {
@@ -284,7 +337,13 @@ function initTheme() {
 }
 
 initTheme();
-for (const id of ['search', 'repo', 'kind', 'archived']) $(id).addEventListener('input', render);
+for (const id of ['repo', 'kind', 'archived']) $(id).addEventListener('input', render);
+// Typing re-filters every card: wait for a pause.
+let searchTimer;
+$('search').addEventListener('input', () => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(render, 150);
+});
 setInterval(render, 30000);
 load().catch(() => toast('Cannot reach the board server.'));
 connect();

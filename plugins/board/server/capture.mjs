@@ -3,8 +3,7 @@
 // kept even while the server is down. Never fails the hook: every error exits 0.
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { boardDir, eventsFile } from './paths.mjs';
+import { boardDir, eventsFile, isMain } from './paths.mjs';
 
 // One line stays well under 4 KiB so concurrent appends from several sessions do
 // not interleave; the clip limits below keep it there.
@@ -18,7 +17,8 @@ export function clip(text, max) {
 
 function relPath(file, cwd) {
   if (typeof file !== 'string') return '';
-  if (cwd && file.startsWith(cwd)) {
+  // `/w/shop-api/a.ts` is not inside `/w/shop`: the next character must be a separator.
+  if (cwd && file.startsWith(cwd) && /^[\\/]/.test(file.slice(cwd.length))) {
     const rel = file.slice(cwd.length).replace(/^[\\/]+/, '');
     if (rel) return rel;
   }
@@ -63,7 +63,24 @@ export function summarizeTool(name, input, cwd) {
   return clip(detail ? `${name} ${detail}` : String(name ?? 'tool'), CLIP.tool);
 }
 
+const UID = typeof process.getuid === 'function' ? process.getuid() : -1;
+
+// Reads the start of a small regular file the user owns. A FIFO, a device or a
+// symlink planted as `.git/HEAD` would otherwise block the read forever.
+function readSmall(file) {
+  const st = fs.lstatSync(file);
+  if (!st.isFile() || (UID >= 0 && st.uid !== UID)) throw new Error('not a plain file of ours');
+  const fd = fs.openSync(file, 'r');
+  try {
+    const buf = Buffer.alloc(256);
+    return buf.subarray(0, fs.readSync(fd, buf, 0, buf.length, 0)).toString('utf8');
+  } finally {
+    fs.closeSync(fd);
+  }
+}
+
 // Repo and branch from the nearest .git, read as files: no git process per event.
+// A `.git` another user owns is skipped, as git's safe.directory does.
 export function gitInfo(cwd) {
   if (typeof cwd !== 'string' || !cwd) return {};
   let dir = path.resolve(cwd);
@@ -71,25 +88,25 @@ export function gitInfo(cwd) {
     const dotgit = path.join(dir, '.git');
     let stat;
     try {
-      stat = fs.statSync(dotgit);
+      stat = fs.lstatSync(dotgit);
     } catch {
       stat = null;
     }
-    if (stat) {
+    if (stat && (UID < 0 || stat.uid === UID) && (stat.isFile() || stat.isDirectory())) {
       let gitDir = dotgit;
       let repoRoot = dir;
-      if (stat.isFile()) {
-        // A worktree or submodule: `.git` names the real git dir.
-        const m = /^gitdir:\s*(.+)$/m.exec(fs.readFileSync(dotgit, 'utf8'));
-        if (!m) return { repo: path.basename(dir) };
-        gitDir = path.resolve(dir, m[1].trim());
-        // <main>/.git/worktrees/<name> → name the repo after <main>.
-        const wt = /[\\/]\.git[\\/]worktrees[\\/][^\\/]+$/.exec(gitDir);
-        if (wt) repoRoot = gitDir.slice(0, wt.index);
-      }
       let branch;
       try {
-        const head = fs.readFileSync(path.join(gitDir, 'HEAD'), 'utf8').trim();
+        if (stat.isFile()) {
+          // A worktree or submodule: `.git` names the real git dir.
+          const m = /^gitdir:\s*(.+)$/m.exec(readSmall(dotgit));
+          if (!m) return { repo: path.basename(dir) };
+          gitDir = path.resolve(dir, m[1].trim());
+          // <main>/.git/worktrees/<name> → name the repo after <main>.
+          const wt = /[\\/]\.git[\\/]worktrees[\\/][^\\/]+$/.exec(gitDir);
+          if (wt) repoRoot = gitDir.slice(0, wt.index);
+        }
+        const head = readSmall(path.join(gitDir, 'HEAD')).trim();
         const ref = /^ref:\s*refs\/heads\/(.+)$/.exec(head);
         branch = ref ? ref[1] : head.slice(0, 8);
       } catch {
@@ -103,12 +120,18 @@ export function gitInfo(cwd) {
   }
 }
 
-const NEEDS_INPUT = new Set([
-  'permission_prompt',
-  'elicitation_dialog',
-  'elicitation_url_dialog',
-  'agent_needs_input',
-]);
+// `permission_prompt` is left out: PermissionRequest already reports it, and a
+// late async copy could put an approved card back in Needs me. `idle_prompt` is the
+// only sign a turn ended without a Stop (Esc, a denied prompt).
+const NOTIFICATIONS = new Set(['elicitation_dialog', 'elicitation_url_dialog', 'agent_needs_input', 'idle_prompt']);
+
+// Repo and branch for a card. A folder outside git names the repo and clears the
+// branch, so a session that moved out of a repo does not keep the old one.
+export function where(cwd) {
+  if (typeof cwd !== 'string' || !cwd) return {};
+  const g = gitInfo(cwd);
+  return { repo: g.repo || path.basename(cwd), branch: g.branch || '' };
+}
 
 // Hook payload → the record the reducer reads. Returns null for events the board
 // does not track, so they never reach the log.
@@ -126,25 +149,26 @@ export function distill(p, now = Date.now()) {
     case 'SessionStart':
       rec.source = p.source;
       if (p.model) rec.model = p.model;
-      Object.assign(rec, gitInfo(p.cwd));
+      Object.assign(rec, where(p.cwd));
       break;
     case 'UserPromptSubmit':
       rec.prompt = clip(p.prompt, CLIP.prompt);
-      Object.assign(rec, gitInfo(p.cwd));
+      Object.assign(rec, where(p.cwd));
       break;
     case 'PreToolUse':
     case 'PostToolUse':
+    case 'PostToolUseFailure':
     case 'PermissionRequest':
       rec.tool = summarizeTool(p.tool_name, p.tool_input, p.cwd);
       break;
     case 'Notification':
-      if (!NEEDS_INPUT.has(p.notification_type)) return null;
+      if (!NOTIFICATIONS.has(p.notification_type)) return null;
       rec.ntype = p.notification_type;
       rec.msg = clip(p.message, CLIP.msg);
       break;
     case 'Stop':
       rec.msg = clip(p.last_assistant_message, CLIP.msg);
-      Object.assign(rec, gitInfo(p.cwd));
+      Object.assign(rec, where(p.cwd));
       break;
     case 'StopFailure':
       rec.error = p.error;
@@ -183,6 +207,4 @@ export function main() {
   }
 }
 
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  main();
-}
+if (isMain(process.argv[1], import.meta.url)) main();

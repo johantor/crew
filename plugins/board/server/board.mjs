@@ -1,12 +1,14 @@
 // The board server: folds history and the hook log into cards, serves the page,
 // and pushes changed cards over SSE. Binds 127.0.0.1 only: transcripts hold
 // client code. Usage: node board.mjs [--port N] [--days N] [--detach] [--open]
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import http from 'node:http';
+import net from 'node:net';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { boardDir, eventsFile, projectsDir } from './paths.mjs';
+import { boardDir, eventsFile, isMain, projectsDir } from './paths.mjs';
 import { apply, createBoard, snapshot } from './reduce.mjs';
 import { scanHistory } from './history.mjs';
 
@@ -15,6 +17,7 @@ const APP = 'claude-board';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC = path.join(HERE, 'public');
 const DAY_MS = 24 * 60 * 60 * 1000;
+const TAIL_CHUNK = 4 * 1024 * 1024;
 
 export function parseArgs(argv) {
   const opts = { port: Number(process.env.CLAUDE_BOARD_PORT) || 7428, days: 30, detach: false, open: false };
@@ -26,18 +29,54 @@ export function parseArgs(argv) {
     else if (a === '--days') opts.days = Number(argv[++i]);
     else throw new Error(`unknown option: ${a}`);
   }
-  if (!Number.isInteger(opts.port) || opts.port < 1 || opts.port > 65535) throw new Error('--port takes 1-65535');
+  // Port 0 asks the OS for a free port (the tests use it); a detached board needs a known one.
+  if (!Number.isInteger(opts.port) || opts.port < 0 || opts.port > 65535) throw new Error('--port takes 0-65535');
+  if (opts.detach && opts.port === 0) throw new Error('--detach needs a fixed --port');
   if (!(opts.days > 0)) throw new Error('--days takes a positive number');
   return opts;
 }
 
-async function isBoard(port) {
+// 127.0.0.1 is shared by every user on the machine, so the board asks for a
+// token kept in the user's own 0600 file. It persists, so a bookmark keeps working.
+export function loadToken() {
+  const file = path.join(boardDir(), 'token');
+  fs.mkdirSync(boardDir(), { recursive: true, mode: 0o700 });
   try {
-    const res = await fetch(`http://${HOST}:${port}/api/health`, { signal: AbortSignal.timeout(500) });
-    return (await res.json()).app === APP;
+    fs.writeFileSync(file, crypto.randomBytes(24).toString('hex'), { mode: 0o600, flag: 'wx' });
+  } catch (err) {
+    if (err.code !== 'EEXIST') throw err;
+  }
+  const token = fs.readFileSync(file, 'utf8').trim();
+  if (!/^[0-9a-f]{48}$/.test(token)) throw new Error(`${file} is not a board token; delete it and start again`);
+  return token;
+}
+
+function sameToken(given, token) {
+  const a = Buffer.from(String(given ?? ''));
+  const b = Buffer.from(token);
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+
+// Our board, not whatever else answers on the port: only ours knows the token.
+async function isBoard(port, token) {
+  try {
+    const res = await fetch(`http://${HOST}:${port}/api/health`, {
+      headers: { 'X-Board-Token': token },
+      signal: AbortSignal.timeout(500),
+    });
+    const body = await res.json();
+    return body.app === APP && body.auth === true;
   } catch {
     return false;
   }
+}
+
+function portFree(port) {
+  return new Promise((resolve) => {
+    const probe = net.createServer();
+    probe.once('error', () => resolve(false));
+    probe.listen(port, HOST, () => probe.close(() => resolve(true)));
+  });
 }
 
 function openBrowser(url) {
@@ -57,41 +96,48 @@ function openBrowser(url) {
 export function createTail(file) {
   let offset = 0;
   let rest = Buffer.alloc(0);
+  let ino = null;
   return {
     reset() {
       offset = 0;
       rest = Buffer.alloc(0);
+      ino = null;
     },
     read() {
-      let size;
+      let st;
       try {
-        size = fs.statSync(file).size;
+        st = fs.statSync(file);
       } catch {
         return { records: [], truncated: false };
       }
-      if (size < offset) return { records: [], truncated: true };
-      if (size === offset) return { records: [], truncated: false };
-      const buf = Buffer.alloc(size - offset);
+      // A shorter file, or another file at the same path: replay from the start.
+      if (st.size < offset || (ino !== null && st.ino !== ino)) return { records: [], truncated: true };
+      ino = st.ino;
+      const records = [];
+      if (st.size === offset) return { records, truncated: false };
+      // Bounded chunks: one string of a large log would pass V8's string limit.
       const fd = fs.openSync(file, 'r');
       try {
-        fs.readSync(fd, buf, 0, buf.length, offset);
-      } finally {
-        fs.closeSync(fd);
-      }
-      offset = size;
-      const data = Buffer.concat([rest, buf]);
-      const end = data.lastIndexOf(0x0a);
-      rest = data.subarray(end + 1);
-      const records = [];
-      if (end >= 0) {
-        for (const line of data.subarray(0, end).toString('utf8').split('\n')) {
-          if (!line.trim()) continue;
-          try {
-            records.push(JSON.parse(line));
-          } catch {
-            // A torn or foreign line: skip it, keep the rest.
+        while (offset < st.size) {
+          const buf = Buffer.alloc(Math.min(TAIL_CHUNK, st.size - offset));
+          const n = fs.readSync(fd, buf, 0, buf.length, offset);
+          if (n === 0) break;
+          offset += n;
+          const data = Buffer.concat([rest, buf.subarray(0, n)]);
+          const end = data.lastIndexOf(0x0a);
+          rest = data.subarray(end + 1);
+          if (end < 0) continue;
+          for (const line of data.subarray(0, end).toString('utf8').split('\n')) {
+            if (!line.trim()) continue;
+            try {
+              records.push(JSON.parse(line));
+            } catch {
+              // A torn or foreign line: skip it, keep the rest.
+            }
           }
         }
+      } finally {
+        fs.closeSync(fd);
       }
       return { records, truncated: false };
     },
@@ -102,6 +148,7 @@ function startServer(opts) {
   const file = eventsFile();
   const tail = createTail(file);
   const history = new Map(); // transcript sid -> History record
+  const seen = new Map(); // transcript file -> mtime:size it was read at
   const clients = new Set();
   const dirty = new Set();
   let board = createBoard();
@@ -124,9 +171,7 @@ function startServer(opts) {
   }
 
   function rescanHistory() {
-    for (const rec of scanHistory(projectsDir(), windowStart())) {
-      const prev = history.get(rec.sid);
-      if (prev && prev.ts === rec.ts) continue;
+    for (const rec of scanHistory(projectsDir(), windowStart(), seen)) {
       history.set(rec.sid, rec);
       record(rec);
     }
@@ -166,39 +211,58 @@ function startServer(opts) {
     pump();
   }
 
-  const allowedHosts = new Set([`${HOST}:${opts.port}`, `localhost:${opts.port}`]);
-  const allowedOrigins = new Set([...allowedHosts].map((h) => `http://${h}`));
-  const types = { '.html': 'text/html; charset=utf-8', '.mjs': 'text/javascript', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml' };
+  // Filled once the port is bound: with --port 0 it is known only then.
+  const allowedHosts = new Set();
+  const allowedOrigins = new Set();
+  const types = { '.html': 'text/html; charset=utf-8', '.mjs': 'text/javascript', '.js': 'text/javascript', '.css': 'text/css' };
+  // Code and style only: no session data, so they need no token.
   const statics = new Map([
-    ['/', 'index.html'],
     ['/app.mjs', 'app.mjs'],
     ['/columns.mjs', 'columns.mjs'],
+    ['/resume.mjs', 'resume.mjs'],
     ['/theme.js', 'theme.js'],
     ['/board.css', 'board.css'],
   ]);
 
-  function send(res, status, body, type = 'application/json') {
+  function send(res, status, body, type = 'application/json', extra = {}) {
     res.writeHead(status, {
       'Content-Type': type,
       'Cache-Control': 'no-store',
       'X-Content-Type-Options': 'nosniff',
       'Referrer-Policy': 'no-referrer',
       'Content-Security-Policy': "default-src 'self'; frame-ancestors 'none'",
+      ...extra,
     });
     res.end(typeof body === 'string' || Buffer.isBuffer(body) ? body : JSON.stringify(body));
   }
 
-  const server = http.createServer((req, res) => {
+  function authorized(req) {
+    const cookie = /(?:^|;\s*)board_token=([0-9a-f]+)/.exec(req.headers.cookie ?? '');
+    return sameToken(req.headers['x-board-token'], opts.token) || sameToken(cookie?.[1], opts.token);
+  }
+
+  function handle(req, res) {
     // A Host check stops DNS rebinding: another site's page cannot read the board.
     if (!allowedHosts.has(req.headers.host ?? '')) return send(res, 403, { error: 'forbidden host' });
     const url = new URL(req.url ?? '/', `http://${req.headers.host}`);
+    const ok = authorized(req);
 
     if (req.method === 'GET' && statics.has(url.pathname)) {
       const name = statics.get(url.pathname);
       return send(res, 200, fs.readFileSync(path.join(PUBLIC, name)), types[path.extname(name)]);
     }
     if (req.method === 'GET' && url.pathname === '/favicon.ico') return send(res, 204, '');
-    if (req.method === 'GET' && url.pathname === '/api/health') return send(res, 200, { app: APP });
+    if (req.method === 'GET' && url.pathname === '/api/health') return send(res, 200, { app: APP, auth: ok });
+    if (req.method === 'GET' && url.pathname === '/') {
+      // The printed URL carries the token once; a cookie keeps it, and the redirect drops it from the address bar.
+      if (sameToken(url.searchParams.get('t'), opts.token)) {
+        const cookie = `board_token=${opts.token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=31536000`;
+        return send(res, 302, '', 'text/plain', { Location: '/', 'Set-Cookie': cookie });
+      }
+      if (ok) return send(res, 200, fs.readFileSync(path.join(PUBLIC, 'index.html')), types['.html']);
+      return send(res, 401, 'Open the board with /board:open, or with the URL that `node board.mjs` prints.\n', 'text/plain; charset=utf-8');
+    }
+    if (!ok) return send(res, 401, { error: 'token required' });
     if (req.method === 'GET' && url.pathname === '/api/state') {
       return send(res, 200, { now: Date.now(), days: opts.days, cards: cardsInWindow() });
     }
@@ -227,21 +291,38 @@ function startServer(opts) {
         } catch {
           return send(res, 400, { error: 'bad json' });
         }
-        if (typeof msg.sid !== 'string' || !board.cards.has(msg.sid)) return send(res, 404, { error: 'no such session' });
+        if (!msg || typeof msg !== 'object' || typeof msg.sid !== 'string' || !board.cards.has(msg.sid)) {
+          return send(res, 404, { error: 'no such session' });
+        }
         archive(msg.sid, msg.on !== false);
         send(res, 200, { ok: true });
       });
       return;
     }
     send(res, 404, { error: 'not found' });
+  }
+
+  const server = http.createServer((req, res) => {
+    // One bad request must not stop the board.
+    try {
+      handle(req, res);
+    } catch (err) {
+      if (!res.headersSent) send(res, 500, { error: err.message });
+      else res.end();
+    }
   });
 
   server.on('error', (err) => {
-    console.error(err.code === 'EADDRINUSE' ? `Port ${opts.port} is in use. Pass --port or set CLAUDE_BOARD_PORT.` : err.message);
+    console.error(err.code === 'EADDRINUSE' ? PORT_IN_USE(opts.port) : err.message);
     process.exit(1);
   });
 
   server.listen(opts.port, HOST, () => {
+    opts.port = server.address().port;
+    for (const h of [`${HOST}:${opts.port}`, `localhost:${opts.port}`]) {
+      allowedHosts.add(h);
+      allowedOrigins.add(`http://${h}`);
+    }
     rescanHistory();
     pump();
     dirty.clear();
@@ -250,42 +331,53 @@ function startServer(opts) {
     setInterval(() => {
       for (const c of clients) c.write(': ping\n\n');
     }, 25000).unref();
-    const url = `http://${HOST}:${opts.port}/`;
+    const url = boardUrl(opts);
     console.log(`Board: ${url}`);
     if (opts.open) openBrowser(url);
   });
 }
 
+const boardUrl = (opts) => `http://${HOST}:${opts.port}/?t=${opts.token}`;
+
+const PORT_IN_USE = (port) => `Port ${port} is in use. Pass --port or set CLAUDE_BOARD_PORT.`;
+
 async function main() {
   let opts;
   try {
     opts = parseArgs(process.argv.slice(2));
+    opts.token = loadToken();
   } catch (err) {
     console.error(err.message);
     process.exit(2);
   }
-  const url = `http://${HOST}:${opts.port}/`;
-  if (await isBoard(opts.port)) {
+  const url = boardUrl(opts);
+  if (await isBoard(opts.port, opts.token)) {
     console.log(`Board already running: ${url}`);
     if (opts.open) openBrowser(url);
     return;
   }
   if (!opts.detach) return startServer(opts);
 
-  const args = [fileURLToPath(import.meta.url), '--port', String(opts.port), '--days', String(opts.days)];
+  // The detached child's stderr goes nowhere, so the parent reports a busy port.
+  if (!(await portFree(opts.port))) {
+    console.error(PORT_IN_USE(opts.port));
+    process.exit(1);
+  }
+  const script = fileURLToPath(import.meta.url);
+  const args = [script, '--port', String(opts.port), '--days', String(opts.days)];
   spawn(process.execPath, args, { detached: true, stdio: 'ignore', windowsHide: true }).unref();
   for (let i = 0; i < 50; i++) {
-    if (await isBoard(opts.port)) {
+    if (await isBoard(opts.port, opts.token)) {
       console.log(`Board started: ${url}`);
       if (opts.open) openBrowser(url);
       return;
     }
     await new Promise((r) => setTimeout(r, 100));
   }
-  console.error(`The board did not start on port ${opts.port}. Run it in the foreground to see why: node "${fileURLToPath(import.meta.url)}"`);
+  console.error(`The board did not start on port ${opts.port}. Run it in the foreground to see why: node "${script}" --port ${opts.port}`);
   process.exit(1);
 }
 
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+if (isMain(process.argv[1], import.meta.url)) {
   main();
 }

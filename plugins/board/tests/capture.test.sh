@@ -59,17 +59,21 @@ assert_allow "long prompt" "$HOOK" \
 assert_record "prompt clipped" '(.prompt | length) <= 200'
 
 # Events the board does not track never reach the log.
+# A permission notification repeats PermissionRequest, so it is dropped too.
 before="$(line_count)"
-assert_allow "idle notification" "$HOOK" \
-  '{"session_id":"s1","hook_event_name":"Notification","notification_type":"idle_prompt","message":"waiting"}'
-assert_no_new "idle notification skipped" "$before"
+assert_allow "permission notification" "$HOOK" \
+  '{"session_id":"s1","hook_event_name":"Notification","notification_type":"permission_prompt","message":"Claude needs your permission"}'
+assert_no_new "permission notification skipped" "$before"
 assert_allow "untracked event" "$HOOK" '{"session_id":"s1","hook_event_name":"PreCompact"}'
 assert_no_new "PreCompact skipped" "$before"
 
-# A permission notification does reach it.
-assert_allow "permission notification" "$HOOK" \
-  '{"session_id":"s1","hook_event_name":"Notification","notification_type":"permission_prompt","message":"Claude needs your permission"}'
-assert_record "needs-input notification" '.ntype == "permission_prompt" and .msg == "Claude needs your permission"'
+# A question, and the idle prompt that ends a turn without a Stop, do reach it.
+assert_allow "question notification" "$HOOK" \
+  '{"session_id":"s1","hook_event_name":"Notification","notification_type":"elicitation_dialog","message":"Which env?"}'
+assert_record "question captured" '.ntype == "elicitation_dialog" and .msg == "Which env?"'
+assert_allow "idle notification" "$HOOK" \
+  '{"session_id":"s1","hook_event_name":"Notification","notification_type":"idle_prompt","message":"waiting"}'
+assert_record "idle captured" '.ntype == "idle_prompt"'
 
 # Never fails the session: bad input, no session id, an unwritable log, no Node.
 before="$(line_count)"
