@@ -10,8 +10,9 @@ claude plugin install board@johantor
 ```
 
 Then, in any Claude Code session, run `/board:open`. It starts the server in the background and
-opens `http://127.0.0.1:7428/?t=<token>`. The token keeps other users on the machine out; the
-browser keeps it in a cookie, so a bookmark of `http://127.0.0.1:7428/` works after that.
+opens `http://127.0.0.1:7428/?t=<token>`. The token keeps other users on the machine out. The
+page moves it into the browser's local storage for that port, so a bookmark of
+`http://127.0.0.1:7428/` works after that.
 
 ## The columns
 
@@ -33,9 +34,9 @@ filter brings it back.
 
 **Subagents are not cards.** A subagent runs inside its parent session, so it shows on that
 session's card: each running subagent with its current tool, plus a count of finished ones. A
-subagent's permission prompt moves the parent card to Needs me, and only that subagent's next
-step moves it out. Sessions that run a `crew:` agent
-get a Crew badge, and the Crew filter shows them alone.
+subagent's permission prompt moves the parent card to Needs me. The card stays there while any
+question is open, the session's own or a subagent's, and each closes only with its own answer.
+Sessions that run a `crew:` agent get a Crew badge, and the Crew filter shows them alone.
 
 The theme follows the browser until you pick Light or Dark; the choice is saved in the browser.
 
@@ -75,7 +76,10 @@ transcripts.
 Prompts and replies can hold client code and secrets, so the board stays on your machine. The
 server listens on 127.0.0.1 only and refuses a request that names another host. Every request for
 session data needs the token from `~/.claude/board/token` (mode 600), since 127.0.0.1 is open to
-every user on the machine. Archiving takes a JSON request from the board's own origin. The log is
+every user on the machine. The token goes only as a header (as `?t=` on the live stream), never as
+a cookie, which the browser would also send to other ports on 127.0.0.1. `/board:open` checks for
+a running board by having it sign a random value with the token, so a program squatting on the
+port never receives the token. Archiving takes a JSON request from the board's own origin. The log is
 written with mode 600, and each line keeps at most the first 200 characters of a prompt and 300
 of a reply. Nothing is sent anywhere.
 

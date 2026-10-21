@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
 import { apply, createBoard } from '../server/reduce.mjs';
 import { columnOf, isGone, isStale, STALE_MS } from '../server/public/columns.mjs';
 import { readSession, scanHistory } from '../server/history.mjs';
-import { createTail, parseArgs } from '../server/board.mjs';
+import { createTail, parseArgs, proof } from '../server/board.mjs';
 import { distill, summarizeTool, where } from '../server/capture.mjs';
 import { resumeCommand } from '../server/public/resume.mjs';
 
@@ -303,13 +303,17 @@ test('the server serves state, refuses foreign hosts, and archives', async (t) =
   const token = fs.readFileSync(path.join(boardDir, 'token'), 'utf8').trim();
   assert.equal((fs.statSync(path.join(boardDir, 'token')).mode & 0o777).toString(8), '600');
   assert.equal((await fetch(`${base}/api/state`)).status, 401);
-  assert.equal((await fetch(`${base}/`)).status, 401);
-  assert.equal((await (await fetch(`${base}/api/health`)).json()).auth, false);
-  const login = await fetch(`${base}/?t=${token}`, { redirect: 'manual' });
-  assert.equal(login.status, 302);
-  assert.match(login.headers.get('set-cookie'), /^board_token=[0-9a-f]{48}; HttpOnly; SameSite=Strict/);
-  const cookie = login.headers.get('set-cookie').split(';')[0];
-  assert.equal((await fetch(`${base}/`, { headers: { Cookie: cookie } })).status, 200);
+  assert.equal((await fetch(`${base}/api/state?t=${token}`)).status, 401, 'only the stream takes the token in the URL');
+  assert.equal((await fetch(`${base}/api/stream`)).status, 401);
+  const page = await fetch(`${base}/?t=${token}`);
+  assert.equal(page.status, 200, 'the page holds no data and needs no token');
+  assert.equal(page.headers.get('set-cookie'), null, 'no cookie: it would reach every port on 127.0.0.1');
+
+  // The health probe proves the token by signing a nonce; the token itself never crosses.
+  const health = await (await fetch(`${base}/api/health?n=00112233445566778899aabbccddeeff`)).json();
+  assert.equal(health.proof, proof(token, '00112233445566778899aabbccddeeff'));
+  assert.ok(!JSON.stringify(health).includes(token));
+  assert.equal((await (await fetch(`${base}/api/health?n=not-hex`)).json()).proof, undefined);
 
   const realFetch = fetch;
   const fetch2 = (url, init = {}) => realFetch(url, { ...init, headers: { 'X-Board-Token': token, ...init.headers } });
@@ -320,8 +324,6 @@ test('the server serves state, refuses foreign hosts, and archives', async (t) =
   assert.equal(byId.hist.state, 'closed');
   assert.equal(byId.hist.title, 'old question');
 
-  const page = await fetch2(`${base}/`);
-  assert.equal(page.status, 200);
   assert.match(page.headers.get('content-security-policy'), /default-src 'self'/);
 
   // DNS rebinding: a request naming another host is refused.
@@ -356,7 +358,7 @@ test('the server serves state, refuses foreign hosts, and archives', async (t) =
   // The stream opens with the full snapshot, so no push falls between a fetch and the subscribe.
   const first = await new Promise((resolve, reject) => {
     http
-      .get({ host: '127.0.0.1', port, path: '/api/stream', headers: { 'X-Board-Token': token } }, (res) => {
+      .get({ host: '127.0.0.1', port, path: `/api/stream?t=${token}` }, (res) => {
         res.once('data', (chunk) => {
           resolve(String(chunk));
           res.destroy();
@@ -385,6 +387,31 @@ test('the server serves state, refuses foreign hosts, and archives', async (t) =
   assert.equal(broken.status, 500);
   await new Promise((r) => setTimeout(r, 1200));
   assert.equal((await fetch(`${base}/api/health`)).status, 200);
+});
+
+test('a squatter on the port reads as busy and never sees the token', async (t) => {
+  const http = await import('node:http');
+  const seen = [];
+  const fake = http.createServer((req, res) => {
+    seen.push(`${req.url} ${JSON.stringify(req.headers)}`);
+    res.end(JSON.stringify({ app: 'claude-board', auth: true, proof: 'f'.repeat(64) }));
+  });
+  await new Promise((r) => fake.listen(0, '127.0.0.1', r));
+  t.after(() => fake.close());
+  const boardDir = tmp();
+  const res = await new Promise((resolve) => {
+    const child = spawn(process.execPath, [path.join(HERE, '../server/board.mjs'), '--detach', '--port', String(fake.address().port)], {
+      env: { ...process.env, CLAUDE_BOARD_DIR: boardDir },
+    });
+    let err = '';
+    child.stderr.on('data', (d) => (err += d));
+    child.on('close', (code) => resolve({ code, err }));
+  });
+  assert.equal(res.code, 1);
+  assert.match(res.err, /is in use/);
+  const token = fs.readFileSync(path.join(boardDir, 'token'), 'utf8').trim();
+  assert.ok(seen.length > 0, 'the probe reached the squatter');
+  assert.ok(seen.every((s) => !s.includes(token)), 'the token crossed to the squatter');
 });
 
 test('the resume command never lets a folder name run code', () => {
@@ -480,6 +507,53 @@ test('answering a background subagent returns an idle card to Your turn', () => 
   ]);
   assert.equal(c.state, 'yourTurn');
   assert.equal(c.activity, 'over to you');
+});
+
+test('overlapping questions each stay open until their own answer', () => {
+  // Two subagents ask at once: answering b leaves a open.
+  const two = run([
+    { e: 'UserPromptSubmit', prompt: 'p' },
+    { e: 'PermissionRequest', aid: 'a', agent: 'crew:backend', tool: 'Bash a' },
+    { e: 'PermissionRequest', aid: 'b', agent: 'crew:frontend', tool: 'Bash b' },
+    { e: 'PostToolUse', aid: 'b', tool: 'Bash b' },
+  ]);
+  assert.equal(two.state, 'needs');
+  assert.equal(two.activity, 'crew:backend asks: allow Bash a?');
+
+  // A subagent asks over the session's own prompt: answering it leaves the session's prompt.
+  const over = run([
+    { e: 'PermissionRequest', tool: 'Bash git push' },
+    { e: 'PermissionRequest', aid: 'a', agent: 'crew:backend', tool: 'Bash a' },
+    { e: 'SubagentStop', aid: 'a' },
+  ]);
+  assert.equal(over.state, 'needs');
+  assert.equal(over.activity, 'Allow: Bash git push?');
+
+  // An error stays open under a subagent's question and after it.
+  const err = run([
+    { e: 'StopFailure', error: 'rate_limit', msg: '429' },
+    { e: 'PermissionRequest', aid: 'a', tool: 'Bash a' },
+    { e: 'PostToolUse', aid: 'a', tool: 'Bash a' },
+  ]);
+  assert.equal(err.activity, 'Error: 429');
+});
+
+test('the turn underneath a subagent question stays current', () => {
+  const c = run([
+    { e: 'UserPromptSubmit', prompt: 'p' },
+    { e: 'PermissionRequest', aid: 'a', tool: 'Bash a' },
+    { e: 'Stop', msg: 'done for now' },
+    { e: 'PostToolUse', aid: 'a', tool: 'Bash a' },
+  ]);
+  assert.equal(c.state, 'yourTurn', 'the parent stopped while the subagent waited');
+  assert.equal(c.activity, 'done for now');
+  const idle = run([
+    { e: 'UserPromptSubmit', prompt: 'p' },
+    { e: 'PermissionRequest', aid: 'a', tool: 'Bash a' },
+    { e: 'Notification', ntype: 'idle_prompt' },
+    { e: 'SubagentStop', aid: 'a' },
+  ]);
+  assert.equal(idle.state, 'yourTurn');
 });
 
 test('a session that leaves the repo drops its branch', () => {

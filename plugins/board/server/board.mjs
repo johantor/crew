@@ -57,15 +57,18 @@ function sameToken(given, token) {
   return a.length === b.length && crypto.timingSafeEqual(a, b);
 }
 
-// Our board, not whatever else answers on the port: only ours knows the token.
+export function proof(token, nonce) {
+  return crypto.createHmac('sha256', token).update(nonce).digest('hex');
+}
+
+// Our board, not whatever else answers on the port: only ours can sign a fresh
+// nonce with the token. The token itself never goes to the port.
 async function isBoard(port, token) {
   try {
-    const res = await fetch(`http://${HOST}:${port}/api/health`, {
-      headers: { 'X-Board-Token': token },
-      signal: AbortSignal.timeout(500),
-    });
+    const nonce = crypto.randomBytes(16).toString('hex');
+    const res = await fetch(`http://${HOST}:${port}/api/health?n=${nonce}`, { signal: AbortSignal.timeout(500) });
     const body = await res.json();
-    return body.app === APP && body.auth === true;
+    return body.app === APP && sameToken(body.proof, proof(token, nonce));
   } catch {
     return false;
   }
@@ -214,8 +217,9 @@ function startServer(opts) {
   const allowedHosts = new Set();
   const allowedOrigins = new Set();
   const types = { '.html': 'text/html; charset=utf-8', '.mjs': 'text/javascript', '.js': 'text/javascript', '.css': 'text/css' };
-  // Code and style only: no session data, so they need no token.
+  // The page, code and style hold no session data, so they need no token.
   const statics = new Map([
+    ['/', 'index.html'],
     ['/app.mjs', 'app.mjs'],
     ['/columns.mjs', 'columns.mjs'],
     ['/resume.mjs', 'resume.mjs'],
@@ -223,45 +227,41 @@ function startServer(opts) {
     ['/board.css', 'board.css'],
   ]);
 
-  function send(res, status, body, type = 'application/json', extra = {}) {
+  function send(res, status, body, type = 'application/json') {
     res.writeHead(status, {
       'Content-Type': type,
       'Cache-Control': 'no-store',
       'X-Content-Type-Options': 'nosniff',
       'Referrer-Policy': 'no-referrer',
       'Content-Security-Policy': "default-src 'self'; frame-ancestors 'none'",
-      ...extra,
     });
     res.end(typeof body === 'string' || Buffer.isBuffer(body) ? body : JSON.stringify(body));
   }
 
-  function authorized(req) {
-    const cookie = /(?:^|;\s*)board_token=([0-9a-f]+)/.exec(req.headers.cookie ?? '');
-    return sameToken(req.headers['x-board-token'], opts.token) || sameToken(cookie?.[1], opts.token);
+  // The token travels only as a header, never as a cookie: a cookie for 127.0.0.1
+  // also goes to every other port there. EventSource cannot set a header, so the
+  // stream alone takes it as `?t=`.
+  function authorized(req, url) {
+    if (sameToken(req.headers['x-board-token'], opts.token)) return true;
+    return url.pathname === '/api/stream' && sameToken(url.searchParams.get('t'), opts.token);
   }
 
   function handle(req, res) {
     // A Host check stops DNS rebinding: another site's page cannot read the board.
     if (!allowedHosts.has(req.headers.host ?? '')) return send(res, 403, { error: 'forbidden host' });
     const url = new URL(req.url ?? '/', `http://${req.headers.host}`);
-    const ok = authorized(req);
 
     if (req.method === 'GET' && statics.has(url.pathname)) {
       const name = statics.get(url.pathname);
       return send(res, 200, fs.readFileSync(path.join(PUBLIC, name)), types[path.extname(name)]);
     }
     if (req.method === 'GET' && url.pathname === '/favicon.ico') return send(res, 204, '');
-    if (req.method === 'GET' && url.pathname === '/api/health') return send(res, 200, { app: APP, auth: ok });
-    if (req.method === 'GET' && url.pathname === '/') {
-      // The printed URL carries the token once; a cookie keeps it, and the redirect drops it from the address bar.
-      if (sameToken(url.searchParams.get('t'), opts.token)) {
-        const cookie = `board_token=${opts.token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=31536000`;
-        return send(res, 302, '', 'text/plain', { Location: '/', 'Set-Cookie': cookie });
-      }
-      if (ok) return send(res, 200, fs.readFileSync(path.join(PUBLIC, 'index.html')), types['.html']);
-      return send(res, 401, 'Open the board with /board:open, or with the URL that `node board.mjs` prints.\n', 'text/plain; charset=utf-8');
+    if (req.method === 'GET' && url.pathname === '/api/health') {
+      // Signing a caller's nonce proves the token without sending it.
+      const nonce = url.searchParams.get('n');
+      return send(res, 200, /^[0-9a-f]{16,64}$/.test(nonce ?? '') ? { app: APP, proof: proof(opts.token, nonce) } : { app: APP });
     }
-    if (!ok) return send(res, 401, { error: 'token required' });
+    if (!authorized(req, url)) return send(res, 401, { error: 'token required' });
     if (req.method === 'GET' && url.pathname === '/api/state') {
       return send(res, 200, stateNow());
     }

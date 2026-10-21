@@ -15,11 +15,12 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
   and only a plain file of this user's (`readSmall`): a planted FIFO would block the read.
 - `server/reduce.mjs` — `apply(board, record)` is the fold. Record kinds: hook events, `History`
   (backfill; fills gaps, never overrides a hook), `BoardArchive` (written by the server).
-  A record with `aid` is a subagent's: it updates the worker strip and moves the card into
-  `needs`. `needsBy` records who did: only that subagent's PostToolUse or SubagentStop moves the
-  card out, back to the state saved in `before`; the session's own events leave it there.
-  `PreToolUse` never leaves `needs` (see Gotchas); an `idle_prompt` notification ends a turn
-  that had no `Stop` (Esc, a denied prompt).
+  A card keeps the session's own `turn` (`working`/`yourTurn`/`closed`, activity `doing`) apart
+  from its `open` questions, keyed by who asked (`''` the session, `!error` a failed turn, else
+  a subagent's `aid`). `derive()` shows `needs` while any question is open, else the turn, so
+  one answer never hides another. A subagent's question closes on its PostToolUse or
+  SubagentStop; `PreToolUse` answers nothing (see Gotchas); an `idle_prompt` notification ends
+  a turn that had no `Stop` (Esc, a denied prompt).
 - `server/history.mjs` — reads the head and tail 256 KiB of each transcript, and only a file
   whose mtime and size changed since the last scan. The format is undocumented: every field is
   optional, a bad line is skipped.
@@ -29,8 +30,10 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
   partial line, replays when the file shrinks or its inode changes), `--port 0` for the tests,
   `--detach` (checks the port, spawns itself detached, waits for `/api/health`). Host allow-list
   against DNS rebinding. Session data needs the token in `<board dir>/token` (0600, created
-  once): `/?t=` sets an HttpOnly cookie, `X-Board-Token` works for scripts, and `isBoard` sends
-  it, so a squatter on the port reads as busy. `POST /api/archive` needs JSON and no foreign
+  once), sent as `X-Board-Token`, or as `?t=` on `/api/stream` only (EventSource sets no
+  header); never a cookie, which reaches every port on 127.0.0.1. The page takes `?t=` once into
+  localStorage (origin-scoped, so per port). `isBoard` sends a nonce and checks the HMAC
+  `/api/health` returns, so the token never goes to a squatter on the port. `POST /api/archive` needs JSON and no foreign
   `Origin`. `/api/stream` opens with a full `state` event and then sends changed `cards`; the
   page loads from the stream alone, so no push falls between a snapshot and the subscribe.
 - `server/public/` — the page. `columns.mjs` (the time rules, `STALE_MS`, `GONE_MS`) and

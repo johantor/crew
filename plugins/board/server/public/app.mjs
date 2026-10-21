@@ -12,6 +12,24 @@ let skew = 0; // server clock minus browser clock
 const $ = (id) => document.getElementById(id);
 const now = () => Date.now() + skew;
 
+// The printed URL carries the token once. localStorage is scoped to this port's
+// origin, unlike a cookie, so a bookmark of the bare URL keeps working and no
+// other service on 127.0.0.1 ever sees the token.
+const token = (() => {
+  const url = new URL(location.href);
+  const given = url.searchParams.get('t');
+  if (given) {
+    url.searchParams.delete('t');
+    history.replaceState(null, '', url);
+  }
+  try {
+    if (given) localStorage.setItem('board-token', given);
+    return given || localStorage.getItem('board-token') || '';
+  } catch {
+    return given || '';
+  }
+})();
+
 function el(tag, cls, text) {
   const node = document.createElement(tag);
   if (cls) node.className = cls;
@@ -50,7 +68,7 @@ async function copyResume(c) {
 async function setArchived(c, on) {
   const res = await fetch('/api/archive', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'X-Board-Token': token },
     body: JSON.stringify({ sid: c.id, on }),
   });
   if (!res.ok) toast('Could not archive the card.');
@@ -275,13 +293,18 @@ function render() {
 function connect() {
   const live = $('live');
   // Every (re)connect starts with a full `state` event, so nothing between snapshot and stream is lost.
-  const es = new EventSource('/api/stream');
+  if (!token) {
+    live.textContent = 'no token: open the board with /board:open';
+    return;
+  }
+  const es = new EventSource(`/api/stream?t=${encodeURIComponent(token)}`);
   es.onopen = () => {
     live.textContent = 'live';
     live.classList.add('on');
   };
   es.onerror = () => {
-    live.textContent = 'offline';
+    // A 401 closes the stream for good; a dropped connection retries on its own.
+    live.textContent = es.readyState === EventSource.CLOSED ? 'token refused: open the board with /board:open' : 'offline';
     live.classList.remove('on');
   };
   es.addEventListener('cards', (ev) => {
