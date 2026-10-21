@@ -47,6 +47,19 @@ test('a session moves through the columns as its hooks fire', () => {
   assert.deepEqual(c.recent.map((r) => r.tool), ['Bash npm test']);
 });
 
+test('a late async event does not reopen an ended session', () => {
+  const c = run([
+    { e: 'SessionStart', source: 'startup' },
+    { e: 'SessionEnd', reason: 'prompt_input_exit' },
+    { e: 'Stop', msg: 'late' },
+    { e: 'PermissionRequest', aid: 'w', tool: 'Bash x' },
+  ]);
+  assert.equal(c.state, 'closed');
+  assert.equal(c.summary, '');
+  const resumed = run([{ e: 'SessionEnd' }, { e: 'SessionStart', source: 'resume' }, { e: 'UserPromptSubmit', prompt: 'p' }]);
+  assert.equal(resumed.state, 'working');
+});
+
 test('compact keeps the state; resume reopens a closed card', () => {
   const c = run([
     { e: 'UserPromptSubmit', prompt: 'p' },
@@ -421,6 +434,15 @@ test('the resume command never lets a folder name run code', () => {
   assert.deepEqual(resumeCommand({ id, cwd: "/w/it's" }), { command: `claude --resume ${id}`, cdOmitted: true });
   assert.deepEqual(resumeCommand({ id, cwd: '/w/a\nb' }), { command: `claude --resume ${id}`, cdOmitted: true });
   assert.equal(resumeCommand({ id: 'x; rm -rf ~', cwd: '/w' }).command, '');
+  // PowerShell ends a single-quoted string on smart quotes too: the allowlist leaves them out.
+  for (const q of ['\u2018', '\u2019', '\u201a', '\u201b']) {
+    assert.equal(resumeCommand({ id, cwd: `C:\\work\\${q}; Write-Output INJECTED; #` }).cdOmitted, true, `U+${q.codePointAt(0).toString(16)}`);
+  }
+  assert.equal(resumeCommand({ id, cwd: '/w/a\tb' }).cdOmitted, true, 'a control character');
+  // Real paths keep their cd: Windows, non-English letters, and macOS's decomposed form.
+  for (const cwd of ['C:\\Users\\Jöhan\\källa (2)', '/Users/me/Projekt/la\u0308sa', '/w/日本語/x_y-z.v2']) {
+    assert.equal(resumeCommand({ id, cwd }).command, `cd '${cwd}'; claude --resume ${id}`);
+  }
   assert.equal(resumeCommand({ id, cwd: '' }).command, `claude --resume ${id}`);
 });
 

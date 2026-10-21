@@ -97,6 +97,22 @@ if [ "$status" -eq 0 ]; then _pass; else _fail "no node on PATH: expected exit 0
 mode="$(stat -c '%a' "$log" 2>/dev/null || stat -f '%Lp' "$log")"
 if [ "$mode" = "600" ]; then _pass; else _fail "events.jsonl mode is $mode, expected 600"; fi
 
+# Order the reducer relies on: PermissionRequest lands before its tool runs, and
+# SessionEnd before the process exits, so both run in the foreground; the rest are async.
+wiring="$(dirname "${BASH_SOURCE[0]}")/../hooks/hooks.json"
+for event in PermissionRequest SessionEnd; do
+  if jq -e --arg e "$event" '.hooks[$e][0].hooks[0] | (.async != true) and (.timeout | type == "number")' "$wiring" >/dev/null; then
+    _pass
+  else
+    _fail "$event must run in the foreground with a timeout"
+  fi
+done
+if jq -e '[.hooks | to_entries[] | select(.key != "PermissionRequest" and .key != "SessionEnd") | .value[0].hooks[0].async] | all' "$wiring" >/dev/null; then
+  _pass
+else
+  _fail "every other board hook must be async"
+fi
+
 # The reducer, history backfill and server have their own Node suite.
 if node --test "$(dirname "${BASH_SOURCE[0]}")"/*.test.mjs >"$FIXTURE_ROOT/node-test.log" 2>&1; then
   _pass

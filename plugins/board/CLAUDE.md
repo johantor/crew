@@ -6,7 +6,8 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
 ## Map
 
 - `hooks/capture.sh` — the one hook, wired on 12 events in `hooks/hooks.json`, async on all but
-  `SessionEnd` (synchronous, `timeout: 5`, so it lands before the process exits). A Bash
+  `PermissionRequest` and `SessionEnd` (synchronous, `timeout: 5`: the first lands before its
+  tool runs, the second before the process exits; `capture.test.sh` asserts the split). A Bash
   wrapper so validator §3/§6 apply; it runs `node server/capture.mjs` and always exits 0.
 - `server/capture.mjs` — `distill()` turns a hook payload into one record (`v`, `ts`, `e`,
   `sid`, plus per-event fields); `null` drops events the board ignores, such as a
@@ -53,5 +54,7 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
   server started from a terminal must find the file the hooks write.
 - Async hooks append out of order. A `PreToolUse` and the `PermissionRequest` of the same call
   are milliseconds apart and land inverted often (a review measured up to 25 of 60), so no
-  transition may depend on their order: that is why `PreToolUse` never leaves `needs`. A `Stop`
-  lands seconds after the turn's last tool call, so that pair is unlikely to invert.
+  transition may depend on their order: that is why `PreToolUse` never leaves `needs`. Order
+  that matters is bought with a foreground hook, not inferred: `PermissionRequest` is
+  synchronous, so it always precedes its `PostToolUse`, and `SessionEnd` is synchronous and
+  final (`ended`) until a new `SessionStart`, so a late async `Stop` cannot reopen the card.

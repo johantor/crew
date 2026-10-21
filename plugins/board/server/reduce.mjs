@@ -32,6 +32,7 @@ function cardFor(board, sid, ts) {
       repo: '',
       branch: '',
       turn: 'yourTurn',
+      ended: false,
       doing: '',
       open: {},
       state: 'yourTurn',
@@ -131,6 +132,9 @@ export function apply(board, rec) {
   }
 
   c.hooks = true;
+  // SessionEnd is final until the session starts again: SessionEnd runs in the
+  // foreground and the other hooks async, so a late Stop can land after it.
+  if (c.ended && rec.e !== 'SessionStart') return;
   if (rec.ts > c.lastTs) c.lastTs = rec.ts;
   // Only the session's own events set where it resumes: a subagent may run in a
   // worktree that is gone once it finishes.
@@ -189,6 +193,7 @@ function applySelf(c, rec) {
     case 'SessionStart':
       if (rec.model) c.model = rec.model;
       if (rec.source === 'compact') break;
+      c.ended = false;
       c.turn = 'yourTurn';
       c.open = {};
       c.endReason = '';
@@ -241,6 +246,7 @@ function applySelf(c, rec) {
       ask(c, ERROR, '', `Error: ${rec.msg || c.error}`, rec.ts);
       break;
     case 'SessionEnd':
+      c.ended = true;
       c.turn = 'closed';
       c.open = {};
       c.endReason = rec.reason || '';

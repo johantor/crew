@@ -27,8 +27,9 @@ page moves it into the browser's local storage for that port, so a bookmark of
 Each card shows the title (a `/rename` name, else the first prompt), the repo and branch, the
 latest activity, and how long ago it happened. **Copy resume** (or a click on the card) copies
 `cd '<dir>'; claude --resume <id>`, which runs in bash, zsh and PowerShell. The quotes are single,
-so a folder name cannot run code when you paste it; a folder name that holds a `'` gets no `cd`,
-and the board says so. **More** shows the
+so a folder name cannot run code when you paste it. A folder name with a character outside
+letters, digits and plain ASCII punctuation (a quote of any kind, a tab) gets no `cd`, and the
+board says so. **More** shows the
 last reply, the last tool calls and the subagents. **Archive** hides a card; the **Archived**
 filter brings it back.
 
@@ -43,10 +44,11 @@ The theme follows the browser until you pick Light or Dark; the choice is saved 
 ## How it works
 
 1. Hooks on 12 session events run `hooks/capture.sh`, which hands the payload to Node. Node
-   distills it to one short line and appends it to `~/.claude/board/events.jsonl`. Eleven hooks
-   are async and never block a session; `SessionEnd` runs in the foreground, for up to 5 seconds, so
-   its line lands before Claude Code exits. None fails a session: no Node, a bad payload or a full
-   disk all exit 0.
+   distills it to one short line and appends it to `~/.claude/board/events.jsonl`. Ten hooks are
+   async and never block a session. Two run in the foreground, for up to 5 seconds:
+   `PermissionRequest`, so its line lands before the tool runs (it adds about 0.1 s before the
+   prompt shows), and `SessionEnd`, so its line lands before Claude Code exits. None fails a
+   session: no Node, a bad payload or a full disk all exit 0.
 2. The server replays that log into cards and tails it every second. It writes to the same file
    only when you archive a card.
 3. On start, and every 5 minutes, it reads the session transcripts under `~/.claude/projects`
