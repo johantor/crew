@@ -102,3 +102,7 @@ run there.
 - The transcript format is not documented. A Claude Code update can break the history read; the
   hooks keep working.
 - A session that ran while the plugin was off shows only its history: title, repo and last reply.
+- The `/board:open` check that a port holds your board can be fooled by another local user who
+  relays it from their port to your board on a second port; `--open` would then open their page
+  with your token in the URL. It needs another user on the machine and two of your boards
+  running. Run one board, on the default port.

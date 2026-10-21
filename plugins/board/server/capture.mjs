@@ -1,6 +1,7 @@
 // Hook entry: reads one Claude Code hook payload on stdin and appends a distilled
 // record to <board dir>/events.jsonl. The server tails that file, so an event is
 // kept even while the server is down. Never fails the hook: every error exits 0.
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { boardDir, eventsFile, isMain } from './paths.mjs';
@@ -125,6 +126,13 @@ export function gitInfo(cwd) {
 // only sign a turn ended without a Stop (Esc, a denied prompt).
 const NOTIFICATIONS = new Set(['elicitation_dialog', 'elicitation_url_dialog', 'agent_needs_input', 'idle_prompt']);
 
+// Which tool call a question belongs to, so finishing one parallel call does not
+// answer another's prompt. PermissionRequest carries no tool_use_id, so the key is
+// a hash of what the call is: the same tool and input in both events.
+export function callKey(name, input) {
+  return crypto.createHash('sha256').update(`${name}\n${JSON.stringify(input ?? null)}`).digest('hex').slice(0, 16);
+}
+
 // Repo and branch for a card. A folder outside git names the repo and clears the
 // branch, so a session that moved out of a repo does not keep the old one.
 export function where(cwd) {
@@ -156,10 +164,13 @@ export function distill(p, now = Date.now()) {
       Object.assign(rec, where(p.cwd));
       break;
     case 'PreToolUse':
+      rec.tool = summarizeTool(p.tool_name, p.tool_input, p.cwd);
+      break;
     case 'PostToolUse':
     case 'PostToolUseFailure':
     case 'PermissionRequest':
       rec.tool = summarizeTool(p.tool_name, p.tool_input, p.cwd);
+      rec.call = callKey(p.tool_name, p.tool_input);
       break;
     case 'Notification':
       if (!NOTIFICATIONS.has(p.notification_type)) return null;

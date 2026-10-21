@@ -17,10 +17,12 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
   (backfill; fills gaps, never overrides a hook), `BoardArchive` (written by the server).
   A card keeps the session's own `turn` (`working`/`yourTurn`/`closed`, activity `doing`) apart
   from its `open` questions, keyed by who asked (`''` the session, `!error` a failed turn, else
-  a subagent's `aid`). `derive()` shows `needs` while any question is open, else the turn, so
-  one answer never hides another. A subagent's question closes on its PostToolUse or
-  SubagentStop; `PreToolUse` answers nothing (see Gotchas); an `idle_prompt` notification ends
-  a turn that had no `Stop` (Esc, a denied prompt).
+  a subagent's `aid`) and by tool call: `capture.mjs` writes `call`, a hash of tool name and
+  input, on PermissionRequest and PostToolUse(Failure), since PermissionRequest has no
+  `tool_use_id`. `derive()` shows `needs` while any question is open, else the turn, so one
+  answer never hides another. A PostToolUse closes only its own call's question; SubagentStop
+  closes all of that subagent's; `PreToolUse` answers nothing (see Gotchas); an `idle_prompt`
+  notification ends a turn that had no `Stop` (Esc, a denied prompt).
 - `server/history.mjs` — reads the head and tail 256 KiB of each transcript, and only a file
   whose mtime and size changed since the last scan. The format is undocumented: every field is
   optional, a bad line is skipped.

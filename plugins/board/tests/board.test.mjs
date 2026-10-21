@@ -538,6 +538,34 @@ test('overlapping questions each stay open until their own answer', () => {
   assert.equal(err.activity, 'Error: 429');
 });
 
+test('one parallel call finishing does not answer another call prompt', () => {
+  for (const aid of [undefined, 'w1']) {
+    const who = aid ? { aid, agent: 'crew:backend' } : {};
+    const c = run([
+      { e: 'UserPromptSubmit', prompt: 'p' },
+      { ...who, e: 'PreToolUse', tool: 'Bash npm test' },
+      { ...who, e: 'PermissionRequest', tool: 'Bash rm important-file', call: 'B' },
+      { ...who, e: 'PostToolUse', tool: 'Bash npm test', call: 'A' },
+    ]);
+    assert.equal(c.state, 'needs', aid ? 'subagent' : 'session');
+    assert.match(c.activity, /rm important-file/);
+    const done = run([
+      { ...who, e: 'PermissionRequest', tool: 'Bash rm important-file', call: 'B' },
+      { ...who, e: 'PostToolUse', tool: 'Bash rm important-file', call: 'B' },
+    ]);
+    assert.notEqual(done.state, 'needs', 'the matching call answers it');
+  }
+});
+
+test('the call key matches between a PermissionRequest and its PostToolUse', () => {
+  const input = { command: 'rm x', description: 'remove' };
+  const perm = distill({ session_id: 's', hook_event_name: 'PermissionRequest', tool_name: 'Bash', tool_input: input });
+  const post = distill({ session_id: 's', hook_event_name: 'PostToolUse', tool_name: 'Bash', tool_input: input, tool_response: {} });
+  const other = distill({ session_id: 's', hook_event_name: 'PostToolUse', tool_name: 'Bash', tool_input: { command: 'ls' } });
+  assert.equal(perm.call, post.call);
+  assert.notEqual(perm.call, other.call);
+});
+
 test('the turn underneath a subagent question stays current', () => {
   const c = run([
     { e: 'UserPromptSubmit', prompt: 'p' },
@@ -554,6 +582,16 @@ test('the turn underneath a subagent question stays current', () => {
     { e: 'SubagentStop', aid: 'a' },
   ]);
   assert.equal(idle.state, 'yourTurn');
+});
+
+test('a subagent in a worktree does not move the session resume folder', () => {
+  const c = run([
+    { e: 'SessionStart', source: 'startup', cwd: '/w/shop', repo: 'shop', branch: 'main' },
+    { e: 'SubagentStart', aid: 'a', cwd: '/w/shop/.claude/worktrees/a' },
+    { e: 'PreToolUse', aid: 'a', cwd: '/w/shop/.claude/worktrees/a', tool: 'Edit x' },
+  ]);
+  assert.equal(c.cwd, '/w/shop');
+  assert.equal(c.branch, 'main');
 });
 
 test('a session that leaves the repo drops its branch', () => {

@@ -25,7 +25,9 @@ entry.
   agent, command, skill and hook, and how they fit.
 - `plugins/board/`: the `board` plugin, a local kanban of every Claude Code session. Its one hook
   is Bash like crew's; the server and the page are Node (`server/`), and its suite runs
-  `node --test` from a `.test.sh`, so the hook tests need Node too.
+  `node --test` from a `.test.sh`, so the hook tests need Node too. Accepted gap (#318, third
+  review round): the startup probe's HMAC does not bind the port, so another local user can
+  relay it to the operator's own board on a second port; the README names it.
 - `scripts/`: repo tooling, never shipped. `validate-plugin.sh` (tree-only structural checks,
   the `§N` sections below), `check-changelog.sh` (the diff-based release gate, takes the base
   branch), `release-notes.sh` (one version's changelog section, used by `auto-release.yml`).

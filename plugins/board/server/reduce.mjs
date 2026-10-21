@@ -5,8 +5,9 @@
 // A card holds two things that change apart: the session's own turn (`turn`:
 // working, yourTurn or closed, with `doing` as its activity) and the questions
 // still open (`open`, keyed by who asked: SELF for the session, ERROR for a failed
-// turn, else a subagent's id). The card is in Needs me while any question is open,
-// so one answer never hides another, and the turn underneath stays current.
+// turn, else a subagent's id; and by the tool call). The card is in Needs me while
+// any question is open, so one answer never hides another, and the turn underneath
+// stays current.
 
 const RECENT = 5;
 const WORKERS = 20;
@@ -72,12 +73,23 @@ function worker(c, rec) {
   return w;
 }
 
-function ask(c, who, text, ts) {
-  c.open[who] = { text, ts };
+// A question is keyed by who asked and which tool call it gates (none for a
+// question such as an MCP elicitation), so parallel calls each keep their own.
+const key = (who, call) => `${who}|${call || ''}`;
+
+function ask(c, who, call, text, ts) {
+  c.open[key(who, call)] = { text, ts };
 }
 
-function answer(c, who) {
-  delete c.open[who];
+// A finished call answers its own question, and any call-less one from the same asker.
+function answerCall(c, who, call) {
+  if (!call) return answerAll(c, who);
+  delete c.open[key(who, call)];
+  delete c.open[key(who, '')];
+}
+
+function answerAll(c, who) {
+  for (const k of Object.keys(c.open)) if (k.startsWith(`${who}|`)) delete c.open[k];
 }
 
 // `state` and `activity` are what the page shows: the newest open question, else the turn.
@@ -120,10 +132,14 @@ export function apply(board, rec) {
 
   c.hooks = true;
   if (rec.ts > c.lastTs) c.lastTs = rec.ts;
-  if (rec.cwd) c.cwd = rec.cwd;
-  if (rec.repo) c.repo = rec.repo;
-  // An empty branch is news: the session left the repo, or HEAD went unreadable.
-  if (typeof rec.branch === 'string') c.branch = rec.branch;
+  // Only the session's own events set where it resumes: a subagent may run in a
+  // worktree that is gone once it finishes.
+  if (!rec.aid) {
+    if (rec.cwd) c.cwd = rec.cwd;
+    if (rec.repo) c.repo = rec.repo;
+    // An empty branch is news: the session left the repo, or HEAD went unreadable.
+    if (typeof rec.branch === 'string') c.branch = rec.branch;
+  }
   if (rec.pm) c.mode = rec.pm;
   if (rec.title) setTitle(c, rec.title, RANK.rename);
   if (typeof rec.agent === 'string' && rec.agent.startsWith('crew:')) c.crew = true;
@@ -148,19 +164,19 @@ function applyWorker(c, rec) {
       break;
     case 'PostToolUse':
     case 'PostToolUseFailure':
-      answer(c, rec.aid);
+      answerCall(c, rec.aid, rec.call);
       break;
     case 'PermissionRequest':
-      ask(c, rec.aid, `${w.type} asks: allow ${rec.tool}?`, rec.ts);
+      ask(c, rec.aid, rec.call, `${w.type} asks: allow ${rec.tool}?`, rec.ts);
       break;
     case 'Notification':
-      if (rec.ntype !== 'idle_prompt') ask(c, rec.aid, `${w.type}: ${rec.msg || 'needs input'}`, rec.ts);
+      if (rec.ntype !== 'idle_prompt') ask(c, rec.aid, '', `${w.type}: ${rec.msg || 'needs input'}`, rec.ts);
       break;
     case 'SubagentStop':
       w.state = 'done';
       w.msg = rec.msg || '';
       w.endTs = rec.ts;
-      answer(c, rec.aid);
+      answerAll(c, rec.aid);
       break;
   }
 }
@@ -183,8 +199,8 @@ function applySelf(c, rec) {
     case 'UserPromptSubmit':
       setTitle(c, rec.prompt, RANK.prompt);
       c.turn = 'working';
-      answer(c, SELF);
-      answer(c, ERROR);
+      answerAll(c, SELF);
+      answerAll(c, ERROR);
       c.error = '';
       c.doing = rec.prompt || c.doing;
       break;
@@ -199,30 +215,30 @@ function applySelf(c, rec) {
     case 'PostToolUse':
     case 'PostToolUseFailure':
       c.turn = 'working';
-      answer(c, SELF);
+      answerCall(c, SELF, rec.call);
       break;
     case 'PermissionRequest':
-      ask(c, SELF, `Allow: ${rec.tool}?`, rec.ts);
+      ask(c, SELF, rec.call, `Allow: ${rec.tool}?`, rec.ts);
       break;
     case 'Notification':
       // Claude waits at the prompt: the turn ended, even with no Stop (Esc, a denied prompt).
       if (rec.ntype === 'idle_prompt') {
         if (c.turn !== 'closed') c.turn = 'yourTurn';
-        answer(c, SELF);
+        answerAll(c, SELF);
       } else {
-        ask(c, SELF, rec.msg || 'Needs input', rec.ts);
+        ask(c, SELF, '', rec.msg || 'Needs input', rec.ts);
       }
       break;
     case 'Stop':
       c.turn = 'yourTurn';
-      answer(c, SELF);
+      answerAll(c, SELF);
       c.summary = rec.msg || c.summary;
       c.doing = c.summary || 'Done';
       break;
     case 'StopFailure':
       c.turn = 'yourTurn';
       c.error = rec.error || 'error';
-      ask(c, ERROR, `Error: ${rec.msg || c.error}`, rec.ts);
+      ask(c, ERROR, '', `Error: ${rec.msg || c.error}`, rec.ts);
       break;
     case 'SessionEnd':
       c.turn = 'closed';
