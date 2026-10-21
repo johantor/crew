@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- A local kanban of every Claude Code session; hooks log to `~/.claude/board/events.jsonl`.
+- A local kanban of every Claude Code session; hooks log to `~/.claude/board/events.jsonl` (#318).
 - `/board:open` starts the server on 127.0.0.1, behind a per-user token.
 - Transcripts in `~/.claude/projects` fill the board with sessions from before the plugin.
 - Subagents show on their session's card; a Crew run gets a Crew badge.
