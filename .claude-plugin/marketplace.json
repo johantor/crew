@@ -9,6 +9,11 @@
       "name": "crew",
       "source": "./plugins/crew",
       "description": "Team-style feature delivery for Claude Code: a captain agent plans the work and delegates each step to backend, frontend, test, and design specialists behind hook-enforced guardrails, with a consolidated review gate before anything ships. Also pays down tech debt one verified, gated batch at a time."
+    },
+    {
+      "name": "board",
+      "source": "./plugins/board",
+      "description": "A local kanban board of every Claude Code session: what needs you, what is running, what you closed today. Hooks log each session's state, a small Node server on 127.0.0.1 shows it as cards, and a click copies the resume command. Crew runs show their subagents on the session's card."
     }
   ]
 }

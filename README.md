@@ -111,6 +111,8 @@ Release notes: [CHANGELOG](plugins/crew/CHANGELOG.md).
 ## Documentation
 
 - [crew](plugins/crew/README.md): agents, commands, hooks, background delegation and MCP setup.
+- [board](plugins/board/README.md): a local kanban board of every Claude Code session, Crew runs
+  included (`claude plugin install board@johantor`).
 - [AGENTS.md](AGENTS.md): contributing and hacking on the crew.
 
 ## License
