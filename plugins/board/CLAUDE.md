@@ -31,7 +31,8 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
   against DNS rebinding. Session data needs the token in `<board dir>/token` (0600, created
   once): `/?t=` sets an HttpOnly cookie, `X-Board-Token` works for scripts, and `isBoard` sends
   it, so a squatter on the port reads as busy. `POST /api/archive` needs JSON and no foreign
-  `Origin`.
+  `Origin`. `/api/stream` opens with a full `state` event and then sends changed `cards`; the
+  page loads from the stream alone, so no push falls between a snapshot and the subscribe.
 - `server/public/` — the page. `columns.mjs` (the time rules, `STALE_MS`, `GONE_MS`) and
   `resume.mjs` (the copied command, single-quoted) are imported by the page and the tests. The
   CSP is `default-src 'self'`: no inline script or style, so `theme.js` is a file, loaded

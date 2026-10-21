@@ -84,11 +84,10 @@ function openBrowser(url) {
     process.platform === 'win32'
       ? ['cmd', ['/c', 'start', '', url]]
       : [process.platform === 'darwin' ? 'open' : 'xdg-open', [url]];
-  try {
-    spawn(cmd, args, { detached: true, stdio: 'ignore', windowsHide: true }).unref();
-  } catch {
-    // The URL is printed either way.
-  }
+  // A missing opener fails asynchronously; the URL is printed either way.
+  const child = spawn(cmd, args, { detached: true, stdio: 'ignore', windowsHide: true });
+  child.on('error', () => {});
+  child.unref();
 }
 
 // Reads the log from a byte offset and returns whole records; a line still being
@@ -167,7 +166,7 @@ function startServer(opts) {
     for (const rec of history.values()) record(rec);
     for (const rec of tail.read().records) record(rec);
     dirty.clear();
-    broadcast('reset', {});
+    broadcast('state', stateNow());
   }
 
   function rescanHistory() {
@@ -185,9 +184,9 @@ function startServer(opts) {
     if (records.length) scheduleFlush();
   }
 
-  function cardsInWindow() {
+  function stateNow() {
     const since = windowStart();
-    return snapshot(board).filter((c) => c.lastTs >= since);
+    return { now: Date.now(), days: opts.days, cards: snapshot(board).filter((c) => c.lastTs >= since) };
   }
 
   function broadcast(event, payload) {
@@ -264,11 +263,12 @@ function startServer(opts) {
     }
     if (!ok) return send(res, 401, { error: 'token required' });
     if (req.method === 'GET' && url.pathname === '/api/state') {
-      return send(res, 200, { now: Date.now(), days: opts.days, cards: cardsInWindow() });
+      return send(res, 200, stateNow());
     }
     if (req.method === 'GET' && url.pathname === '/api/stream') {
       res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-store', Connection: 'keep-alive' });
-      res.write(': connected\n\n');
+      // The snapshot rides the stream, so no push can fall between a separate fetch and the subscribe.
+      res.write(`event: state\ndata: ${JSON.stringify(stateNow())}\n\n`);
       clients.add(res);
       req.on('close', () => clients.delete(res));
       return;
@@ -294,7 +294,12 @@ function startServer(opts) {
         if (!msg || typeof msg !== 'object' || typeof msg.sid !== 'string' || !board.cards.has(msg.sid)) {
           return send(res, 404, { error: 'no such session' });
         }
-        archive(msg.sid, msg.on !== false);
+        // This callback runs after handle() returned: its try/catch does not cover a full disk here.
+        try {
+          archive(msg.sid, msg.on !== false);
+        } catch (err) {
+          return send(res, 500, { error: err.message });
+        }
         send(res, 200, { ok: true });
       });
       return;
@@ -326,8 +331,16 @@ function startServer(opts) {
     rescanHistory();
     pump();
     dirty.clear();
-    setInterval(pump, 1000).unref();
-    setInterval(rescanHistory, 5 * 60 * 1000).unref();
+    // A timer's throw would stop the server; a log that cannot be read waits for the next tick.
+    const guarded = (fn) => () => {
+      try {
+        fn();
+      } catch (err) {
+        console.error(`board: ${err.message}`);
+      }
+    };
+    setInterval(guarded(pump), 1000).unref();
+    setInterval(guarded(rescanHistory), 5 * 60 * 1000).unref();
     setInterval(() => {
       for (const c of clients) c.write(': ping\n\n');
     }, 25000).unref();

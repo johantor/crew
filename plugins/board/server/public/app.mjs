@@ -265,32 +265,20 @@ function render() {
   }
   for (const sid of cardEls.keys()) if (!cards.has(sid)) cardEls.delete(sid);
 
-  // A rebuilt card replaced the focused button: focus its successor.
-  if (focusSid && focusAction && !document.contains(active)) {
+  // A rebuilt card, or a reordered column, took focus off the button: put it back.
+  // Compare with the active element, not presence: a moved node is back in the document but blurred.
+  if (focusSid && focusAction && document.activeElement !== active) {
     cardEls.get(focusSid)?.node.querySelector(`[data-action="${focusAction}"]`)?.focus({ preventScroll: true });
   }
 }
 
-async function load() {
-  const res = await fetch('/api/state');
-  const data = await res.json();
-  skew = data.now - Date.now();
-  cards.clear();
-  for (const c of data.cards) cards.set(c.id, c);
-  renderRepoOptions();
-  render();
-}
-
 function connect() {
   const live = $('live');
+  // Every (re)connect starts with a full `state` event, so nothing between snapshot and stream is lost.
   const es = new EventSource('/api/stream');
-  let opened = false;
   es.onopen = () => {
     live.textContent = 'live';
     live.classList.add('on');
-    // A reconnect may have missed pushes: reload the whole board.
-    if (opened) load();
-    opened = true;
   };
   es.onerror = () => {
     live.textContent = 'offline';
@@ -303,7 +291,14 @@ function connect() {
     renderRepoOptions();
     render();
   });
-  es.addEventListener('reset', () => load());
+  es.addEventListener('state', (ev) => {
+    const data = JSON.parse(ev.data);
+    skew = data.now - Date.now();
+    cards.clear();
+    for (const c of data.cards) cards.set(c.id, c);
+    renderRepoOptions();
+    render();
+  });
 }
 
 function initTheme() {
@@ -345,5 +340,4 @@ $('search').addEventListener('input', () => {
   searchTimer = setTimeout(render, 150);
 });
 setInterval(render, 30000);
-load().catch(() => toast('Cannot reach the board server.'));
 connect();

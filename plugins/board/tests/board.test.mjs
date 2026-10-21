@@ -353,12 +353,38 @@ test('the server serves state, refuses foreign hosts, and archives', async (t) =
   const after = await (await fetch2(`${base}/api/state`)).json();
   assert.equal(after.cards.find((c) => c.id === 'live').archived, true);
 
+  // The stream opens with the full snapshot, so no push falls between a fetch and the subscribe.
+  const first = await new Promise((resolve, reject) => {
+    http
+      .get({ host: '127.0.0.1', port, path: '/api/stream', headers: { 'X-Board-Token': token } }, (res) => {
+        res.once('data', (chunk) => {
+          resolve(String(chunk));
+          res.destroy();
+        });
+      })
+      .on('error', reject);
+  });
+  assert.match(first, /^event: state\ndata: \{"now":\d+,"days":30,"cards":\[/);
+
   // A new hook line shows up without a restart.
-  fs.appendFileSync(path.join(boardDir, 'events.jsonl'), `${JSON.stringify({ v: 1, ts: Date.now(), e: 'Stop', sid: 'live', msg: 'done' })}\n`);
+  const log = path.join(boardDir, 'events.jsonl');
+  fs.appendFileSync(log, `${JSON.stringify({ v: 1, ts: Date.now(), e: 'Stop', sid: 'live', msg: 'done' })}\n`);
   await waitFor(async () => {
     const s = await (await fetch2(`${base}/api/state`)).json();
     return s.cards.find((c) => c.id === 'live').state === 'yourTurn';
   });
+
+  // A log that cannot be written fails the archive with 500, and the server stays up.
+  fs.renameSync(log, `${log}.bak`);
+  fs.mkdirSync(log);
+  const broken = await fetch2(`${base}/api/archive`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ sid: 'live', on: false }),
+  });
+  assert.equal(broken.status, 500);
+  await new Promise((r) => setTimeout(r, 1200));
+  assert.equal((await fetch(`${base}/api/health`)).status, 200);
 });
 
 test('the resume command never lets a folder name run code', () => {
