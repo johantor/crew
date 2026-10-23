@@ -6,11 +6,11 @@ export const STALE_MS = 10 * 60 * 1000;
 export const GONE_MS = 12 * 60 * 60 * 1000;
 
 export const COLUMNS = [
-  { id: 'needs', label: 'Needs me' },
-  { id: 'working', label: 'Working' },
-  { id: 'yourTurn', label: 'Your turn' },
-  { id: 'closedToday', label: 'Closed today' },
-  { id: 'earlier', label: 'Earlier' },
+  { id: 'needs', label: 'Needs me', empty: 'Nothing needs you' },
+  { id: 'working', label: 'Working', empty: 'Nothing running' },
+  { id: 'yourTurn', label: 'Your turn', empty: 'Nothing waits on you' },
+  { id: 'closedToday', label: 'Closed today', empty: 'Nothing closed today' },
+  { id: 'earlier', label: 'Earlier', empty: 'Nothing from this week' },
 ];
 
 function sameLocalDay(a, b) {

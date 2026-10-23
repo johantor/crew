@@ -29,8 +29,8 @@ latest activity, and how long ago it happened. **Copy resume** (or a click on th
 `cd '<dir>'; claude --resume <id>`, which runs in bash, zsh and PowerShell. The quotes are single,
 so a folder name cannot run code when you paste it. A folder name with a character outside
 letters, digits and plain ASCII punctuation (a quote of any kind, a tab) gets no `cd`, and the
-board says so. **More** shows the last reply, the last tool calls and the subagents. **Hide**
-takes a card off the board; the **Hidden** filter shows it again. Hide only adds a line to the
+board says so. **More** (the chevron) shows the last reply, the last tool calls, the subagents
+and the session's mode and end reason. **Hide** (the crossed eye) takes a card off the board; the **Hidden** filter shows it again. Hide only adds a line to the
 board's log: the session and its transcript stay as they are.
 
 **Subagents are not cards.** A subagent runs inside its parent session, so it shows on that
@@ -41,6 +41,7 @@ session that ended its turn while its subagents run stays in Working until the l
 Sessions that run a `crew:` agent get a Crew badge.
 
 The theme follows the browser until you pick Light or Dark; the choice is saved in the browser.
+Press `/` to search. The tab title shows how many sessions need you.
 
 ## How it works
 

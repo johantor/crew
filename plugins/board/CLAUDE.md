@@ -44,7 +44,7 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
   `byRecency`: age group, then session start, so busy cards keep their place) and
   `resume.mjs` (the copied command, single-quoted) are imported by the page and the tests. The
   CSP is `default-src 'self'`: no inline script or style, so `theme.js` is a file, loaded
-  before paint. `app.mjs` rebuilds a card only when its content changes and puts focus back on
+  before paint, and the icons are an inline SVG sprite in `index.html` that `icon()` uses. `app.mjs` rebuilds a card only when its content changes and puts focus back on
   the same button (`data-action`): a push arrives every second while a session works.
 - `commands/open.md` — `/board:open`, runs `board.mjs --detach --open`.
 - `tests/capture.test.sh` — the hook end to end, then `node --test tests/*.test.mjs` (reducer,
