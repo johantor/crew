@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A card whose session stopped while its subagents run stays in Working, with "Waiting for N subagents" (#319).
 - Archive is now Hide, and the Archived filter is Hidden (#319).
 - A card's activity is a quote with a bar in its state color, up to 5 lines at 12px (#319).
+- Prompts and replies keep their line breaks, and the card shows them as rows (#319).
 
 ### Removed
 

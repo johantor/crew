@@ -11,7 +11,7 @@ import { apply, createBoard } from '../server/reduce.mjs';
 import { columnOf, isGone, isStale, STALE_MS } from '../server/public/columns.mjs';
 import { readSession, scanHistory } from '../server/history.mjs';
 import { createTail, parseArgs, proof } from '../server/board.mjs';
-import { distill, summarizeTool, where } from '../server/capture.mjs';
+import { clip, distill, summarizeTool, where } from '../server/capture.mjs';
 import { resumeCommand } from '../server/public/resume.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -183,6 +183,11 @@ test('tool summaries stay short and relative', () => {
   assert.ok(summarizeTool('Bash', { command: 'x'.repeat(500) }).length <= 120);
 });
 
+test('clip keeps one line break per run and folds other whitespace', () => {
+  assert.equal(clip('  Plan:\n\n  1. read   files\r\n2. edit\t ', 100), 'Plan:\n1. read files\n2. edit');
+  assert.equal(clip('abcdef', 4), 'abc…');
+});
+
 test('distill keeps the fields the reducer reads, nothing more', () => {
   const rec = distill(
     {
@@ -194,7 +199,7 @@ test('distill keeps the fields the reducer reads, nothing more', () => {
     },
     42,
   );
-  assert.deepEqual(rec, { v: 1, ts: 42, e: 'Stop', sid: 's', cwd: '/nowhere', msg: 'line one line two', repo: 'nowhere', branch: '' });
+  assert.deepEqual(rec, { v: 1, ts: 42, e: 'Stop', sid: 's', cwd: '/nowhere', msg: 'line one\nline two', repo: 'nowhere', branch: '' });
 });
 
 function writeTranscript(dir, sid, lines) {

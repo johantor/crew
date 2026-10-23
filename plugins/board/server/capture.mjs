@@ -12,7 +12,8 @@ const CLIP = { prompt: 200, msg: 300, tool: 120 };
 
 export function clip(text, max) {
   if (typeof text !== 'string') return undefined;
-  const flat = text.replace(/\s+/g, ' ').trim();
+  // A run with a line break stays one line break: the card shows the text's own rows.
+  const flat = text.replace(/\s+/g, (ws) => (ws.includes('\n') ? '\n' : ' ')).trim();
   return flat.length > max ? `${flat.slice(0, max - 1)}…` : flat;
 }
 

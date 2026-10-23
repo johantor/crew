@@ -320,6 +320,7 @@ button, input, select { font: inherit; color: inherit; }
   font-size: 12px;
   line-height: 1.45;
   overflow-wrap: anywhere;
+  white-space: pre-line;
   display: -webkit-box;
   -webkit-line-clamp: 5;
   -webkit-box-orient: vertical;
@@ -362,7 +363,7 @@ button, input, select { font: inherit; color: inherit; }
 .detail { margin-top: 10px; border-top: 1px dashed var(--line); padding-top: 8px; font-size: 12.5px; cursor: auto; }
 .detail h3 { font-size: 11px; margin: 8px 0 3px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
 .detail ul { margin: 0; padding-left: 16px; }
-.detail p { margin: 0; overflow-wrap: anywhere; }
+.detail p { margin: 0; overflow-wrap: anywhere; white-space: pre-line; }
 
 .toast {
   position: fixed;
