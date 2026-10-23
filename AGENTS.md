@@ -23,6 +23,11 @@ entry.
   review-gate runner, shipped unlike the repo-level `scripts/`. `README.md` is user-facing,
   `VERIFICATION.md` is the manual scenario matrix, and `CLAUDE.md` is the plugin map: every
   agent, command, skill and hook, and how they fit.
+- `plugins/board/`: the `board` plugin, a local kanban of every Claude Code session. Its one hook
+  is Bash like crew's; the server and the page are Node (`server/`), and its suite runs
+  `node --test` from a `.test.sh`, so the hook tests need Node too. Accepted gap (#318, third
+  review round): the startup probe's HMAC does not bind the port, so another local user can
+  relay it to the operator's own board on a second port; the README names it.
 - `scripts/`: repo tooling, never shipped. `validate-plugin.sh` (tree-only structural checks,
   the `§N` sections below), `check-changelog.sh` (the diff-based release gate, takes the base
   branch), `release-notes.sh` (one version's changelog section, used by `auto-release.yml`).
@@ -218,8 +223,9 @@ unused), rosters §9, prose refs §10, `crew.md` keys §11, footprint §12, MCP
 pairs §13, YAML frontmatter §14. §2g and §12 index skills through `git ls-files`, so stage a
 new or renamed skill file before running the validator.
 
-`plugins/<plugin>/tests/` is a bash suite (`jq` and `git` only, no LLM, no network) exercising
-the hooks' behavior: each guard is a pure `stdin JSON → exit 0/2` function. The harness lives
+`plugins/<plugin>/tests/` is a bash suite (`jq` and `git` only, no LLM, no network; `board`'s
+also needs Node and serves on 127.0.0.1) exercising the hooks' behavior: each guard is a pure
+`stdin JSON → exit 0/2` function. The harness lives
 once in `tests/hooks/`; `run.sh` discovers every suite and **fails when a plugin ships `hooks/`
 with no suite beside it**. `format.sh` is covered through a fixture `formatMatrix` whose rows
 name faked tools. **A change to a guard's logic adds or adjusts a case, covering both the allow

@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Session Board</title>
+  <script src="/theme.js"></script>
+  <link rel="stylesheet" href="/board.css">
+  <script type="module" src="/app.mjs"></script>
+</head>
+<body>
+  <header class="bar">
+    <h1>Session Board</h1>
+    <div class="filters">
+      <input id="search" type="search" placeholder="Search title, repo, branch" aria-label="Search">
+      <select id="repo" aria-label="Repository"><option value="">All repos</option></select>
+      <select id="kind" aria-label="Session kind">
+        <option value="">Crew and manual</option>
+        <option value="crew">Crew only</option>
+        <option value="manual">Manual only</option>
+      </select>
+      <label class="check"><input id="archived" type="checkbox"> Archived</label>
+    </div>
+    <div class="theme" role="group" aria-label="Theme">
+      <button type="button" data-theme-choice="auto">Auto</button>
+      <button type="button" data-theme-choice="light">Light</button>
+      <button type="button" data-theme-choice="dark">Dark</button>
+    </div>
+    <span id="live" class="live" role="status" title="Live updates">offline</span>
+  </header>
+  <main id="board" class="board"></main>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
