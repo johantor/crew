@@ -311,15 +311,20 @@ button, input, select { font: inherit; color: inherit; }
 .badge.crew { background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent); font-weight: 600; }
 .badge.warn { background: color-mix(in srgb, var(--needs) 14%, transparent); color: var(--warn); font-weight: 600; }
 
+/* A quote with a state-colored bar. Vertical space is a transparent border: the clamp
+   clips at the padding edge, so bottom padding would show part of a sixth line. */
 .activity {
   margin-top: 8px;
-  padding: 7px 9px;
-  border-radius: 8px;
+  padding: 0 9px;
+  border: 6px solid transparent;
+  border-left: 3px solid var(--state);
+  border-radius: 0 8px 8px 0;
   background: var(--inset);
-  font-size: 13px;
+  font-size: 12px;
+  line-height: 1.45;
   overflow-wrap: anywhere;
   display: -webkit-box;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 5;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
