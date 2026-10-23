@@ -20,7 +20,8 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
   from its `open` questions, keyed by who asked (`''` the session, `!error` a failed turn, else
   a subagent's `aid`) and by tool call: `capture.mjs` writes `call`, a hash of tool name and
   input, on PermissionRequest and PostToolUse(Failure), since PermissionRequest has no
-  `tool_use_id`. `derive()` shows `needs` while any question is open, else the turn, so one
+  `tool_use_id`. `derive()` shows `needs` while any question is open, else `working` while a
+  subagent runs after the turn ended (background agents), else the turn, so one
   answer never hides another. A PostToolUse closes only its own call's question; SubagentStop
   closes all of that subagent's; `PreToolUse` answers nothing (see Gotchas); an `idle_prompt`
   notification ends a turn that had no `Stop` (Esc, a denied prompt).
@@ -39,10 +40,13 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
   `/api/health` returns, so the token never goes to a squatter on the port. `POST /api/archive` needs JSON and no foreign
   `Origin`. `/api/stream` opens with a full `state` event and then sends changed `cards`; the
   page loads from the stream alone, so no push falls between a snapshot and the subscribe.
-- `server/public/` — the page. `columns.mjs` (the time rules, `STALE_MS`, `GONE_MS`) and
+- `server/public/` — the page. `columns.mjs` (the time rules, `STALE_MS`, `GONE_MS`, and
+  `byRecency`: age group, then session start, so busy cards keep their place) and
   `resume.mjs` (the copied command, single-quoted) are imported by the page and the tests. The
   CSP is `default-src 'self'`: no inline script or style, so `theme.js` is a file, loaded
-  before paint. `app.mjs` rebuilds a card only when its content changes and puts focus back on
+  before paint, and the icons are an inline SVG sprite in `index.html` that `icon()` uses: Phosphor
+  regular paths (MIT, `THIRD-PARTY-NOTICES.md`), so a new icon is copied from `@phosphor-icons/core`.
+  The palette and fonts follow the crew site, `docs/style.css`. `app.mjs` rebuilds a card only when its content changes and puts focus back on
   the same button (`data-action`): a push arrives every second while a session works.
 - `commands/open.md` — `/board:open`, runs `board.mjs --detach --open`.
 - `tests/capture.test.sh` — the hook end to end, then `node --test tests/*.test.mjs` (reducer,
@@ -58,3 +62,7 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
   that matters is bought with a foreground hook, not inferred: `PermissionRequest` is
   synchronous, so it always precedes its `PostToolUse`, and `SessionEnd` is synchronous and
   final (`ended`) until a new `SessionStart`, so a late async `Stop` cannot reopen the card.
+- A subagent counts as running until its `SubagentStop`. If that event never lands, the card
+  stays in Working; the `stale?` badge marks it after `STALE_MS`, and `SessionEnd` closes it.
+- The page and the API still say `archive` (`/api/archive`, `BoardArchive`, `.archived`); only
+  the labels say Hide. Renaming the record would orphan the hides in existing logs.

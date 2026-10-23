@@ -69,7 +69,11 @@ function worker(c, rec) {
   if (!w) {
     w = { id: rec.aid, type: rec.agent || 'agent', state: 'running', activity: '', msg: '', startTs: rec.ts, endTs: 0 };
     c.workers.push(w);
-    if (c.workers.length > WORKERS) c.workers.shift();
+    // Drop the oldest finished worker first: a running one still holds the card in Working.
+    if (c.workers.length > WORKERS) {
+      const i = c.workers.findIndex((x) => x.state !== 'running');
+      c.workers.splice(Math.max(i, 0), 1);
+    }
   }
   return w;
 }
@@ -94,11 +98,16 @@ function answerAll(c, who) {
 }
 
 // `state` and `activity` are what the page shows: the newest open question, else the turn.
+// A turn that ended with subagents still running (background agents) is still working.
 function derive(c) {
   const asks = Object.values(c.open);
+  const running = c.workers.filter((w) => w.state === 'running').length;
   if (asks.length) {
     c.state = 'needs';
     c.activity = asks.reduce((a, b) => (b.ts >= a.ts ? b : a)).text;
+  } else if (c.turn === 'yourTurn' && running) {
+    c.state = 'working';
+    c.activity = `Waiting for ${running} subagent${running === 1 ? '' : 's'}`;
   } else {
     c.state = c.turn;
     c.activity = c.doing;
@@ -159,10 +168,9 @@ export function apply(board, rec) {
 // it asks stays open until that subagent's tool finishes or the subagent stops.
 function applyWorker(c, rec) {
   const w = worker(c, rec);
+  // No case for SubagentStart: worker() creates a worker as running, and a start that
+  // lands after its async SubagentStop must not undo the stop.
   switch (rec.e) {
-    case 'SubagentStart':
-      w.state = 'running';
-      break;
     case 'PreToolUse':
       w.activity = rec.tool || w.activity;
       break;
@@ -249,6 +257,8 @@ function applySelf(c, rec) {
       c.ended = true;
       c.turn = 'closed';
       c.open = {};
+      // Its subagents end with it; a SubagentStop that lands later is ignored above.
+      for (const w of c.workers) if (w.state === 'running') w.state = 'done';
       c.endReason = rec.reason || '';
       break;
   }

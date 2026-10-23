@@ -1,71 +1,86 @@
+/* The palette and type of the crew site (docs/style.css). System fonts only: the
+   board makes no request beyond 127.0.0.1. */
 :root {
   color-scheme: light;
-  --bg: #f4f5f8;
-  --col: #eaecf1;
+  --bg: #f6f4ef;
+  --col: #efece4;
   --card: #ffffff;
-  --inset: #f3f4f7;
-  --chip: #eef0f4;
-  --text: #0f172a;
-  --muted: #545d6e;
-  --line: #e0e3ea;
-  --accent: #4f46e5;
-  --on-accent: #ffffff;
-  --needs: #c2410c;
-  --working: #1d4ed8;
-  --turn: #15803d;
-  --closed: #64748b;
-  --shadow-sm: 0 1px 2px rgb(15 23 42 / 0.06), 0 1px 1px rgb(15 23 42 / 0.04);
-  --shadow-md: 0 10px 24px -10px rgb(15 23 42 / 0.25), 0 2px 6px rgb(15 23 42 / 0.06);
-  --bar: rgb(244 245 248 / 0.82);
-  --control: #7c8598;
-  --warn: #9a3412;
+  --inset: #f7f5f0;
+  --chip: #efece4;
+  --ink: #0c0c1d;
+  --text: #2a2b3a;
+  --muted: #5d6070;
+  --line: #e2ded4;
+  --line-strong: #d3cec2;
+  --accent: #2f3bff;
+  --accent-soft: #e3e4ff;
+  --needs: #b4541f;
+  --needs-soft: #fbe6d9;
+  --warn: #9a4518;
+  --working: #2f3bff;
+  --turn: #0e6b55;
+  --closed: #8a8c99;
+  --shadow-sm: 0 1px 2px rgb(12 12 29 / 0.05);
+  --shadow-md: 0 1px 2px rgb(12 12 29 / 0.05), 0 8px 20px -8px rgb(12 12 29 / 0.16);
+  --bar: color-mix(in srgb, var(--bg) 88%, transparent);
+  --control: #8f8a7e;
+  --display: "Inter Tight", "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #0e1015;
-  --col: #151821;
-  --card: #1c202b;
-  --inset: #232836;
-  --chip: #262c3a;
-  --text: #e8eaf0;
-  --muted: #9ba4b5;
-  --line: #2b3142;
-  --accent: #8b93ff;
-  --on-accent: #0e1015;
-  --needs: #fb923c;
-  --working: #60a5fa;
-  --turn: #4ade80;
-  --closed: #94a3b8;
-  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
-  --shadow-md: 0 14px 30px -12px rgb(0 0 0 / 0.7), 0 2px 6px rgb(0 0 0 / 0.4);
-  --bar: rgb(14 16 21 / 0.8);
-  --control: #6b7690;
-  --warn: #fb923c;
+  --bg: #0e0f1a;
+  --col: #131423;
+  --card: #1a1c2d;
+  --inset: #1f2133;
+  --chip: #23263a;
+  --ink: #f4f3ff;
+  --text: #d9d9e8;
+  --muted: #9b9db2;
+  --line: #2a2d44;
+  --line-strong: #383b56;
+  --accent: #8c93ff;
+  --accent-soft: #23264a;
+  --needs: #f2a06e;
+  --needs-soft: #3a2418;
+  --warn: #f2a06e;
+  --working: #8c93ff;
+  --turn: #5fd3b0;
+  --closed: #8a8ca3;
+  --shadow-sm: inset 0 1px 0 rgb(255 255 255 / 0.04), 0 1px 2px rgb(0 0 0 / 0.5);
+  --shadow-md: inset 0 1px 0 rgb(255 255 255 / 0.05), 0 8px 24px -8px rgb(0 0 0 / 0.7);
+  --bar: color-mix(in srgb, var(--bg) 88%, transparent);
+  --control: #6b6e8f;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
-    --bg: #0e1015;
-    --col: #151821;
-    --card: #1c202b;
-    --inset: #232836;
-    --chip: #262c3a;
-    --text: #e8eaf0;
-    --muted: #9ba4b5;
-    --line: #2b3142;
-    --accent: #8b93ff;
-    --on-accent: #0e1015;
-    --needs: #fb923c;
-    --working: #60a5fa;
-    --turn: #4ade80;
-    --closed: #94a3b8;
-    --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
-    --shadow-md: 0 14px 30px -12px rgb(0 0 0 / 0.7), 0 2px 6px rgb(0 0 0 / 0.4);
-    --bar: rgb(14 16 21 / 0.8);
-    --control: #6b7690;
-    --warn: #fb923c;
+    --bg: #0e0f1a;
+    --col: #131423;
+    --card: #1a1c2d;
+    --inset: #1f2133;
+    --chip: #23263a;
+    --ink: #f4f3ff;
+    --text: #d9d9e8;
+    --muted: #9b9db2;
+    --line: #2a2d44;
+    --line-strong: #383b56;
+    --accent: #8c93ff;
+    --accent-soft: #23264a;
+    --needs: #f2a06e;
+    --needs-soft: #3a2418;
+  --warn: #f2a06e;
+    --working: #8c93ff;
+    --turn: #5fd3b0;
+    --closed: #8a8ca3;
+    --shadow-sm: inset 0 1px 0 rgb(255 255 255 / 0.04), 0 1px 2px rgb(0 0 0 / 0.5);
+    --shadow-md: inset 0 1px 0 rgb(255 255 255 / 0.05), 0 8px 24px -8px rgb(0 0 0 / 0.7);
+    --bar: color-mix(in srgb, var(--bg) 88%, transparent);
+    --control: #6b6e8f;
   }
 }
 
@@ -78,7 +93,7 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font: 14px/1.45 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font: 13.5px/1.45 var(--sans);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -86,7 +101,22 @@ button, input, select { font: inherit; color: inherit; }
 
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-.mono { font-family: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, monospace; font-size: 12px; }
+.mono { font-family: var(--mono); font-size: 11.5px; }
+
+.sprite { display: none; }
+
+.icon { width: 15px; height: 15px; flex: none; fill: currentColor; }
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.time, .count, .live { font-variant-numeric: tabular-nums; }
 
 /* Header */
 
@@ -97,57 +127,137 @@ button, input, select { font: inherit; color: inherit; }
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 12px;
-  padding: 12px 20px;
+  gap: 14px;
+  padding: 10px 20px;
   background: var(--bar);
-  backdrop-filter: blur(10px);
+  backdrop-filter: saturate(1.6) blur(12px);
   border-bottom: 1px solid var(--line);
 }
 
-.bar h1 { font-size: 16px; font-weight: 700; letter-spacing: -0.01em; margin: 0 8px 0 0; }
+.brand {
+  margin: 0 8px 0 0;
+  font: 900 22px/1 var(--display);
+  letter-spacing: -0.04em;
+  color: var(--ink);
+}
+
+.brand i { font-style: normal; color: var(--accent); }
 
 .filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; flex: 1; }
 
 .filters input[type="search"], .filters select {
+  height: 32px;
+  padding: 0 10px;
   background: var(--card);
   border: 1px solid var(--control);
   border-radius: 999px;
-  padding: 6px 12px;
 }
 
-.filters input[type="search"] { min-width: 220px; }
+.filters input[type="search"]:focus-visible, .filters select:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+}
 
-.check { display: flex; gap: 6px; align-items: center; color: var(--muted); }
+.search { position: relative; display: flex; align-items: center; }
+.search .icon { position: absolute; left: 10px; color: var(--muted); pointer-events: none; }
+.filters .search input[type="search"] { min-width: 260px; padding: 0 32px 0 30px; }
 
-.theme {
+.search kbd {
+  position: absolute;
+  right: 8px;
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  font-size: 11px;
+  line-height: 1;
+  color: var(--muted);
+  pointer-events: none;
+}
+
+/* The Hidden filter is a toggle button around a visually hidden checkbox. */
+.check {
+  position: relative;
   display: flex;
-  gap: 2px;
-  padding: 3px;
-  background: var(--chip);
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--control);
   border-radius: 999px;
+  color: var(--muted);
+  cursor: pointer;
+  user-select: none;
 }
+
+.check input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.check:has(input:checked) { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+.check:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.theme { display: flex; padding: 2px; border: 1px solid var(--line); border-radius: 999px; background: var(--inset); }
 
 .theme button {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 26px;
+  padding: 0;
   border: 0;
-  background: transparent;
   border-radius: 999px;
-  padding: 4px 12px;
+  background: transparent;
+  color: var(--muted);
   cursor: pointer;
+}
+
+.theme button .icon { width: 15px; height: 15px; }
+.theme button:hover { color: var(--text); }
+.theme button[aria-pressed="true"] { background: var(--card); color: var(--text); box-shadow: var(--shadow-sm); }
+
+.live {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 24px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
   color: var(--muted);
 }
 
-.theme button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); }
+.live::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
+.live.on { color: var(--text); text-transform: capitalize; }
+.live.on::before { background: var(--turn); }
 
-.live { font-size: 12px; color: var(--muted); }
-.live.on::before { content: "● "; color: var(--turn); }
+/* One ring, transform and opacity only: cheap to run for as long as the page is open. */
+.live.on::after {
+  content: "";
+  position: absolute;
+  left: 10px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--turn);
+  animation: live-ring 2.4s var(--ease) infinite;
+}
+
+@keyframes live-ring {
+  from { transform: scale(1); opacity: 0.5; }
+  to { transform: scale(2.8); opacity: 0; }
+}
 
 /* Board and columns */
 
 .board {
   display: grid;
   grid-template-columns: repeat(5, minmax(260px, 1fr));
-  gap: 14px;
-  padding: 18px 20px;
+  gap: 12px;
+  padding: 16px 20px;
   overflow-x: auto;
   align-items: start;
 }
@@ -155,24 +265,25 @@ button, input, select { font: inherit; color: inherit; }
 .column {
   --state: var(--closed);
   background: var(--col);
-  border-radius: 16px;
-  padding: 10px;
-  min-height: 140px;
+  border-radius: 18px;
+  padding: 8px;
 }
 
 .column[data-col="needs"] { --state: var(--needs); }
 .column[data-col="working"] { --state: var(--working); }
 .column[data-col="yourTurn"] { --state: var(--turn); }
+.column[data-col="needs"]:has(.card) { background: color-mix(in srgb, var(--needs-soft) 55%, var(--col)); }
 
 .column h2 {
   display: flex;
   align-items: center;
   gap: 8px;
+  margin: 6px 8px 10px;
   font-size: 12px;
   font-weight: 700;
-  margin: 4px 6px 10px;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  color: var(--ink);
 }
 
 .column h2::before {
@@ -183,82 +294,89 @@ button, input, select { font: inherit; color: inherit; }
   background: var(--state);
 }
 
-.column h2 .count {
-  margin-left: auto;
-  min-width: 22px;
+.column:not(:has(.card)) h2::before { background: transparent; box-shadow: inset 0 0 0 1.5px var(--state); }
+
+.column h2 .count { color: var(--muted); font-weight: 600; letter-spacing: 0; }
+
+/* Only a waiting question earns a filled count. */
+.column[data-col="needs"]:has(.card) .count {
+  min-width: 20px;
   padding: 0 7px;
   border-radius: 999px;
-  background: var(--card);
-  color: var(--muted);
+  background: var(--needs);
+  color: var(--card);
   text-align: center;
 }
 
-.empty { color: var(--muted); font-size: 12px; padding: 18px 6px; text-align: center; }
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin: 0 2px 2px;
+  padding: 18px 8px;
+  border: 1px dashed var(--line-strong);
+  border-radius: 14px;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+}
+
+.empty .icon { width: 20px; height: 20px; color: var(--turn); }
 
 /* Cards */
 
 .card {
   --state: var(--closed);
   position: relative;
-  overflow: hidden;
   background: var(--card);
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: 14px;
   padding: 12px 14px 10px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   box-shadow: var(--shadow-sm);
   /* Off-screen cards skip layout: hundreds of them stay cheap. */
   content-visibility: auto;
-  contain-intrinsic-size: auto 180px;
+  contain-intrinsic-size: auto 160px;
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
-}
-
-/* A thin bar in the state's colour along the top edge. */
-.card::before {
-  content: "";
-  position: absolute;
-  inset: 0 0 auto;
-  height: 3px;
-  background: linear-gradient(90deg, var(--state), color-mix(in srgb, var(--state) 10%, transparent));
+  transition: border-color 0.12s var(--ease), box-shadow 0.12s var(--ease), background-color 0.12s;
 }
 
 .card[data-state="needs"] {
   --state: var(--needs);
-  border-color: color-mix(in srgb, var(--needs) 40%, var(--line));
-  box-shadow: 0 8px 22px -14px var(--needs), var(--shadow-sm);
+  border-color: color-mix(in srgb, var(--needs) 50%, var(--line));
+  box-shadow: 0 0 0 3px var(--needs-soft), var(--shadow-sm);
 }
 
 .card[data-state="working"] { --state: var(--working); }
 .card[data-state="yourTurn"] { --state: var(--turn); }
 
-.card:hover, .card:focus-within {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-  border-color: color-mix(in srgb, var(--state) 45%, var(--line));
-}
+/* No lift on hover: with hundreds of cards a moving one looks jumpy. */
+.card:hover, .card:focus-within { border-color: var(--line-strong); box-shadow: var(--shadow-md); }
+.card[data-state="needs"]:hover { box-shadow: 0 0 0 3px var(--needs-soft), var(--shadow-md); }
 
-/* Dashed, not faded: an archived card stays readable and usable. */
+/* Closed cards recede until you point at one. */
+.card[data-state="closed"] { background: color-mix(in srgb, var(--card) 55%, var(--col)); box-shadow: none; }
+.card[data-state="closed"]:hover { background: var(--card); }
+
+/* Dashed, not faded: a hidden card stays readable and usable. */
 .card.archived { border-style: dashed; box-shadow: none; }
+
+.card.is-new { animation: card-in 0.24s var(--ease); }
+
+@keyframes card-in {
+  from { opacity: 0; transform: translateY(6px) scale(0.985); }
+}
 
 .card-head {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font-size: 12px;
   color: var(--state);
 }
 
-.card-head .time {
-  margin-left: auto;
-  font-weight: 500;
-  letter-spacing: 0;
-  text-transform: none;
-  color: var(--muted);
-}
+.card-head .time { font-weight: 500; color: var(--muted); }
 
 .dot {
   width: 8px;
@@ -278,10 +396,10 @@ button, input, select { font: inherit; color: inherit; }
 }
 
 .card .title {
-  margin: 6px 0 6px;
-  font-size: 14.5px;
-  font-weight: 650;
-  letter-spacing: -0.005em;
+  margin: 4px 0 6px;
+  font: 700 15px/1.3 var(--display);
+  letter-spacing: -0.02em;
+  color: var(--ink);
   overflow-wrap: anywhere;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -289,39 +407,69 @@ button, input, select { font: inherit; color: inherit; }
   overflow: hidden;
 }
 
-.chips, .badges { display: flex; flex-wrap: wrap; gap: 4px; }
+/* Repo and branch: a meta line with icons, not pills. */
+.chips { display: flex; flex-wrap: wrap; gap: 2px 12px; }
 
-.chip, .badge {
+.chip {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   max-width: 100%;
-  padding: 1px 8px;
+  min-width: 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.chip .icon { width: 13px; height: 13px; opacity: 0.75; }
+.chip > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chip.repo { color: var(--ink); font-weight: 600; }
+
+.badges { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+
+.badge {
+  max-width: 100%;
+  padding: 1px 9px;
   border-radius: 999px;
   background: var(--chip);
   color: var(--muted);
-  font-size: 11.5px;
+  font: 700 10.5px/1.6 var(--sans);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.chip.repo { color: var(--text); font-weight: 600; }
-.badges { margin-top: 8px; }
-.badge.crew { background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent); font-weight: 600; }
-.badge.warn { background: color-mix(in srgb, var(--needs) 14%, transparent); color: var(--warn); font-weight: 600; }
+.badge.crew { background: var(--accent-soft); color: var(--accent); }
+.badge.warn { background: var(--needs-soft); color: var(--warn); }
 
+/* A quote with a state-colored bar. No vertical padding: the clamp clips at the
+   padding edge, so bottom padding would show part of a sixth line. */
 .activity {
   margin-top: 8px;
-  padding: 7px 9px;
-  border-radius: 8px;
-  background: var(--inset);
-  font-size: 13px;
+  padding: 0 0 0 10px;
+  border-left: 2px solid var(--state);
+  font-size: 12px;
+  line-height: 1.45;
   overflow-wrap: anywhere;
+  white-space: pre-line;
   display: -webkit-box;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 5;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.card[data-state="closed"] .activity { -webkit-line-clamp: 2; color: var(--muted); }
+
+/* The question is why the card needs you: give it the weight. The tint's vertical
+   space is a transparent border, for the same clamp reason as above. */
+.card[data-state="needs"] .activity {
+  padding-right: 8px;
+  border-block: 5px solid transparent;
+  border-radius: 0 8px 8px 0;
+  background: color-mix(in srgb, var(--needs-soft) 60%, var(--card));
+  color: var(--ink);
+  font-weight: 550;
 }
 
 .workers { margin-top: 8px; display: flex; flex-direction: column; gap: 4px; }
@@ -331,36 +479,49 @@ button, input, select { font: inherit; color: inherit; }
   align-items: center;
   gap: 6px;
   min-width: 0;
-  padding: 4px 8px;
-  border-radius: 8px;
-  border: 1px solid var(--line);
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--inset);
   font-size: 12px;
   color: var(--working);
 }
 
-.worker .type { font-weight: 650; color: var(--text); flex: none; }
+.worker .type { font-weight: 600; color: var(--ink); flex: none; }
 .worker .mono { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .workers .done { color: var(--muted); font-size: 12px; padding-left: 2px; }
 
-.actions { display: flex; gap: 4px; margin-top: 10px; }
+.actions { display: flex; align-items: center; gap: 2px; margin-top: 10px; }
 
 .actions button {
-  border: 1px solid var(--control);
-  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 28px;
+  min-width: 28px;
+  padding: 0;
+  border: 0;
   border-radius: 999px;
-  padding: 2px 10px;
-  font-size: 12px;
+  background: transparent;
   color: var(--muted);
+  font-size: 12px;
   cursor: pointer;
+  transition: background-color 0.12s, color 0.12s, transform 0.08s;
 }
 
-.actions button:hover { color: var(--text); border-color: var(--muted); }
-.actions .primary { margin-right: auto; color: var(--text); font-weight: 600; }
+.actions button:hover { background: var(--chip); color: var(--ink); }
+.actions button:active { transform: scale(0.96); }
+.actions .primary { margin-right: auto; padding: 0 12px 0 10px; background: var(--accent-soft); color: var(--accent); font-weight: 700; }
+.actions .primary:hover { background: color-mix(in srgb, var(--accent) 16%, var(--accent-soft)); color: var(--accent); }
+.actions .primary .icon { width: 14px; height: 14px; }
+.actions [data-action="more"] .icon { width: 15px; height: 15px; transition: transform 0.18s var(--ease); }
+.actions [data-action="more"][aria-expanded="true"] .icon { transform: rotate(180deg); }
+.actions [data-action="archive"] .icon { width: 16px; height: 16px; }
 
 .detail { margin-top: 10px; border-top: 1px dashed var(--line); padding-top: 8px; font-size: 12.5px; cursor: auto; }
-.detail h3 { font-size: 11px; margin: 8px 0 3px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+.detail h3 { font-size: 11px; font-weight: 700; margin: 8px 0 3px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.12em; }
 .detail ul { margin: 0; padding-left: 16px; }
-.detail p { margin: 0; overflow-wrap: anywhere; }
+.detail p { margin: 0; overflow-wrap: anywhere; white-space: pre-line; }
 
 .toast {
   position: fixed;
@@ -381,14 +542,18 @@ button, input, select { font: inherit; color: inherit; }
 
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
 
-/* A phone: one column, and a header that scrolls away instead of covering focus. */
+/* A phone: one column, theme and Live on the title row, and a header that scrolls
+   away instead of covering focus. */
 @media (max-width: 640px) {
   .bar { position: static; padding: 12px 16px; }
-  .filters input[type="search"] { min-width: 0; flex: 1 1 100%; }
+  .bar h1 { flex: 1; }
+  .theme, .live { order: 1; }
+  .filters { order: 2; flex-basis: 100%; }
+  .filters .search { flex: 1 1 100%; }
+  .filters .search input[type="search"] { min-width: 0; width: 100%; }
   .board { grid-template-columns: minmax(0, 1fr); overflow-x: visible; padding: 12px 16px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before { animation: none !important; transition: none !important; }
-  .card:hover, .card:focus-within { transform: none; }
+  *, *::before, *::after { animation: none !important; transition: none !important; }
 }

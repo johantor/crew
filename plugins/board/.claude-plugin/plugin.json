@@ -1,6 +1,6 @@
 {
   "name": "board",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "license": "Apache-2.0",
   "description": "A local kanban board of every Claude Code session: what needs you, what is running, what you closed today. Hooks log each session's state, a small Node server on 127.0.0.1 shows it as cards, and a click copies the resume command. Crew runs show their subagents on the session's card.",
   "author": {

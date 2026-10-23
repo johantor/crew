@@ -29,17 +29,19 @@ latest activity, and how long ago it happened. **Copy resume** (or a click on th
 `cd '<dir>'; claude --resume <id>`, which runs in bash, zsh and PowerShell. The quotes are single,
 so a folder name cannot run code when you paste it. A folder name with a character outside
 letters, digits and plain ASCII punctuation (a quote of any kind, a tab) gets no `cd`, and the
-board says so. **More** shows the
-last reply, the last tool calls and the subagents. **Archive** hides a card; the **Archived**
-filter brings it back.
+board says so. **More** (the chevron) shows the last reply, the last tool calls, the subagents
+and the session's mode and end reason. **Hide** (the crossed eye) takes a card off the board; the **Hidden** filter shows it again. Hide only adds a line to the
+board's log: the session and its transcript stay as they are.
 
 **Subagents are not cards.** A subagent runs inside its parent session, so it shows on that
 session's card: each running subagent with its current tool, plus a count of finished ones. A
 subagent's permission prompt moves the parent card to Needs me. The card stays there while any
-question is open, the session's own or a subagent's, and each closes only with its own answer.
-Sessions that run a `crew:` agent get a Crew badge, and the Crew filter shows them alone.
+question is open, the session's own or a subagent's, and each closes only with its own answer. A
+session that ended its turn while its subagents run stays in Working until the last one stops.
+Sessions that run a `crew:` agent get a Crew badge.
 
 The theme follows the browser until you pick Light or Dark; the choice is saved in the browser.
+Press `/` to search. The tab title shows how many sessions need you.
 
 ## How it works
 
@@ -50,7 +52,7 @@ The theme follows the browser until you pick Light or Dark; the choice is saved 
    prompt shows), and `SessionEnd`, so its line lands before Claude Code exits. None fails a
    session: no Node, a bad payload or a full disk all exit 0.
 2. The server replays that log into cards and tails it every second. It writes to the same file
-   only when you archive a card.
+   only when you hide a card.
 3. On start, and every 5 minutes, it reads the session transcripts under `~/.claude/projects`
    (only the first and last 256 KiB of each). That fills the board with sessions from before the
    plugin.
@@ -81,7 +83,7 @@ session data needs the token from `~/.claude/board/token` (mode 600), since 127.
 every user on the machine. The token goes only as a header (as `?t=` on the live stream), never as
 a cookie, which the browser would also send to other ports on 127.0.0.1. `/board:open` checks for
 a running board by having it sign a random value with the token, so a program squatting on the
-port never receives the token. Archiving takes a JSON request from the board's own origin. The log is
+port never receives the token. Hiding a card takes a JSON request from the board's own origin. The log is
 written with mode 600, and each line keeps at most the first 200 characters of a prompt and 300
 of a reply. Nothing is sent anywhere.
 

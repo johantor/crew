@@ -8,10 +8,10 @@ import path from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { apply, createBoard } from '../server/reduce.mjs';
-import { columnOf, isGone, isStale, STALE_MS } from '../server/public/columns.mjs';
+import { byRecency, columnOf, isGone, isStale, STALE_MS } from '../server/public/columns.mjs';
 import { readSession, scanHistory } from '../server/history.mjs';
 import { createTail, parseArgs, proof } from '../server/board.mjs';
-import { distill, summarizeTool, where } from '../server/capture.mjs';
+import { clip, distill, summarizeTool, where } from '../server/capture.mjs';
 import { resumeCommand } from '../server/public/resume.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -118,12 +118,13 @@ test('subagents live on the parent card, not as cards of their own', () => {
   assert.equal(w.msg, 'Totals fixed');
 });
 
-test('a subagent tool call does not pull a waiting card back to Working', () => {
+test('a background subagent keeps a stopped card in Working until it stops', () => {
   const c = run([
     { e: 'Stop', msg: 'over to you' },
     { e: 'PreToolUse', aid: 'bg', agent: 'Explore', tool: 'Grep foo' },
   ]);
-  assert.equal(c.state, 'yourTurn');
+  assert.equal(c.state, 'working');
+  assert.equal(c.turn, 'yourTurn', 'the turn itself stays ended');
 });
 
 test('history fills gaps but never overrides a hook', () => {
@@ -159,6 +160,18 @@ test('records without a session id or timestamp are ignored', () => {
   assert.equal(board.cards.size, 0);
 });
 
+test('cards sort by age group, then by session start, so busy sessions hold their place', () => {
+  const now = 10_000_000;
+  const card = (id, ago, firstTs) => ({ id, lastTs: now - ago, firstTs });
+  const order = (...cards) => cards.sort(byRecency(now)).map((c) => c.id);
+  // Both active within 30 s: the newer session stays first whichever spoke last.
+  assert.deepEqual(order(card('old', 0, 1), card('new', 2000, 2)), ['new', 'old']);
+  assert.deepEqual(order(card('old', 2000, 1), card('new', 0, 2)), ['new', 'old']);
+  // A different age group still wins over session start.
+  assert.deepEqual(order(card('new', 5 * 60e3, 2), card('old', 1000, 1)), ['old', 'new']);
+  assert.deepEqual(order(card('b', 3 * 864e5, 1), card('a', 2 * 864e5, 1)), ['a', 'b']);
+});
+
 test('columns: stale, gone, closed today and earlier', () => {
   const now = new Date(2026, 9, 21, 15, 0).getTime();
   const card = (state, ago) => ({ state, lastTs: now - ago });
@@ -182,6 +195,11 @@ test('tool summaries stay short and relative', () => {
   assert.ok(summarizeTool('Bash', { command: 'x'.repeat(500) }).length <= 120);
 });
 
+test('clip keeps one line break per run and folds other whitespace', () => {
+  assert.equal(clip('  Plan:\n\n  1. read   files\r\n2. edit\t ', 100), 'Plan:\n1. read files\n2. edit');
+  assert.equal(clip('abcdef', 4), 'abc…');
+});
+
 test('distill keeps the fields the reducer reads, nothing more', () => {
   const rec = distill(
     {
@@ -193,7 +211,7 @@ test('distill keeps the fields the reducer reads, nothing more', () => {
     },
     42,
   );
-  assert.deepEqual(rec, { v: 1, ts: 42, e: 'Stop', sid: 's', cwd: '/nowhere', msg: 'line one line two', repo: 'nowhere', branch: '' });
+  assert.deepEqual(rec, { v: 1, ts: 42, e: 'Stop', sid: 's', cwd: '/nowhere', msg: 'line one\nline two', repo: 'nowhere', branch: '' });
 });
 
 function writeTranscript(dir, sid, lines) {
@@ -520,13 +538,15 @@ test('an idle notification ends a turn that had no Stop', () => {
   assert.equal(run([{ e: 'SessionEnd' }, { e: 'Notification', ntype: 'idle_prompt' }]).state, 'closed');
 });
 
-test('answering a background subagent returns an idle card to Your turn', () => {
-  const c = run([
+test('answering a background subagent returns an idle card to Your turn once it stops', () => {
+  const asked = [
     { e: 'Stop', msg: 'over to you' },
     { e: 'PreToolUse', aid: 'bg', agent: 'Explore', tool: 'Bash ls' },
     { e: 'PermissionRequest', aid: 'bg', agent: 'Explore', tool: 'Bash ls' },
     { e: 'PostToolUse', aid: 'bg', agent: 'Explore', tool: 'Bash ls' },
-  ]);
+  ];
+  assert.equal(run(asked).state, 'working');
+  const c = run([...asked, { e: 'SubagentStop', aid: 'bg' }]);
   assert.equal(c.state, 'yourTurn');
   assert.equal(c.activity, 'over to you');
 });
@@ -594,6 +614,7 @@ test('the turn underneath a subagent question stays current', () => {
     { e: 'PermissionRequest', aid: 'a', tool: 'Bash a' },
     { e: 'Stop', msg: 'done for now' },
     { e: 'PostToolUse', aid: 'a', tool: 'Bash a' },
+    { e: 'SubagentStop', aid: 'a' },
   ]);
   assert.equal(c.state, 'yourTurn', 'the parent stopped while the subagent waited');
   assert.equal(c.activity, 'done for now');
@@ -604,6 +625,48 @@ test('the turn underneath a subagent question stays current', () => {
     { e: 'SubagentStop', aid: 'a' },
   ]);
   assert.equal(idle.state, 'yourTurn');
+});
+
+test('a session that stopped while its subagents run is still working', () => {
+  const waiting = [
+    { e: 'UserPromptSubmit', prompt: 'p' },
+    { e: 'SubagentStart', aid: 'a', agent: 'crew:backend' },
+    { e: 'SubagentStart', aid: 'b', agent: 'crew:unit-tests' },
+    { e: 'Stop', msg: 'dispatched' },
+  ];
+  const c = run(waiting);
+  assert.equal(c.state, 'working');
+  assert.equal(c.activity, 'Waiting for 2 subagents');
+  const one = run([...waiting, { e: 'SubagentStop', aid: 'a' }]);
+  assert.equal(one.activity, 'Waiting for 1 subagent');
+  const done = run([...waiting, { e: 'SubagentStop', aid: 'a' }, { e: 'SubagentStop', aid: 'b' }]);
+  assert.equal(done.state, 'yourTurn');
+  assert.equal(done.activity, 'dispatched');
+  assert.equal(run([...waiting, { e: 'SessionEnd' }]).state, 'closed');
+});
+
+test('the subagent count survives async order, retention and a resume', () => {
+  const late = run([{ e: 'UserPromptSubmit', prompt: 'p' }, { e: 'SubagentStop', aid: 'a' }, { e: 'SubagentStart', aid: 'a' }, { e: 'Stop' }]);
+  assert.equal(late.state, 'yourTurn', 'a start that lands after its stop does not reopen the worker');
+
+  const short = Array.from({ length: 20 }, (_, i) => [
+    { e: 'SubagentStart', aid: `s${i}` },
+    { e: 'SubagentStop', aid: `s${i}` },
+  ]).flat();
+  const kept = run([{ e: 'UserPromptSubmit', prompt: 'p' }, { e: 'SubagentStart', aid: 'long' }, { e: 'Stop' }, ...short]);
+  assert.equal(kept.state, 'working', 'retention drops finished workers before a running one');
+  assert.ok(kept.workers.some((w) => w.id === 'long'));
+
+  const resumed = run([
+    { e: 'UserPromptSubmit', prompt: 'p' },
+    { e: 'SubagentStart', aid: 'a' },
+    { e: 'SessionEnd' },
+    { e: 'SubagentStop', aid: 'a' },
+    { e: 'SessionStart', source: 'resume' },
+    { e: 'UserPromptSubmit', prompt: 'q' },
+    { e: 'Stop' },
+  ]);
+  assert.equal(resumed.state, 'yourTurn', 'subagents end with their session');
 });
 
 test('a subagent in a worktree does not move the session resume folder', () => {

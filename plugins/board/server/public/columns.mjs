@@ -6,11 +6,11 @@ export const STALE_MS = 10 * 60 * 1000;
 export const GONE_MS = 12 * 60 * 60 * 1000;
 
 export const COLUMNS = [
-  { id: 'needs', label: 'Needs me' },
-  { id: 'working', label: 'Working' },
-  { id: 'yourTurn', label: 'Your turn' },
-  { id: 'closedToday', label: 'Closed today' },
-  { id: 'earlier', label: 'Earlier' },
+  { id: 'needs', label: 'Needs me', empty: 'Nothing needs you' },
+  { id: 'working', label: 'Working', empty: 'Nothing running' },
+  { id: 'yourTurn', label: 'Your turn', empty: 'Nothing waits on you' },
+  { id: 'closedToday', label: 'Closed today', empty: 'Nothing closed today' },
+  { id: 'earlier', label: 'Earlier', empty: 'Nothing from this week' },
 ];
 
 function sameLocalDay(a, b) {
@@ -26,6 +26,21 @@ export function isGone(card, now) {
 export function columnOf(card, now) {
   if (card.state !== 'closed' && !isGone(card, now)) return card.state;
   return sameLocalDay(card.lastTs, now) ? 'closedToday' : 'earlier';
+}
+
+// Cards sort by age group, then by when the session started: two busy sessions both
+// "0s ago" would otherwise swap places on every push.
+const AGE_GROUPS_MS = [30e3, 60e3, 30 * 60e3, 60 * 60e3, 6 * 60 * 60e3, 24 * 60 * 60e3];
+
+export function ageGroup(card, now) {
+  const age = now - card.lastTs;
+  const i = AGE_GROUPS_MS.findIndex((max) => age < max);
+  // Past a day, one group per day.
+  return i >= 0 ? i : AGE_GROUPS_MS.length + Math.floor(age / AGE_GROUPS_MS.at(-1));
+}
+
+export function byRecency(now) {
+  return (a, b) => ageGroup(a, now) - ageGroup(b, now) || b.firstTs - a.firstTs || (a.id < b.id ? -1 : 1);
 }
 
 export function isStale(card, now) {
