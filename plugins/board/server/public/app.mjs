@@ -1,4 +1,4 @@
-import { COLUMNS, columnOf, isGone, isStale } from './columns.mjs';
+import { byRecency, COLUMNS, columnOf, isGone, isStale } from './columns.mjs';
 import { resumeCommand } from './resume.mjs';
 
 // Earlier shows a week; the server holds more, which search reaches.
@@ -282,7 +282,7 @@ function render() {
 
   for (const col of COLUMNS) {
     const entry = columnEl(col);
-    const nodes = groups[col.id].sort((a, b) => b.lastTs - a.lastTs).map((c) => cardEl(c, t));
+    const nodes = groups[col.id].sort(byRecency(t)).map((c) => cardEl(c, t));
     entry.count.textContent = String(nodes.length);
     syncChildren(entry.list, nodes.length ? nodes : [entry.empty]);
   }

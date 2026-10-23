@@ -40,7 +40,8 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
   `/api/health` returns, so the token never goes to a squatter on the port. `POST /api/archive` needs JSON and no foreign
   `Origin`. `/api/stream` opens with a full `state` event and then sends changed `cards`; the
   page loads from the stream alone, so no push falls between a snapshot and the subscribe.
-- `server/public/` — the page. `columns.mjs` (the time rules, `STALE_MS`, `GONE_MS`) and
+- `server/public/` — the page. `columns.mjs` (the time rules, `STALE_MS`, `GONE_MS`, and
+  `byRecency`: age group, then session start, so busy cards keep their place) and
   `resume.mjs` (the copied command, single-quoted) are imported by the page and the tests. The
   CSP is `default-src 'self'`: no inline script or style, so `theme.js` is a file, loaded
   before paint. `app.mjs` rebuilds a card only when its content changes and puts focus back on

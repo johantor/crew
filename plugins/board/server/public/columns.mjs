@@ -28,6 +28,21 @@ export function columnOf(card, now) {
   return sameLocalDay(card.lastTs, now) ? 'closedToday' : 'earlier';
 }
 
+// Cards sort by age group, then by when the session started: two busy sessions both
+// "0s ago" would otherwise swap places on every push.
+const AGE_GROUPS_MS = [30e3, 60e3, 30 * 60e3, 60 * 60e3, 6 * 60 * 60e3, 24 * 60 * 60e3];
+
+export function ageGroup(card, now) {
+  const age = now - card.lastTs;
+  const i = AGE_GROUPS_MS.findIndex((max) => age < max);
+  // Past a day, one group per day.
+  return i >= 0 ? i : AGE_GROUPS_MS.length + Math.floor(age / AGE_GROUPS_MS.at(-1));
+}
+
+export function byRecency(now) {
+  return (a, b) => ageGroup(a, now) - ageGroup(b, now) || b.firstTs - a.firstTs || (a.id < b.id ? -1 : 1);
+}
+
 export function isStale(card, now) {
   return card.state === 'working' && !isGone(card, now) && now - card.lastTs >= STALE_MS;
 }

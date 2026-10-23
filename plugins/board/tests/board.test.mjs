@@ -8,7 +8,7 @@ import path from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { apply, createBoard } from '../server/reduce.mjs';
-import { columnOf, isGone, isStale, STALE_MS } from '../server/public/columns.mjs';
+import { byRecency, columnOf, isGone, isStale, STALE_MS } from '../server/public/columns.mjs';
 import { readSession, scanHistory } from '../server/history.mjs';
 import { createTail, parseArgs, proof } from '../server/board.mjs';
 import { clip, distill, summarizeTool, where } from '../server/capture.mjs';
@@ -158,6 +158,18 @@ test('records without a session id or timestamp are ignored', () => {
   apply(board, { e: 'Stop', sid: 's' });
   apply(board, null);
   assert.equal(board.cards.size, 0);
+});
+
+test('cards sort by age group, then by session start, so busy sessions hold their place', () => {
+  const now = 10_000_000;
+  const card = (id, ago, firstTs) => ({ id, lastTs: now - ago, firstTs });
+  const order = (...cards) => cards.sort(byRecency(now)).map((c) => c.id);
+  // Both active within 30 s: the newer session stays first whichever spoke last.
+  assert.deepEqual(order(card('old', 0, 1), card('new', 2000, 2)), ['new', 'old']);
+  assert.deepEqual(order(card('old', 2000, 1), card('new', 0, 2)), ['new', 'old']);
+  // A different age group still wins over session start.
+  assert.deepEqual(order(card('new', 5 * 60e3, 2), card('old', 1000, 1)), ['old', 'new']);
+  assert.deepEqual(order(card('b', 3 * 864e5, 1), card('a', 2 * 864e5, 1)), ['a', 'b']);
 });
 
 test('columns: stale, gone, closed today and earlier', () => {
