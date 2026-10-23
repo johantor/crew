@@ -38,7 +38,7 @@ session's card: each running subagent with its current tool, plus a count of fin
 subagent's permission prompt moves the parent card to Needs me. The card stays there while any
 question is open, the session's own or a subagent's, and each closes only with its own answer. A
 session that ended its turn while its subagents run stays in Working until the last one stops.
-Sessions that run a `crew:` agent get a Crew badge, and the Crew filter shows them alone.
+Sessions that run a `crew:` agent get a Crew badge.
 
 The theme follows the browser until you pick Light or Dark; the choice is saved in the browser.
 

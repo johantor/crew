@@ -77,8 +77,6 @@ async function setArchived(c, on) {
 function matches(c, f) {
   if (!f.archived && c.archived) return false;
   if (f.repo && c.repo !== f.repo) return false;
-  if (f.kind === 'crew' && !c.crew) return false;
-  if (f.kind === 'manual' && c.crew) return false;
   if (f.q) {
     const hay = `${c.title} ${c.repo} ${c.branch} ${c.cwd} ${c.summary} ${c.id}`.toLowerCase();
     if (!hay.includes(f.q)) return false;
@@ -205,7 +203,6 @@ function filters() {
   return {
     q: $('search').value.trim().toLowerCase(),
     repo: $('repo').value,
-    kind: $('kind').value,
     archived: $('archived').checked,
   };
 }
@@ -363,7 +360,7 @@ function initTheme() {
 }
 
 initTheme();
-for (const id of ['repo', 'kind', 'archived']) $(id).addEventListener('input', render);
+for (const id of ['repo', 'archived']) $(id).addEventListener('input', render);
 // Typing re-filters every card: wait for a pause.
 let searchTimer;
 $('search').addEventListener('input', () => {
