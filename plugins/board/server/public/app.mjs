@@ -71,7 +71,7 @@ async function setArchived(c, on) {
     headers: { 'Content-Type': 'application/json', 'X-Board-Token': token },
     body: JSON.stringify({ sid: c.id, on }),
   });
-  if (!res.ok) toast('Could not archive the card.');
+  if (!res.ok) toast('Could not hide the card.');
 }
 
 function matches(c, f) {
@@ -132,7 +132,7 @@ function renderCard(c, t) {
   if (isGone(c, t)) badges.append(el('span', 'badge', 'no end event'));
   if (c.endReason && c.endReason !== 'other') badges.append(el('span', 'badge', `ended: ${c.endReason}`));
   if (!c.hooks) badges.append(el('span', 'badge', 'history'));
-  if (c.archived) badges.append(el('span', 'badge', 'archived'));
+  if (c.archived) badges.append(el('span', 'badge', 'hidden'));
   if (badges.childElementCount) node.append(badges);
 
   // Subagents are part of this session: running ones show here, finished ones count.
@@ -165,7 +165,7 @@ function renderCard(c, t) {
   actions.append(
     button('Copy resume', 'primary', 'copy', () => copyResume(c)),
     more,
-    button(c.archived ? 'Restore' : 'Archive', '', 'archive', () => setArchived(c, !c.archived)),
+    button(c.archived ? 'Unhide' : 'Hide', '', 'archive', () => setArchived(c, !c.archived)),
   );
   node.append(actions);
 
@@ -257,6 +257,16 @@ function cardEl(c, t) {
   return entry.node;
 }
 
+// Touch only the nodes that changed: `replaceChildren` empties the list first, and the
+// browser drops the page scroll to the top (Hide or More on a card far down).
+function syncChildren(list, want) {
+  const keep = new Set(want);
+  for (const n of [...list.children]) if (!keep.has(n)) n.remove();
+  want.forEach((n, i) => {
+    if (list.children[i] !== n) list.insertBefore(n, list.children[i] ?? null);
+  });
+}
+
 function render() {
   const t = now();
   const f = filters();
@@ -277,9 +287,7 @@ function render() {
     const entry = columnEl(col);
     const nodes = groups[col.id].sort((a, b) => b.lastTs - a.lastTs).map((c) => cardEl(c, t));
     entry.count.textContent = String(nodes.length);
-    const want = nodes.length ? nodes : [entry.empty];
-    const have = [...entry.list.children];
-    if (want.length !== have.length || want.some((n, i) => n !== have[i])) entry.list.replaceChildren(...want);
+    syncChildren(entry.list, nodes.length ? nodes : [entry.empty]);
   }
   for (const sid of cardEls.keys()) if (!cards.has(sid)) cardEls.delete(sid);
 

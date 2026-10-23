@@ -238,7 +238,7 @@ button, input, select { font: inherit; color: inherit; }
   border-color: color-mix(in srgb, var(--state) 45%, var(--line));
 }
 
-/* Dashed, not faded: an archived card stays readable and usable. */
+/* Dashed, not faded: a hidden card stays readable and usable. */
 .card.archived { border-style: dashed; box-shadow: none; }
 
 .card-head {

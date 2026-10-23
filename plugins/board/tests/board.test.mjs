@@ -118,12 +118,13 @@ test('subagents live on the parent card, not as cards of their own', () => {
   assert.equal(w.msg, 'Totals fixed');
 });
 
-test('a subagent tool call does not pull a waiting card back to Working', () => {
+test('a background subagent keeps a stopped card in Working until it stops', () => {
   const c = run([
     { e: 'Stop', msg: 'over to you' },
     { e: 'PreToolUse', aid: 'bg', agent: 'Explore', tool: 'Grep foo' },
   ]);
-  assert.equal(c.state, 'yourTurn');
+  assert.equal(c.state, 'working');
+  assert.equal(c.turn, 'yourTurn', 'the turn itself stays ended');
 });
 
 test('history fills gaps but never overrides a hook', () => {
@@ -520,13 +521,15 @@ test('an idle notification ends a turn that had no Stop', () => {
   assert.equal(run([{ e: 'SessionEnd' }, { e: 'Notification', ntype: 'idle_prompt' }]).state, 'closed');
 });
 
-test('answering a background subagent returns an idle card to Your turn', () => {
-  const c = run([
+test('answering a background subagent returns an idle card to Your turn once it stops', () => {
+  const asked = [
     { e: 'Stop', msg: 'over to you' },
     { e: 'PreToolUse', aid: 'bg', agent: 'Explore', tool: 'Bash ls' },
     { e: 'PermissionRequest', aid: 'bg', agent: 'Explore', tool: 'Bash ls' },
     { e: 'PostToolUse', aid: 'bg', agent: 'Explore', tool: 'Bash ls' },
-  ]);
+  ];
+  assert.equal(run(asked).state, 'working');
+  const c = run([...asked, { e: 'SubagentStop', aid: 'bg' }]);
   assert.equal(c.state, 'yourTurn');
   assert.equal(c.activity, 'over to you');
 });
@@ -594,6 +597,7 @@ test('the turn underneath a subagent question stays current', () => {
     { e: 'PermissionRequest', aid: 'a', tool: 'Bash a' },
     { e: 'Stop', msg: 'done for now' },
     { e: 'PostToolUse', aid: 'a', tool: 'Bash a' },
+    { e: 'SubagentStop', aid: 'a' },
   ]);
   assert.equal(c.state, 'yourTurn', 'the parent stopped while the subagent waited');
   assert.equal(c.activity, 'done for now');
@@ -604,6 +608,24 @@ test('the turn underneath a subagent question stays current', () => {
     { e: 'SubagentStop', aid: 'a' },
   ]);
   assert.equal(idle.state, 'yourTurn');
+});
+
+test('a session that stopped while its subagents run is still working', () => {
+  const waiting = [
+    { e: 'UserPromptSubmit', prompt: 'p' },
+    { e: 'SubagentStart', aid: 'a', agent: 'crew:backend' },
+    { e: 'SubagentStart', aid: 'b', agent: 'crew:unit-tests' },
+    { e: 'Stop', msg: 'dispatched' },
+  ];
+  const c = run(waiting);
+  assert.equal(c.state, 'working');
+  assert.equal(c.activity, 'Waiting for 2 subagents');
+  const one = run([...waiting, { e: 'SubagentStop', aid: 'a' }]);
+  assert.equal(one.activity, 'Waiting for 1 subagent');
+  const done = run([...waiting, { e: 'SubagentStop', aid: 'a' }, { e: 'SubagentStop', aid: 'b' }]);
+  assert.equal(done.state, 'yourTurn');
+  assert.equal(done.activity, 'dispatched');
+  assert.equal(run([...waiting, { e: 'SessionEnd' }]).state, 'closed');
 });
 
 test('a subagent in a worktree does not move the session resume folder', () => {

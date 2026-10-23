@@ -94,11 +94,16 @@ function answerAll(c, who) {
 }
 
 // `state` and `activity` are what the page shows: the newest open question, else the turn.
+// A turn that ended with subagents still running (background agents) is still working.
 function derive(c) {
   const asks = Object.values(c.open);
+  const running = c.workers.filter((w) => w.state === 'running').length;
   if (asks.length) {
     c.state = 'needs';
     c.activity = asks.reduce((a, b) => (b.ts >= a.ts ? b : a)).text;
+  } else if (c.turn === 'yourTurn' && running) {
+    c.state = 'working';
+    c.activity = `Waiting for ${running} subagent${running === 1 ? '' : 's'}`;
   } else {
     c.state = c.turn;
     c.activity = c.doing;

@@ -20,7 +20,8 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
   from its `open` questions, keyed by who asked (`''` the session, `!error` a failed turn, else
   a subagent's `aid`) and by tool call: `capture.mjs` writes `call`, a hash of tool name and
   input, on PermissionRequest and PostToolUse(Failure), since PermissionRequest has no
-  `tool_use_id`. `derive()` shows `needs` while any question is open, else the turn, so one
+  `tool_use_id`. `derive()` shows `needs` while any question is open, else `working` while a
+  subagent runs after the turn ended (background agents), else the turn, so one
   answer never hides another. A PostToolUse closes only its own call's question; SubagentStop
   closes all of that subagent's; `PreToolUse` answers nothing (see Gotchas); an `idle_prompt`
   notification ends a turn that had no `Stop` (Esc, a denied prompt).
@@ -58,3 +59,7 @@ in the same commit.** Rules shared by every plugin: [AGENTS.md](../../AGENTS.md)
   that matters is bought with a foreground hook, not inferred: `PermissionRequest` is
   synchronous, so it always precedes its `PostToolUse`, and `SessionEnd` is synchronous and
   final (`ended`) until a new `SessionStart`, so a late async `Stop` cannot reopen the card.
+- A subagent counts as running until its `SubagentStop`. If that event never lands, the card
+  stays in Working; the `stale?` badge marks it after `STALE_MS`, and `SessionEnd` closes it.
+- The page and the API still say `archive` (`/api/archive`, `BoardArchive`, `.archived`); only
+  the labels say Hide. Renaming the record would orphan the hides in existing logs.
