@@ -628,6 +628,30 @@ test('a session that stopped while its subagents run is still working', () => {
   assert.equal(run([...waiting, { e: 'SessionEnd' }]).state, 'closed');
 });
 
+test('the subagent count survives async order, retention and a resume', () => {
+  const late = run([{ e: 'UserPromptSubmit', prompt: 'p' }, { e: 'SubagentStop', aid: 'a' }, { e: 'SubagentStart', aid: 'a' }, { e: 'Stop' }]);
+  assert.equal(late.state, 'yourTurn', 'a start that lands after its stop does not reopen the worker');
+
+  const short = Array.from({ length: 20 }, (_, i) => [
+    { e: 'SubagentStart', aid: `s${i}` },
+    { e: 'SubagentStop', aid: `s${i}` },
+  ]).flat();
+  const kept = run([{ e: 'UserPromptSubmit', prompt: 'p' }, { e: 'SubagentStart', aid: 'long' }, { e: 'Stop' }, ...short]);
+  assert.equal(kept.state, 'working', 'retention drops finished workers before a running one');
+  assert.ok(kept.workers.some((w) => w.id === 'long'));
+
+  const resumed = run([
+    { e: 'UserPromptSubmit', prompt: 'p' },
+    { e: 'SubagentStart', aid: 'a' },
+    { e: 'SessionEnd' },
+    { e: 'SubagentStop', aid: 'a' },
+    { e: 'SessionStart', source: 'resume' },
+    { e: 'UserPromptSubmit', prompt: 'q' },
+    { e: 'Stop' },
+  ]);
+  assert.equal(resumed.state, 'yourTurn', 'subagents end with their session');
+});
+
 test('a subagent in a worktree does not move the session resume folder', () => {
   const c = run([
     { e: 'SessionStart', source: 'startup', cwd: '/w/shop', repo: 'shop', branch: 'main' },
