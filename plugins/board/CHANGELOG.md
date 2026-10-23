@@ -9,12 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- A card whose session stopped while its subagents run stays in Working, with "Waiting for N subagents".
-- Archive is now Hide, and the Archived filter is Hidden.
+- A card whose session stopped while its subagents run stays in Working, with "Waiting for N subagents" (#319).
+- Archive is now Hide, and the Archived filter is Hidden (#319).
 
 ### Fixed
 
-- Hide and More no longer scroll the page to the top.
+- Hide and More no longer scroll the page to the top (#319).
 
 ## [0.1.0] - 2026-10-21
 
