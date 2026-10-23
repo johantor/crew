@@ -316,7 +316,7 @@ button, input, select { font: inherit; color: inherit; }
 .activity {
   margin-top: 8px;
   padding: 0 0 0 10px;
-  border-left: 3px solid var(--state);
+  border-left: 2px solid var(--state);
   font-size: 12px;
   line-height: 1.45;
   overflow-wrap: anywhere;
