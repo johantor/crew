@@ -88,29 +88,14 @@
   figure img{width:100%;height:auto;display:block;border-radius:20px;border:1px solid var(--line)}
   figcaption{margin-top:14px;font-size:14px;color:var(--muted)}
 
-  /* cards */
-  .grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(min(250px,100%),1fr))}
-  .card{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:24px;
-        display:flex;flex-direction:column;gap:10px}
-  .card p{margin:0;color:var(--muted);font-size:15px;flex:1}
-  .card code{color:var(--ink)}
-  .tag{align-self:flex-start;padding:4px 11px;border-radius:999px;font:700 11.5px/1.4 var(--sans);
+  /* tags */
+  .tag{padding:4px 11px;border-radius:999px;font:700 11.5px/1.4 var(--sans);
        letter-spacing:.06em;text-transform:uppercase}
-  .tag.ok{background:var(--go-soft);color:var(--go)}
-  .tag.next{background:var(--soft);color:var(--muted)}
   .tag.beta{background:var(--warm-soft);color:var(--warm)}
 
   .stacks{display:flex;gap:10px;flex-wrap:wrap;margin-top:28px}
   .stacks span{padding:9px 16px;border-radius:999px;background:var(--accent-soft);color:var(--ink);
                font-weight:700;font-size:14px}
-
-  /* roster */
-  .roster{display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(min(250px,100%),1fr))}
-  .agent{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:22px}
-  .agent b{font-family:var(--mono);font-size:15px;color:var(--accent)}
-  .agent i{display:block;font-style:normal;font-weight:700;font-size:12px;letter-spacing:.08em;
-           text-transform:uppercase;color:var(--muted);margin-top:4px}
-  .agent p{margin:10px 0 0;font-size:15px;color:var(--muted)}
 
   /* lists */
   .cmds{list-style:none;padding:0;margin:0;border-top:2px solid var(--ink)}
@@ -119,14 +104,48 @@
   .cmds li > span{flex:1;min-width:15rem;color:var(--muted);font-size:15.5px}
   .cmds .tag{margin-left:8px;vertical-align:2px}
 
-  .rails{list-style:none;padding:0;margin:0;display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr))}
-  .rails li{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:22px;color:var(--muted);font-size:15px}
-  .rails b{display:block;color:var(--ink);font-family:var(--display);font-weight:800;font-size:1.1rem;
-           letter-spacing:-.02em;margin-bottom:6px}
-
   .hint{margin:14px 0 0;font-size:15px;color:var(--muted)}
   .sec-head p strong{color:var(--ink)}
   .note{margin-top:28px;padding:18px 22px;border-radius:16px;background:var(--soft);color:var(--muted);font-size:15px}
+
+  /* layouts beyond cards: numbered steps, text beside a terminal, a checklist, a closing band */
+  .steps{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(3,1fr);
+         counter-reset:step;border-top:2px solid var(--ink)}
+  .steps li{counter-increment:step;padding:24px 28px 8px 0}
+  .steps li + li{padding-left:28px;border-left:1px solid var(--line)}
+  .steps li::before{content:counter(step,decimal-leading-zero);display:block;font-family:var(--display);
+                    font-weight:900;font-size:3rem;line-height:1;letter-spacing:-.04em;color:var(--accent);margin-bottom:14px}
+  .steps b{display:block;color:var(--ink);font-family:var(--display);font-weight:800;font-size:1.15rem;margin-bottom:6px}
+  .steps span{color:var(--muted);font-size:15.5px}
+
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}
+  .split .sec-head{margin-bottom:0}
+  .checks{list-style:none;padding:0;margin:24px 0 0}
+  .checks li{padding:10px 0 10px 32px;position:relative;border-bottom:1px solid var(--line);font-size:15.5px}
+  .checks li::before{content:"✓";position:absolute;left:4px;color:var(--go);font-weight:900}
+  .checks b{color:var(--ink)}
+  .logline{margin:0;background:var(--term);border:1px solid var(--line);border-radius:18px;padding:22px 24px;
+           font:13px/1.8 var(--mono);color:#e8e8f4;overflow-x:auto;white-space:pre-wrap}
+  .logline .k{color:#8c93ff}
+  .logline .c{color:#8b8ea6}
+  .logline .x{color:#f2a06e}
+
+  .band{display:flex;gap:24px;align-items:center;justify-content:space-between;flex-wrap:wrap;
+        background:var(--accent-soft);border-radius:24px;padding:32px 36px}
+  .band h2{font-size:clamp(1.6rem,3.6vw,2.4rem)}
+  .band p{margin:10px 0 0;color:var(--text);max-width:36rem}
+
+  /* a two-column spec sheet, and grouped lists */
+  .spec{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:48px;border-top:2px solid var(--ink)}
+  .spec div{display:flex;gap:16px;align-items:baseline;padding:14px 0;border-bottom:1px solid var(--line)}
+  .spec b{min-width:10rem;color:var(--ink);font-family:var(--display);font-weight:800}
+  .spec span{color:var(--muted);font-size:15px}
+  .groups{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:28px;margin-top:36px}
+  .groups h3{font-family:var(--sans);font-size:12.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
+             color:var(--muted);padding-bottom:10px;border-bottom:2px solid var(--ink)}
+  .groups ul{list-style:none;padding:0;margin:0}
+  .groups li{padding:10px 0;border-bottom:1px solid var(--line);font-size:14.5px;color:var(--muted)}
+  .groups code{display:block;color:var(--accent);font-weight:700;font-size:14px}
 
   footer{border-top:1px solid var(--line);padding:56px 0 64px;color:var(--muted);font-size:14.5px}
   .flinks{display:flex;gap:24px;flex-wrap:wrap;margin-bottom:22px}
@@ -134,6 +153,11 @@
   .fine{margin:0;font-size:13.5px}
   .fine + .fine{margin-top:6px}
 
+  @media (max-width:900px){
+    .split{grid-template-columns:1fr;gap:28px}
+    .groups{grid-template-columns:1fr 1fr}
+    .spec{grid-template-columns:1fr}
+  }
   @media (max-width:640px){
     header.hero{padding:60px 0 48px}
     section{padding:60px 0}
@@ -141,5 +165,10 @@
     nav ul{gap:16px;margin-left:0}
     .cmds code{min-width:auto}
     [id]{scroll-margin-top:160px}
+    .steps{grid-template-columns:1fr}
+    .steps li + li{padding-left:0;border-left:0;border-top:1px solid var(--line)}
+    .groups{grid-template-columns:1fr}
+    .spec b{min-width:7rem}
+    .band{padding:24px}
   }
   @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
