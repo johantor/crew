@@ -23,7 +23,7 @@ johantor`, then the two commands above.
 <!-- Illustration source: docs/solo-vs-crew.svg (edit the SVG, then re-export the PNG). -->
 ![A solo agent juggling every concern, versus the crew: planned lanes, a review gate, then a PR](docs/solo-vs-crew.png)
 
-Site: <https://johantor.github.io/crew/>
+Site: <https://johantor.github.io/crew/> · Marketplace: <https://johantor.github.io/plugins/>
 
 ## Built for Optimizely
 
