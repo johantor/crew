@@ -16,7 +16,7 @@ backendLintCommand: none
 frontendLintCommand: none
 formatMatrix: none
 baseBranch: main
-branchNaming: unset
+branchNaming: <type>/<issue>-<slug>
 runUrl: none
 planDirectory: unset
 ---
@@ -29,7 +29,7 @@ the hook tests, and shellcheck.
 
 `backendStack` is `shell` and `frontendStack` is `none`: the hooks and scripts are the
 deliverable, and there is no view. Mode and lane-path slots stay `unset` because nothing needs
-them. `baseBranch` is `main`; `branchNaming` stays `unset`, so `lead` asks once per run.
+them. `baseBranch` is `main`; `branchNaming` is the convention in AGENTS.md.
 
 `planDirectory` is `unset`, so plans land in the `.claude/` fallback, which this repo does not
 track.
