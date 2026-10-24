@@ -8,9 +8,9 @@
 # looking at, reporting-without-retrying when it can't count attempts — and the
 # load-bearing asymmetry: only a counted first attempt may ask for a retry, and a
 # can't-count message must not claim to be a repeat.
-# shellcheck source=tests/hooks/lib.sh
+# shellcheck source=tests/lib.sh
 # shellcheck disable=SC1090,SC1091
-source "$(dirname "${BASH_SOURCE[0]}")/../../../tests/hooks/lib.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
 # payload_denied <subagent_type> <transcript_path> — minimal PermissionDenied
 # payload. Pass "" to omit either field.

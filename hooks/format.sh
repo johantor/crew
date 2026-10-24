@@ -8,7 +8,7 @@ set -e
 
 # Fail open: formatting is best-effort.
 _lib="${BASH_SOURCE[0]%/*}/lib/guard-lib.sh"
-# shellcheck source=plugins/crew/hooks/lib/guard-lib.sh
+# shellcheck source=hooks/lib/guard-lib.sh
 # shellcheck disable=SC1090,SC1091
 . "$_lib" 2>/dev/null || exit 0
 command -v jq >/dev/null 2>&1 || exit 0

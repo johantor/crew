@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - The `johantor` marketplace moved to `johantor/plugins`, and `board` to `johantor/board`. The
   install id stays `crew@johantor`; the README installs from the new marketplace (#320).
+- The plugin is the repository root, like `johantor/board`, and releases are tagged `vX.Y.Z`
+  (#320).
 
 ### Removed
 

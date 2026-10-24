@@ -1,35 +1,37 @@
 # Contributing to crew
 
 This repository is the `crew` Claude Code plugin: orchestrated feature delivery plus a debt lane
-for tech-debt and upgrade fixes. **This repository *is* the plugin**: there is no application
+for tech-debt and upgrade fixes. **The plugin is the repository root**: there is no application
 code to build or ship. Work here edits agent, command and skill
 definitions, hooks, and docs.
 
 This is the contributor guide for anyone, human or agent, changing this repo. It is tool-neutral
 and the one place each rule is written. Tool-specific entry points point here: `CLAUDE.md` for
-Claude Code (plus how Claude should talk and edit), `.github/skills/code-review/` for reviewers,
-and each plugin's `CLAUDE.md` for its own map.
+Claude Code (plus how Claude should talk and edit, and the code map), and
+`.github/skills/code-review/` for reviewers.
 
 ## Repository layout
 
-The plugin lives in `plugins/crew/`. The `johantor` marketplace is its own repository,
-[johantor/plugins](https://github.com/johantor/plugins), and lists `crew` from here and `board`
-from [johantor/board](https://github.com/johantor/board). The subfolder keeps repo tooling (`docs/`,
-`scripts/`, `tests/`) out of what users install, and the tooling globs `plugins/*/`.
+The plugin is the repository root, the same layout as
+[johantor/board](https://github.com/johantor/board). The `johantor` marketplace is its own
+repository, [johantor/plugins](https://github.com/johantor/plugins), and lists both.
 
-- `plugins/crew/`: the `crew` plugin. `.claude-plugin/plugin.json` is the manifest; `agents/`,
-  `commands/` and `skills/` are auto-discovered, and `hooks/hooks.json` wires the hooks. The
-  top-level `hooks/*.sh` are entry points (`+x`, wired); `hooks/lib/*.sh` are sourced libraries
-  (not `+x`, not wired); validator §3 and §6 enforce the split. `scripts/gate.sh` is the
-  review-gate runner, shipped unlike the repo-level `scripts/`. `README.md` is user-facing,
-  `VERIFICATION.md` is the manual scenario matrix, and `CLAUDE.md` is the plugin map: every
-  agent, command, skill and hook, and how they fit.
-- `scripts/`: repo tooling, never shipped. `validate-plugin.sh` (tree-only structural checks,
-  the `§N` sections below), `check-changelog.sh` (the diff-based release gate, takes the base
-  branch), `release-notes.sh` (one version's changelog section, used by `auto-release.yml`).
-- `tests/hooks/`: the shared harness (`lib.sh`) and runner (`run.sh`) for `plugins/*/tests/`.
+- The plugin: `.claude-plugin/plugin.json` is the manifest; `agents/`, `commands/` and `skills/`
+  are auto-discovered, and `hooks/hooks.json` wires the hooks. The top-level `hooks/*.sh` are
+  entry points (`+x`, wired); `hooks/lib/*.sh` are sourced libraries (not `+x`, not wired);
+  validator §3 and §6 enforce the split. `README.md` is user-facing, `CHANGELOG.md` the release
+  notes.
+- `scripts/`: `gate.sh` is the review-gate runner and ships with the plugin. The rest is repo
+  tooling: `validate-plugin.sh` (tree-only structural checks, the `§N` sections below),
+  `check-changelog.sh` (the diff-based release gate, takes the base branch), `release-notes.sh`
+  (one version's changelog section, used by `auto-release.yml`).
+- `tests/`: one bash suite per guard, the gate runner, the validator and the release scripts
+  (`*.test.sh`), and the shared harness, `lib.sh`.
+- `docs/`: the site on GitHub Pages. `style.css` is shared with board's site (a copy there).
+- `VERIFICATION.md`: the manual scenario matrix. `CLAUDE.md`: how Claude works here, then the code
+  map: every agent, command, skill and hook, and how they fit.
 - `.claude/crew.md`: this repo's own crew configuration. The repo carries no hook wiring of its
-  own: work here with `claude --plugin-dir plugins/crew`.
+  own: work here with `claude --plugin-dir .`.
 - `.github/`: `workflows/validate.yml` runs the checks in *Validating changes*;
   `auto-release.yml` tags. `ISSUE_TEMPLATE/` holds the bug and feature forms. `skills/` holds
   the repo's own skills, never shipped: `code-review` (the one review rubric, which Copilot reads
@@ -204,10 +206,10 @@ rule costs more than a sentence of prose, and motivation measurably helps compli
 This repo has no app build. Before opening a PR, run what CI runs:
 
 ```bash
-shellcheck plugins/*/hooks/*.sh plugins/*/hooks/lib/*.sh plugins/*/scripts/*.sh plugins/*/tests/*.sh scripts/*.sh tests/hooks/*.sh
+shellcheck hooks/*.sh hooks/lib/*.sh tests/*.sh scripts/*.sh
 bash scripts/validate-plugin.sh
 bash scripts/check-changelog.sh          # takes the base branch; defaults to main
-bash tests/hooks/run.sh
+for t in tests/*.test.sh; do bash "$t"; done
 ```
 
 `check-changelog.sh` is the one diff-based check, which is why it takes a ref and lives outside
@@ -219,10 +221,9 @@ unused), rosters §9, prose refs §10, `crew.md` keys §11, footprint §12, MCP
 pairs §13, YAML frontmatter §14. §2g and §12 index skills through `git ls-files`, so stage a
 new or renamed skill file before running the validator.
 
-`plugins/<plugin>/tests/` is a bash suite (`jq` and `git` only, no LLM, no network) exercising the hooks' behavior: each guard is a pure
-`stdin JSON → exit 0/2` function. The harness lives
-once in `tests/hooks/`; `run.sh` discovers every suite and **fails when a plugin ships `hooks/`
-with no suite beside it**. `format.sh` is covered through a fixture `formatMatrix` whose rows
+`tests/` is a bash suite (`jq` and `git` only, no LLM, no network) exercising the hooks'
+behavior: each guard is a pure `stdin JSON → exit 0/2` function, and the harness is
+`tests/lib.sh`. `format.sh` is covered through a fixture `formatMatrix` whose rows
 name faked tools. **A change to a guard's logic adds or adjusts a case, covering both the allow
 and the block side.**
 
@@ -250,7 +251,7 @@ What the lockstep sections protect:
   triggers while reading fine to a human. Wrap the value in double quotes.
 
 **Behavioral verification means running the scenario** from the plugin's
-[`VERIFICATION.md`](plugins/crew/VERIFICATION.md) and citing the observed result. "Would pass" is
+[`VERIFICATION.md`](VERIFICATION.md) and citing the observed result. "Would pass" is
 not verification, and neither is "needs a person": most rows run headless (`VERIFICATION.md`,
 *Running a row headless*), so run them before asking the maintainer to. Run a row when the
 change alters the mechanism it covers: a guard, an agent, command or skill prompt, or a new kind
@@ -259,19 +260,20 @@ routes to a product skill) needs no run and no new row: name the row it relies o
 
 ## Releasing
 
-Versions are per plugin, and one rule holds: **a shipped change bumps the version.** A tag
-carries everything merged since the previous tag, so an unbumped change ships inside the next
-release, described nowhere. Shipped means everything under `plugins/<name>/` except `tests/`,
-`CLAUDE.md`, `VERIFICATION.md` and `CHANGELOG.md` itself; `README.md` counts, and so does a
-comment inside a shipped hook. Repo-wide changes (CI, root docs, `scripts/`, `tests/`) need no
-bump. Patch for a fix, minor for an addition, major for a break; several in a day is fine.
+One rule holds: **a shipped change bumps the version.** A tag carries everything merged since the
+previous tag, so an unbumped change ships inside the next release, described nowhere. Shipped
+means everything `check-changelog.sh` does not exclude: not `tests/`, `.github/`, `.claude/`,
+`docs/`, the tooling in `scripts/` (`gate.sh` ships), `CHANGELOG.md`, or the contributor guides
+and policies (`AGENTS.md`, `CLAUDE.md`, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `PRIVACY.md`,
+`SECURITY.md`, `VERIFICATION.md`). `README.md` counts, and so does a comment inside a shipped
+hook. Patch for a fix, minor for an addition, major for a break; several in a day is fine.
 
-1. Bump `version` in `plugins/<name>/.claude-plugin/plugin.json` and add a matching `CHANGELOG.md`
-   entry in the same PR. §2h fails CI unless they agree, and `check-changelog.sh` fails a shipped
-   change without a bump.
-2. Merge to `main`. `auto-release.yml` sees the version has no `<plugin>/v<version>` tag, and
-   creates the tag and GitHub Release with that version's changelog section
-   (`scripts/release-notes.sh`). No entry → it skips with a warning.
+1. Bump `version` in `.claude-plugin/plugin.json` and add a matching `CHANGELOG.md` entry in the
+   same PR. §2h fails CI unless they agree, and `check-changelog.sh` fails a shipped change
+   without a bump; `tests/release.test.sh` pins what counts as shipped.
+2. Merge to `main`. `auto-release.yml` sees the version has no `v<version>` tag, and creates the
+   tag and GitHub Release with that version's changelog section (`scripts/release-notes.sh`). No
+   entry → it skips with a warning. Releases up to 11.0.1 are tagged `crew/vX.Y.Z`.
 
 **Changelog entries are terse.** One bullet per change under its Keep-a-Changelog heading, one
 line, two at most: *what changed*, with the PR as `(#N)`. The why belongs in the PR and commit.

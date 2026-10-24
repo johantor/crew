@@ -20,7 +20,7 @@ small task.
 
 Most rows run in one or two minutes without a person at the keyboard:
 
-- **Session.** In the scratch repo, `claude -p '<prompt>' --plugin-dir <checkout>/plugins/crew
+- **Session.** In the scratch repo, `claude -p '<prompt>' --plugin-dir <checkout>
   --allowedTools <only what the row needs> < /dev/null`. Point `--plugin-dir` at the branch under
   test (a `git worktree` for another branch). Pin `.claude/crew.md` first, since `/crew:init` is
   the only detector. Never `--dangerously-skip-permissions`.
@@ -213,7 +213,7 @@ cannot show that `/crew:init` detected a stack or that a worker loaded a skill.
   poll call (e.g. `sleep 700 && make build`) → the worker polls the wait recipe's exit file until
   it appears and hands back in the same turn; `lead` gets the report with no "waiting on its
   own background work" notice. Past the handoff's budget, it is reported as a gate timeout.
-- [ ] **The wait recipe runs headless** — `claude -p "/crew:review" --plugin-dir plugins/crew`
+- [ ] **The wait recipe runs headless** — `claude -p "/crew:review" --plugin-dir .`
   with `Bash(bash "<abs>/scripts/gate.sh":*)` allowed → every gate call runs with no prompt. Without
   the rule → the worker reports the refusal and runs no hand-made variant (#245).
 - [ ] **An e2e gate starts its own server** — a frontend diff whose e2e command owns the app's

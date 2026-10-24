@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Behavioral tests for hooks/read-guard.sh (context-hygiene guard; fails OPEN).
-# shellcheck source=tests/hooks/lib.sh
+# shellcheck source=tests/lib.sh
 # shellcheck disable=SC1090,SC1091
-source "$(dirname "${BASH_SOURCE[0]}")/../../../tests/hooks/lib.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 HOOK="read-guard.sh"
 
 work="$(new_tmpdir)"

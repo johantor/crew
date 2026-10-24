@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Behavioral tests for hooks/bash-safety.sh.
-# shellcheck source=tests/hooks/lib.sh
+# shellcheck source=tests/lib.sh
 # shellcheck disable=SC1090,SC1091
-source "$(dirname "${BASH_SOURCE[0]}")/../../../tests/hooks/lib.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 HOOK="bash-safety.sh"
 
 # --- Workers run no git but a plain git mv -------------------------------------

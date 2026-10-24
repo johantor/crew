@@ -4,9 +4,9 @@
 # stop kills the whole process group, and a reused or malformed <id> is refused.
 # A green run is cached by tree and command; a changed tree, a red exit or no
 # repo runs the command again.
-# shellcheck source=tests/hooks/lib.sh
+# shellcheck source=tests/lib.sh
 # shellcheck disable=SC1090,SC1091
-source "$(dirname "${BASH_SOURCE[0]}")/../../../tests/hooks/lib.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 GATE="$(cd "$(dirname "${BASH_SOURCE[0]}")/../scripts" && pwd)/gate.sh"
 
 # Ids are unique per run so parallel suites never share a /tmp directory.

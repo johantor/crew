@@ -12,7 +12,7 @@ See AGENTS.md, "Conventions". -->
 
 ## Scope
 
-<!-- Which area does this touch? plugins/crew, or repo-wide (docs/CI/hooks). -->
+<!-- Which area does this touch? The plugin (agents, commands, skills, hooks), or the repo (docs, CI, tooling). -->
 
 ## Version / changelog
 
@@ -23,7 +23,7 @@ CI (`scripts/check-changelog.sh`) blocks a shipped change without a bump. Only c
 reach no user through `claude plugin update` are N/A. Entries are one line, two at most: what
 changed, not why — the why is in the commit message. -->
 
-- [ ] Bumped `plugins/<name>/.claude-plugin/plugin.json` version + matching `CHANGELOG.md` entry
+- [ ] Bumped `.claude-plugin/plugin.json` version + matching `CHANGELOG.md` entry
 - [ ] Each changelog bullet is one line, two at most
 - [ ] N/A — nothing shipped changed (CI, root docs, tests)
 
@@ -32,7 +32,7 @@ changed, not why — the why is in the commit message. -->
 <!-- What you ran, as results not transcripts: "ran X, all green", or one line
 per case. Never paste output. Per AGENTS.md "Validating changes". -->
 
-- [ ] `shellcheck plugins/*/hooks/*.sh scripts/*.sh`
+- [ ] `shellcheck hooks/*.sh hooks/lib/*.sh tests/*.sh scripts/*.sh`
 - [ ] `bash scripts/validate-plugin.sh`
 - [ ] Manually exercised the affected agent/command/skill flow
 
