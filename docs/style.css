@@ -1,3 +1,4 @@
+  /* The board site (johantor/board, docs/style.css) carries a copy: keep the two in step. */
   :root{
     --bg:#f6f4ef;
     --surface:#ffffff;
@@ -118,6 +119,8 @@
   .rails b{display:block;color:var(--ink);font-family:var(--display);font-weight:800;font-size:1.1rem;
            letter-spacing:-.02em;margin-bottom:6px}
 
+  .hint{margin:14px 0 0;font-size:15px;color:var(--muted)}
+  .sec-head p strong{color:var(--ink)}
   .note{margin-top:28px;padding:18px 22px;border-radius:16px;background:var(--soft);color:var(--muted);font-size:15px}
 
   footer{border-top:1px solid var(--line);padding:56px 0 64px;color:var(--muted);font-size:14.5px}
