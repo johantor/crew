@@ -273,7 +273,7 @@ hook. Patch for a fix, minor for an addition, major for a break; several in a da
    without a bump; `tests/release.test.sh` pins what counts as shipped.
 2. Merge to `main`. `auto-release.yml` sees the version has no `v<version>` tag, and creates the
    tag and GitHub Release with that version's changelog section (`scripts/release-notes.sh`). No
-   entry → it skips with a warning. Releases up to 11.0.1 are tagged `crew/vX.Y.Z`.
+   entry → it skips with a warning. Releases up to 11.0.2 are tagged `crew/vX.Y.Z`.
 
 **Changelog entries are terse.** One bullet per change under its Keep-a-Changelog heading, one
 line, two at most: *what changed*, with the PR as `(#N)`. The why belongs in the PR and commit.
@@ -316,6 +316,10 @@ line, two at most: *what changed*, with the PR as `(#N)`. The why belongs in the
 - One branch and PR per issue, from the latest `main`: `git fetch origin main && git checkout -B
   <branch> origin/main`. A merged PR's branch is deleted; reusing the name leaves a stale tracking
   ref until pruned.
+- **Name the branch for what it changes**: `<type>/<issue>-<slug>`, with the Conventional
+  Commits type and a slug of three to five words, such as `fix/12-lane-guard-on-windows`. With no
+  issue, drop `<issue>-`: `docs/branch-naming`. A generated name such as
+  `claude/vigilant-keller-vvje0k` says nothing in the branch list; rename it before you push.
 - READMEs, changelogs, PR bodies and issues follow the `writing-style` skill
   (`.github/skills/writing-style/SKILL.md`).
 
