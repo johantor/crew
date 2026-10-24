@@ -6,9 +6,9 @@
 # The real agent files decide the shipped verdicts (backend blocks, incident-triage
 # passes); a fixture agents dir (CREW_AGENTS_DIR) exercises the frontmatter
 # parser on shapes the shipped agents don't all carry.
-# shellcheck source=tests/hooks/lib.sh
+# shellcheck source=tests/lib.sh
 # shellcheck disable=SC1090,SC1091
-source "$(dirname "${BASH_SOURCE[0]}")/../../../tests/hooks/lib.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
 # payload_dispatch <subagent_type> <permission_mode> — a PreToolUse(Agent)
 # payload. Pass "" to omit either field.

@@ -10,7 +10,7 @@ The short version:
 2. Branch from the latest `main`, named `<type>/<issue>-<slug>`, such as
    `fix/12-lane-guard-on-windows` (*Conventions* in AGENTS.md). One branch and one PR per issue.
 3. Run what CI runs (*Validating changes* in AGENTS.md) before you push.
-4. A change under `plugins/<name>/` bumps the version and adds a changelog line (*Releasing*).
+4. A shipped change bumps the version and adds a changelog line (*Releasing*).
 5. Title the PR in Conventional Commits form and fill in the PR template.
 
 Report a security issue privately, as [SECURITY.md](SECURITY.md) describes, not in a public

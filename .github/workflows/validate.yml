@@ -24,10 +24,9 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       # The shell's `*` does not cross directory separators (git's does), so the
-      # sourced libraries under hooks/lib/ need their own pattern here — without
-      # it they would go unlinted while still running inside every guard.
-      - name: Lint hook & script shell files
-        run: shellcheck plugins/*/hooks/*.sh plugins/*/hooks/lib/*.sh plugins/*/scripts/*.sh plugins/*/tests/*.sh scripts/*.sh tests/hooks/*.sh
+      # sourced libraries under plugin/hooks/lib/ need their own pattern here.
+      - name: Lint shell files
+        run: shellcheck plugin/hooks/*.sh plugin/hooks/lib/*.sh plugin/scripts/*.sh tests/*.sh scripts/*.sh
 
   plugin:
     permissions:
@@ -56,14 +55,15 @@ jobs:
       - name: Shipped changes carry release notes
         run: scripts/check-changelog.sh "${{ github.base_ref }}"
 
-  hook-tests:
+  tests:
     permissions:
       contents: read
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      # Discovers every plugin's suite (plugins/*/tests/*.test.sh) and fails if a
-      # plugin ships hooks with no tests beside them, so a new plugin's guards
-      # cannot land untested without this job going red.
-      - name: Run hook behavior tests
-        run: bash tests/hooks/run.sh
+      # Every suite: the guards, the gate runner, the validator, and the release scripts.
+      - name: Tests
+        run: |
+          fail=0
+          for t in tests/*.test.sh; do echo "== $t"; bash "$t" || fail=1; done
+          exit "$fail"

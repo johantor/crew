@@ -7,7 +7,7 @@ description: Review a pull request or diff in the crew plugin repository — Bas
 
 This repo ships Bash hooks, Markdown prompts that agents execute, and JSON manifests. `AGENTS.md` is
 the contributor guide and wins on conflict. Code rules: the `engineering-principles` skill
-(`plugins/crew/skills/engineering-principles/SKILL.md`). This file is the one rubric and owns the
+(`plugin/skills/engineering-principles/SKILL.md`). This file is the one rubric and owns the
 output format; Copilot reads it directly and Claude Code's `crew-review` skill loads it.
 
 ## Scope: one full pass, then only what changed
@@ -35,7 +35,7 @@ output format; Copilot reads it directly and Claude Code's `crew-review` skill l
   ("Open up before you lock down").
 - Style-only notes are not findings unless they break a written convention.
 
-## Guard hooks (`plugins/*/hooks/**/*.sh`)
+## Guard hooks (`plugin/hooks/**/*.sh`)
 
 - **Name each pattern's failure direction.** An allowance (match lets it through) may
   over-match. A refusal (match exits 2) must not refuse ordinary work. A refusal that reads line
@@ -67,7 +67,7 @@ lens before they push.
 - **A structured field documents its shape where it is owned**, and the owner is told to
   preserve it verbatim on rewrite.
 - **Every skill a prompt names exists.** Check each new literal skill name a prompt tells a
-  worker to load against `plugins/<plugin>/skills/<name>/`: a missing one fails the worker's
+  worker to load against `plugin/skills/<name>/`: a missing one fails the worker's
   `Skill` call. A placeholder (`backend-<stack>`) or a project's own skill (`backendSkill`) is
   not checked. The validator
   checks only `crew:` refs (§10) and `skills:` frontmatter (§2g); a name match by prefix also
@@ -77,9 +77,8 @@ lens before they push.
 
 ## Release, tests, docs
 
-- **Shipped change without a bump** (anything under `plugins/<name>/` except `tests/`,
-  `CLAUDE.md`, `VERIFICATION.md`, the changelog): Warning; Blocking if users miss a fix.
-- **Hook behavior change**: allow and block cases in the plugin's suite for the
+- **A change under `plugin/` without a bump**: Warning; Blocking if users miss a fix.
+- **Hook behavior change**: allow and block cases in the suite for the
   hook, asserting its output contract (stderr for a guard, stdout JSON for `dispatch-denied`).
   A new case must fail on the base code.
 - **Any other behavior change without a test** that would catch its regression is a Warning.

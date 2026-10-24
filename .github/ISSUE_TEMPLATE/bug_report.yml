@@ -33,7 +33,7 @@ body:
     id: crew-version
     attributes:
       label: crew version
-      description: From `claude plugin list`, or the `crew/vX.Y.Z` release.
+      description: From `claude plugin list`, or the `vX.Y.Z` release.
       placeholder: "10.10.0"
     validations:
       required: true

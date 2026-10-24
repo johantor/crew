@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Validates every plugin's structure so manifest/file drift fails fast.
-# Repo tooling, not part of any plugin: it needs this monorepo's layout and
+# Validates the plugin's structure so manifest/file drift fails fast.
+# Repo tooling: it needs this repository's layout (the plugin in plugin/) and
 # never runs in an installed plugin. Runnable locally (`scripts/validate-plugin.sh`)
 # and in CI.
 set -euo pipefail
@@ -30,10 +30,10 @@ while IFS= read -r f; do
   fi
 done < <(git ls-files '*.json')
 
-# 2. Validate each plugin under plugins/<name>/. Component paths in a plugin
-#    manifest are resolved relative to that plugin's root.
+# 2. Validate the plugin in plugin/. Component paths in the manifest are resolved
+#    relative to that directory.
 while IFS= read -r manifest; do
-  plugin_dir="$(dirname "$(dirname "$manifest")")"  # plugins/<name>
+  plugin_dir="$(dirname "$(dirname "$manifest")")"  # plugin
   if ! jq empty "$manifest" >/dev/null 2>&1; then
     # Malformed JSON is already reported above; skip content checks.
     err "$manifest is not valid JSON; skipping content checks"
@@ -104,10 +104,10 @@ while IFS= read -r manifest; do
   else
     ok "$plugin_dir has no hooks/ (optional)"
   fi
-done < <(git ls-files 'plugins/*/.claude-plugin/plugin.json')
+done < <(git ls-files 'plugin/.claude-plugin/plugin.json')
 
 # 2g. Every skill referenced in an agent's YAML frontmatter `skills:` list must
-#     resolve to some plugins/*/skills/<name>/SKILL.md in the repo. Skills are
+#     resolve to some plugin/skills/<name>/SKILL.md in the repo. Skills are
 #     referenced unqualified (per the existing convention), so resolution is
 #     "exists anywhere under any plugin's skills/ directory". A typo here would
 #     otherwise fail silently at runtime — the skill just doesn't load.
@@ -115,7 +115,7 @@ declare -A skill_index=()
 while IFS= read -r skill_md; do
   skill_name="$(basename "$(dirname "$skill_md")")"
   skill_index["$skill_name"]=1
-done < <(git ls-files 'plugins/*/skills/*/SKILL.md')
+done < <(git ls-files 'plugin/skills/*/SKILL.md')
 
 while IFS= read -r agent; do
   while IFS= read -r skill_ref; do
@@ -123,7 +123,7 @@ while IFS= read -r agent; do
     if [ -n "${skill_index[$skill_ref]:-}" ]; then
       ok "$agent skills -> $skill_ref resolves"
     else
-      err "$agent skills -> $skill_ref does not resolve to any plugins/*/skills/$skill_ref/SKILL.md"
+      err "$agent skills -> $skill_ref does not resolve to any plugin/skills/$skill_ref/SKILL.md"
     fi
   done < <(awk '
     BEGIN { in_fm = 0; in_skills = 0 }
@@ -145,20 +145,20 @@ while IFS= read -r agent; do
     }
     in_fm && /^skills:[[:space:]]*$/ { in_skills = 1 }
   ' "$agent")
-done < <(git ls-files 'plugins/*/agents/*.md')
+done < <(git ls-files 'plugin/agents/*.md')
 
 # 2h. Each plugin's manifest version must match the newest entry in its CHANGELOG,
 #     so a version bump can't ship without release notes (auto-release.yml pulls
 #     notes from that section) and notes can't land without a bump. Every plugin
-#     keeps its changelog next to its manifest: plugins/<name>/CHANGELOG.md.
+#     keeps its changelog at the repository root: CHANGELOG.md.
 while IFS= read -r manifest; do
-  plugin_dir="$(dirname "$(dirname "$manifest")")"  # plugins/<name>
+  plugin_dir="$(dirname "$(dirname "$manifest")")"  # plugin
   # Malformed JSON is already reported by §1; skip so a bad manifest doesn't abort
   # the whole run under `set -e` (mirrors the §2 loop).
   jq empty "$manifest" >/dev/null 2>&1 || continue
   plugin_version="$(jq -r '.version // empty' "$manifest")"
   [ -z "$plugin_version" ] && continue  # missing version already reported by 2a
-  changelog="$plugin_dir/CHANGELOG.md"
+  changelog="CHANGELOG.md"  # at the repository root, beside the plugin
   if [ ! -f "$changelog" ]; then
     err "$plugin_dir declares version $plugin_version but has no changelog at $changelog"
     continue
@@ -174,7 +174,7 @@ while IFS= read -r manifest; do
   else
     err "$plugin_dir version $plugin_version != newest $changelog entry (${newest_entry:-none}); bump the manifest and add its CHANGELOG entry together"
   fi
-done < <(git ls-files 'plugins/*/.claude-plugin/plugin.json')
+done < <(git ls-files 'plugin/.claude-plugin/plugin.json')
 
 # 3. Hook shell files are syntactically valid and carry the file mode their role
 #    implies:
@@ -191,7 +191,7 @@ while IFS= read -r h; do
     err "bash syntax error: $h"
   fi
   case "$h" in
-    */hooks/lib/*)
+    plugin/hooks/lib/*)
       if [ -x "$h" ]; then
         err "sourced library is executable (chmod -x): $h — hooks/lib/*.sh are sourced, not run"
       else
@@ -204,7 +204,7 @@ while IFS= read -r h; do
         err "not executable (chmod +x): $h"
       fi ;;
   esac
-done < <(git ls-files 'plugins/*/hooks/*.sh')
+done < <(git ls-files 'plugin/hooks/*.sh')
 
 # 4-5. Unused numbers; later sections keep theirs so §N references stay stable.
 
@@ -217,7 +217,7 @@ done < <(git ls-files 'plugins/*/hooks/*.sh')
 # shellcheck disable=SC2016
 wiring_pfx='"${CLAUDE_PLUGIN_ROOT}"/'
 while IFS= read -r hooks_json; do
-  plugin_dir="${hooks_json%/hooks/hooks.json}"
+  plugin_dir="plugin"
   # Malformed JSON is already reported by §1; skip the cross-check.
   if ! jq empty "$hooks_json" >/dev/null 2>&1; then
     err "$hooks_json is not valid JSON; cannot cross-check its hook wiring"
@@ -250,7 +250,7 @@ while IFS= read -r hooks_json; do
     wired["$rel"]=1
   done < <(jq -r '.hooks | to_entries[] | .value[] | .hooks[] | .command // empty' "$hooks_json")
   while IFS= read -r sh_file; do
-    rel="${sh_file#"$plugin_dir/"}"
+    rel="${sh_file#plugin/}"
     # hooks/lib/*.sh is the other half of §3's split: sourced by the entry points,
     # never wired. A wired library would exit 0 having inspected nothing — for a
     # fail-closed guard, a silent hole rather than a visible error.
@@ -268,8 +268,8 @@ while IFS= read -r hooks_json; do
     else
       err "$sh_file exists but is not wired in $hooks_json — it never runs"
     fi
-  done < <(git ls-files "$plugin_dir/hooks/*.sh")
-done < <(git ls-files 'plugins/*/hooks/hooks.json')
+  done < <(git ls-files 'plugin/hooks/*.sh')
+done < <(git ls-files 'plugin/hooks/hooks.json')
 
 # 9. Hook rosters <-> agent `owns-git`/`lane-guarded`, both ways. These hooks
 #    gate on a hardcoded name list, which fails OPEN for any name missing from
@@ -336,11 +336,11 @@ roster_arm() {
   ' "$1"
 }
 
-while IFS= read -r plugin_manifest; do
-  plugin_dir="${plugin_manifest%/.claude-plugin/plugin.json}"
+while IFS= read -r _manifest; do  # one plugin; the loop keeps §9 skippable when none exists
+  plugin_dir="plugin"
   agents=()
   while IFS= read -r a; do [ -n "$a" ] && agents+=("$a"); done \
-    < <(git ls-files "$plugin_dir/agents/*.md")
+    < <(git ls-files 'plugin/agents/*.md')
   [ "${#agents[@]}" -eq 0 ] && continue
 
   # Does this plugin opt in? (any agent declaring the field)
@@ -445,16 +445,12 @@ while IFS= read -r plugin_manifest; do
       done
     fi
   fi
-done < <(git ls-files 'plugins/*/.claude-plugin/plugin.json')
+done < <(git ls-files 'plugin/.claude-plugin/plugin.json')
 
 # 10. Every `<plugin>:<name>` in prose must resolve to an agent or command file
 #     (§2g does this for `skills:` frontmatter). Namespaces no plugin here
 #     declares are ignored. See AGENTS.md, "Validating changes".
-plugin_names=""
-while IFS= read -r m; do
-  d="${m%/.claude-plugin/plugin.json}"
-  plugin_names="$plugin_names ${d##*/}"
-done < <(git ls-files 'plugins/*/.claude-plugin/plugin.json')
+plugin_names="$(jq -r '.name // empty' plugin/.claude-plugin/plugin.json 2>/dev/null || true)"
 
 while IFS= read -r doc; do
   # A leading delimiter stands in for `\b`, which is a GNU extension (AGENTS.md:
@@ -466,14 +462,14 @@ while IFS= read -r doc; do
   [ -z "$refs" ] && continue
   while IFS= read -r ref; do
     [ -z "$ref" ] && continue
-    rp="${ref%%:*}"; rn="${ref##*:}"
-    if [ -f "plugins/$rp/agents/$rn.md" ] || [ -f "plugins/$rp/commands/$rn.md" ]; then
+    rn="${ref##*:}"
+    if [ -f "plugin/agents/$rn.md" ] || [ -f "plugin/commands/$rn.md" ]; then
       ok "$doc -> $ref resolves"
     else
-      err "$doc references '$ref' but no plugins/$rp/agents/$rn.md or plugins/$rp/commands/$rn.md exists"
+      err "$doc references '$ref' but no plugin/agents/$rn.md or plugin/commands/$rn.md exists"
     fi
   done <<<"$refs"
-done < <(git ls-files 'plugins/*/agents/*.md' 'plugins/*/commands/*.md' 'plugins/*/skills/*/SKILL.md')
+done < <(git ls-files 'plugin/agents/*.md' 'plugin/commands/*.md' 'plugin/skills/*/SKILL.md')
 
 # 11. init.md §1 (the declared source of truth for crew config slots) <-> the
 #     frontmatter keys of this repo's own `.claude/crew.md`, both directions.
@@ -482,7 +478,7 @@ done < <(git ls-files 'plugins/*/agents/*.md' 'plugins/*/commands/*.md' 'plugins
 #     so bold used for emphasis isn't read as a slot, and a key named in the
 #     file's prose body isn't read as configuration. See AGENTS.md, "Validating
 #     changes".
-init_cmd="plugins/crew/commands/init.md"
+init_cmd="plugin/commands/init.md"
 crew_cfg=".claude/crew.md"
 if [ -f "$init_cmd" ] && [ -f "$crew_cfg" ]; then
   # A slot declares its key in backticked parentheses; that is what the config
@@ -542,7 +538,7 @@ declare -A skill_file=()
 while IFS= read -r skill_md; do
   sname="$(basename "$(dirname "$skill_md")")"
   [ -n "${skill_file[$sname]:-}" ] || skill_file["$sname"]="$skill_md"
-done < <(git ls-files 'plugins/*/skills/*/SKILL.md')
+done < <(git ls-files 'plugin/skills/*/SKILL.md')
 
 # The frontmatter `skills:` list, one name per line (§2g's parser, reused).
 agent_skill_refs() {
@@ -609,7 +605,7 @@ while IFS= read -r agent; do
       fi
       ;;
   esac
-done < <(git ls-files 'plugins/*/agents/*.md')
+done < <(git ls-files 'plugin/agents/*.md')
 
 # 13. MCP entries in an agent's frontmatter `tools:` must be server-scoped, and
 #     every bare server key must be paired with its plugin-scoped twin. Tools from
@@ -724,7 +720,7 @@ while IFS= read -r agent; do
     [ "$p_matched" -eq 1 ] && continue
     err "$agent tools -> 'mcp__$p' names a server no bare key covers; add 'mcp__<server>' for its .mcp.json install path"
   done < <(printf '%s\n' "$plugin_keys" | tr ' ' '\n')
-done < <(git ls-files 'plugins/*/agents/*.md')
+done < <(git ls-files 'plugin/agents/*.md')
 
 # 14. Frontmatter parses as YAML. A plain (unquoted) scalar cannot contain a
 #     colon followed by whitespace: YAML reads it as a nested mapping, the whole
@@ -770,7 +766,7 @@ while IFS= read -r f; do
       err "$f:$lineno frontmatter '$key' is an unquoted scalar carrying $reason; YAML reads that as a nested mapping and drops the whole block (the file loads with no name and no description). Wrap the value in double quotes."
     done <<< "$offenders"
   fi
-done < <(git ls-files 'plugins/*/agents/*.md' 'plugins/*/commands/*.md' 'plugins/*/skills/*/SKILL.md' '.claude/crew.md')
+done < <(git ls-files 'plugin/agents/*.md' 'plugin/commands/*.md' 'plugin/skills/*/SKILL.md' '.claude/crew.md')
 
 if [ "$fail" -ne 0 ]; then
   echo "Plugin validation failed." >&2

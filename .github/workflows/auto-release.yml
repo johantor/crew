@@ -1,7 +1,7 @@
 name: Auto-release
 
-# Create a GitHub Release (and its tag) when a plugin's version is bumped
-# on main AND the CHANGELOG contains an entry for that version.
+# Create a GitHub Release (and its tag) when the version is bumped on main
+# AND CHANGELOG.md has an entry for that version.
 
 on:
   push:
@@ -18,67 +18,24 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          # Full history: the "already released?" check below needs every tag, and
-          # a shallow checkout doesn't deliver them — `fetch-tags: true` at the
-          # default depth only follows tags pointing into the fetched history,
-          # which silently broke the check (#130).
+          # Full history: a shallow checkout does not deliver every tag.
           fetch-depth: 0
 
-      - name: Create releases for updated plugin versions
+      - name: Create a release for the current version
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          released=0
-          failed=0
-
-          for manifest in plugins/*/.claude-plugin/plugin.json; do
-            plugin_dir="${manifest%/.claude-plugin/plugin.json}"
-            plugin="$(basename "$plugin_dir")"
-            version="$(jq -r '.version' "$manifest")"
-            tag="${plugin}/v${version}"
-
-            if git rev-parse --verify "refs/tags/${tag}" >/dev/null 2>&1; then
-              echo "Tag $tag already exists – skipping."
-              continue
-            fi
-
-            # Require a matching CHANGELOG entry (## [<version>]) in the
-            # plugin's own CHANGELOG.md — every plugin keeps its changelog next
-            # to its manifest (validate-plugin.sh §2h enforces the pairing).
-            changelog="${plugin_dir}/CHANGELOG.md"
-            if [ ! -f "$changelog" ] || ! grep -qF "## [${version}]" "$changelog"; then
-              echo "::warning::No CHANGELOG entry for $tag – skipping."
-              continue
-            fi
-
-            # Notes = this version's CHANGELOG section. It lives in a script so
-            # it is shellchecked and covered by the tests. Same rule as the
-            # release call below: record the failure and carry on, so one
-            # plugin can't take the rest of the loop down with it.
-            if ! notes="$(scripts/release-notes.sh "$plugin_dir" "$version")"; then
-              echo "::error::Failed to build release notes for $tag"
-              failed=$((failed + 1))
-              continue
-            fi
-
-            echo "Creating release $tag"
-            printf '%s' "$notes" > /tmp/release-notes.md
-            # One plugin's failure must not silently skip the plugins after it
-            # in the loop — record it, keep going, and fail the job at the end.
-            if gh release create "${tag}" \
-              --repo "${GITHUB_REPOSITORY}" \
-              --title "${plugin} v${version}" \
-              --notes-file /tmp/release-notes.md; then
-              released=$((released + 1))
-            else
-              echo "::error::Failed to create release $tag"
-              failed=$((failed + 1))
-            fi
-          done
-
-          echo "Releases created: $released"
-          if [ "$failed" -ne 0 ]; then
-            echo "::error::$failed release(s) failed"
-            exit 1
+          version="$(jq -r '.version' plugin/.claude-plugin/plugin.json)"
+          tag="v${version}"
+          if git rev-parse --verify "refs/tags/${tag}" >/dev/null 2>&1; then
+            echo "Tag $tag already exists – skipping."
+            exit 0
           fi
+          if ! grep -qF "## [${version}]" CHANGELOG.md; then
+            echo "::warning::No CHANGELOG entry for $tag – skipping."
+            exit 0
+          fi
+          scripts/release-notes.sh . "$version" > /tmp/release-notes.md
+          gh release create "$tag" --repo "$GITHUB_REPOSITORY" \
+            --title "crew v${version}" --notes-file /tmp/release-notes.md

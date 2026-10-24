@@ -6,9 +6,9 @@
 # in .claude/crew.md names. Those commands are faked as scripts, so the suite
 # keeps its no-build/no-network/no-LLM contract while still exercising the real
 # match -> run -> report path.
-# shellcheck source=tests/hooks/lib.sh
+# shellcheck source=tests/lib.sh
 # shellcheck disable=SC1090,SC1091
-source "$(dirname "${BASH_SOURCE[0]}")/../../../tests/hooks/lib.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 HOOK="format.sh"
 
 # Short bound for the hang case below; the fake tools elsewhere are instant.

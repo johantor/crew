@@ -14,9 +14,9 @@
 # A fast-fail, not a boundary: plan mode itself is what blocks the edits. So it
 # FAILS OPEN — no jq, an unparseable payload, a dispatch that isn't a crew
 # worker's, an agent file it can't find — all allow.
-# See plugins/crew/CLAUDE.md and the README's "Plan mode".
+# See CLAUDE.md and the README's "Plan mode".
 _lib="${BASH_SOURCE[0]%/*}/lib/guard-lib.sh"
-# shellcheck source=plugins/crew/hooks/lib/guard-lib.sh
+# shellcheck source=plugin/hooks/lib/guard-lib.sh
 # shellcheck disable=SC1090,SC1091
 . "$_lib" 2>/dev/null || exit 0
 command -v jq >/dev/null 2>&1 || exit 0

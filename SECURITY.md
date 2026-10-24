@@ -23,10 +23,10 @@ stay anonymous.
 Anything that lets an agent do something the guards are meant to prevent — for
 example:
 
-- A command that `plugins/*/hooks/bash-safety.sh` should block (destructive
+- A command that `plugin/hooks/bash-safety.sh` should block (destructive
   `rm`, force-push, writes into `.git/`, a CLI call that prints an access token,
   a worker running `git`, a protected-branch commit) but doesn't.
-- An `Edit`/`Write` into `.git/` by a lane worker that `plugins/*/hooks/lane-guard.sh`
+- An `Edit`/`Write` into `.git/` by a lane worker that `plugin/hooks/lane-guard.sh`
   lets through.
 - A guard that fails **open** where it's documented to fail **closed**
   (`bash-safety.sh` must block when it can't inspect its input; `lane-guard.sh`
@@ -47,6 +47,6 @@ example:
 
 ## Supported versions
 
-Fixes ship on the latest release (`crew/vX.Y.Z`); there are no
+Fixes ship on the latest release (`vX.Y.Z`); there are no
 long-term-support branches.
 Update with `claude plugin update <name>@johantor`.
