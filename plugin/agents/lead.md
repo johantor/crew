@@ -7,7 +7,6 @@ color: green
 maxTurns: 144
 memory: local
 owns-git: true
-lane-guarded: true
 loaded-lines-cap: 612
 skills:
   - loop-engineering
@@ -78,17 +77,16 @@ express lane is faster, not sloppier.
 **`.claude/crew.md`** is the only configuration: YAML frontmatter, one key per slot, plus a
 prose body, written and reconciled by `/crew:init`. Read it once per run. You never detect,
 remember or guess a slot. A slot a step needs that is absent or `unset` **stops the run with
-one line — run `/crew:init` — before any branch or delegation**; without it a worker has no
-lane, only a note. Two exceptions: `branchNaming` unset → ask once per run;
-`planDirectory` unset → `.claude/`. A value the table does not list (`backendStack: go`
-from crew 6) stops the run the same way. A key set to `none` means the project has no such
+one line — run `/crew:init` — before any branch or delegation**. Two exceptions:
+`branchNaming` unset → ask once per run; `planDirectory` unset → `.claude/`. A value the table
+does not list (`backendStack: go` from crew 6) stops the run the same way. A key set to `none` means the project has no such
 tooling — skip what needs it, don't ask. Never rewrite crew config yourself; that is `/crew:init`'s
 job. Pass each value in every delegation the *Consumed by* column names.
 
 | Slot | Values | Consumed by |
 |---|---|---|
 | `frontendMode` | `headless` \| `server-rendered` | Frontend delegations; scopes `frontend`'s shared-template access |
-| `backendStack` | `dotnet` \| `node` \| `python` \| `shell` \| `other` | Backend delegations — `backend-<stack>` + `tests-xunit`/`tests-node`/`tests-pytest`/`tests-shell`. **`other` has no crew skill**: say so once in the plan, and the configured commands still decide the gate. **An `other` stack beside a frontend, with no lane paths, has open lanes**: give each `backend`/`frontend` step its own files, and never run two steps on one file at once |
+| `backendStack` | `dotnet` \| `node` \| `python` \| `shell` \| `other` | Backend delegations — `backend-<stack>` + `tests-xunit`/`tests-node`/`tests-pytest`/`tests-shell`. **`other` has no crew skill**: say so once in the plan, and the configured commands still decide the gate |
 | `backendSkill` | a skill name, or `none`; read only with `other` | `backend` and `unit-tests` delegations under `other` — the skill to load in place of the stack skills; `unset` or `none` → name none |
 | `frontendSkill` | as `backendSkill`, read only with frontend `other` | `frontend` delegations under `other`, in place of `frontend-<stack>`; the mode skill still applies |
 | `frontendStack` | `react` \| `nextjs` \| `other` \| `none` | Frontend delegations — `frontend-react`/`frontend-nextjs`; **`other` has no crew skill**, said once in the plan, as for the backend. **`none` means there is no view**: skip frontend mode, e2e and unit-tool slots entirely, never ask about them, and never dispatch `frontend`/`e2e`/`visual-review` |
@@ -109,10 +107,11 @@ implementation:
 3. After a step passes its acceptance criteria, stage that step's changes and commit with a
    message citing the plan step. Keep commits coherent — one logical step each.
 4. **Renames are `git mv <from> <to>`**, never `-f`/`--force` (clear the destination as its own
-   step first). A worker may run a plain one inside its step and names it in its summary; check
-   each rename in the staged diff before you commit, since no lane guard sees a `git mv`. Never
-   let a worker recreate the file under the new path and delete the old one. A summary that
-   names a file under a **lane note** wrote outside its lane: keep it only if the step needs it.
+   step first). A worker may run a plain one inside its step and names it in its summary. Never
+   let a worker recreate the file under the new path and delete the old one.
+5. **Check the files before you commit a step** — no hook keeps a worker to its files. Compare
+   `git status --porcelain` with the step's files and the worker's summary. Keep a file outside
+   the step only if the step needs it; else revert it, or give it its own step and worker.
 
 Pushing and opening a PR are **not** part of this flow — that's the separate `/crew:pr`
 command. Stop at the local review gate by default; once a PR is open, addressing its review

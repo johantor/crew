@@ -64,7 +64,7 @@ here:
   `sed -n '10,40p'`, `grep`, `jq`, and any `cat` whose output is piped into a filter.
 - **Changing a file**: use `Edit` or `Write`. An in-place `sed`/`perl`, a `tee`, a `cp`/`mv`,
   or a redirect into the checkout is refused in agent sessions, because such a write reaches
-  no `PreToolUse(Edit|Write)` hook and would skip both the write lanes and the formatter.
+  no `PreToolUse(Edit|Write)` hook and would skip both the `.git/` guard and the formatter.
   Scratch output under `/tmp`, and an unquoted absolute path outside the project, is exempt.
 
 Both rules close the same gap: a shell that edges around the tool the hooks are wired to.
@@ -88,9 +88,9 @@ implementer edits them (`visual-review`, `incident-triage`, `debt-scout`, `analy
 a summary. It is not remote execution, and it sends nothing outside the repository.
 
 The crew's guard hooks bound what a worker can do: only `lead` touches git, no agent commits on
-the base branch, each worker's edit outside its own lane gets a note that `lead` checks — through
-`Edit`/`Write`, and file-mutating Bash is refused so a write cannot skip the note — and destructive shell
-commands are refused. Nothing is pushed and no pull request is opened on its own — `/crew:pr` is the only
+the base branch, no agent writes inside `.git/`, `lead` checks each worker's changed files
+against its plan step, file-mutating Bash is refused so a write cannot skip the Edit/Write hooks,
+and destructive shell commands are refused. Nothing is pushed and no pull request is opened on its own — `/crew:pr` is the only
 path out of the machine, and the user invokes it.
 
 ## Map
@@ -170,13 +170,9 @@ Paths in *Map* are relative to `plugin/`, the directory users install.
     there instead of repeating them. Backends `backend-dotnet`
     (+ the `optimizely-<product>` skills), `-node`, `-python` (Opal tools), `-shell`, each paired
     with a `tests-*` skill. Any other language is `backendStack: other`, best effort: no crew
-    skill, the project's own via `backendSkill`; the hooks keep their Go/Rust/JVM patterns for
-    mixed repos. Node needs lane paths beside a frontend (its extensions collide with a
-    frontend's). `frontendStack: other` (Vue, Svelte, …) is the same with `frontendSkill`; the
-    mode skill still loads, and a TUI stays unsupported (`frontend-headless` is web-only). An
-    `other` stack on either side has open `backend`/`frontend` lanes unless lane paths are set
-    (AGENTS.md, "Why an `other` stack has open lanes"); a backend `other` widens `unit-tests` to
-    `test/`, `spec/`, `*_test.*` and `*_spec.*`.
+    skill, the project's own via `backendSkill`. `frontendStack: other` (Vue, Svelte, …) is the
+    same with `frontendSkill`; the mode skill still loads, and a TUI stays unsupported
+    (`frontend-headless` is web-only).
     `frontendStack: none` is a stated absence: `lead` skips frontend, e2e and unit-tool
     resolution and dispatches only `backend`/`unit-tests`. That gate sits above the resolution table.
   - Optimizely: one `optimizely-<product>` skill per product, sections in order **Detect**
@@ -200,7 +196,7 @@ Paths in *Map* are relative to `plugin/`, the directory users install.
     Next.js, headless and server-rendered frontend skills; `optimizely-ocp`
     by `backend-node`, `optimizely-odp` and `optimizely-opal`.
 - `hooks/` — wired in `hooks/hooks.json`, the one copy; in this repo they load through
-  `claude --plugin-dir plugin`. `bash-safety` fails closed; `lane-guard`, `read-guard`,
+  `claude --plugin-dir plugin`. `bash-safety` fails closed; `gitdir-guard`, `read-guard`,
   `format`, `dispatch-denied` and `plan-guard` fail open.
   - `bash-safety.sh`: token-printing CLI calls refused for every session (`az account
     get-access-token`, `Get-AzAccessToken`, `gh auth token`; AGENTS.md has the gaps);
@@ -216,29 +212,12 @@ Paths in *Map* are relative to `plugin/`, the directory users install.
     Raw reads (`cat f`) are refused for agent sessions: a habit redirect, not a boundary.
     Pagers and `tail -f` are refused for every session, since they never end.
   - `read-guard.sh`: raw reads over 64 KiB; an explicit `limit` ≤ 2000 lines passes.
-  - `lane-guard.sh`: Edit/Write lanes, as notes: a miss exits 0 with a `Lane note:` in
-    PreToolUse `additionalContext` on stdout; exit 2 only for a path inside `.git/`, for every
-    lane agent (`lead` keeps `.git/info/exclude`), checked before any note (AGENTS.md, "Why lanes warn"); a
-    worker's note says keep-if-named, `lead`'s says undo and delegate. `lead` is `--allow` on a filename shape at any depth —
-    `plan-*.md`, `debt-*.md`, `crew.md`, `CLAUDE.md`, `CLAUDE.local.md`, `.git/info/exclude`
-    (what `/crew:init` writes), `agent-memory-local/*.md`, `tickets/*.md` — plus scratch
-    and any path `guard_outside_project` accepts; no directory to anchor, no plan-directory slot
-    read (AGENTS.md, "Why `lead` is lane-guarded"). The
-    four code lane workers get their lanes below; `e2e` also gets any file whose *name*
-    contains `e2e` (a spec pattern is project config), never a parent directory's name, and
-    `unit-tests` gets a note for one. `copywriter` (`.resx`, `.po`/`.pot`, XLIFF,
-    and JSON/YAML/XML/`.po` under `locales/`, `locale/`, `i18n/`, `lang/`, `translations/`,
-    `messages/`) and `designer` (`design/`, `docs/design/`, `design-tokens/`, JSON/YAML under
-    `tokens/`, `*.tokens.json`) are `--allow` lanes that read no slot. The path goes through `guard_posix_path` first, so
-    a Windows `D:\x\y` matches the `/` globs. The globs match with case on every OS (macOS
-    too): ignoring it would widen `**/IT*.java` to `Item.java`. Only `format.sh`'s `$PWD` prefix
-    ignores case, on Windows. A `..` segment gets a note for every lane agent, and on Windows a
-    drive-relative `C:x` too.
-    `backend`/`frontend` get a note while `backendStack` is `unset`; the guard probes no markers.
-    Reads crew config through `guard_config_load` (`.claude/crew.md` frontmatter by key,
-    nothing else), called in the parent shell since `config_slot` runs in `$(...)`.
-  - Roster shape: `# crew-roster: <name>` then an `a|b|c)` arm, in `bash-safety.sh` and
-    `lane-guard.sh`; §9 keeps both in lockstep with `owns-git`/`lane-guarded` frontmatter.
+  - `gitdir-guard.sh`: exit 2 for an Edit/Write inside `.git/` by any `crew:` agent, case-blind,
+    path through `guard_posix_path` first (`lead` keeps `.git/info/exclude`, which `/crew:init`
+    writes). The only Edit/Write refusal: the crew has no write lanes (AGENTS.md, "Why the crew
+    has no write lanes").
+  - Roster shape: `# crew-roster: no-git` then an `a|b|c)` arm in `bash-safety.sh`; §9 keeps it
+    in lockstep with `owns-git` frontmatter.
   - `format.sh`: a runner over the `formatMatrix` block (`config_block`), no detection. Every
     row `<dir> <extensions> <command>` matching the edited file runs in order from `<dir>` via
     `bash -c`, `{file}` single-quoted and relative to `<dir>` (a Windows path is matched in `/`
@@ -259,7 +238,7 @@ Paths in *Map* are relative to `plugin/`, the directory users install.
     reaches the bare rosters; any other agent, a project's own bare `backend` included, becomes
     `ext:<name>`, still an agent session), `guard_normalize`, `guard_is_windows`, `guard_posix_path`,
     `GUARD_RE_*`, the `guard_block_*` helpers, quote masking, protected branches, read-guard
-    limits, crew config (`guard_config_load`, `config_slot`, `config_block`), state files.
+    limits, crew config (`guard_config_load`, `config_block`), state files.
 - `scripts/gate.sh` — the review-gate runner: `start <id> '<cmd>' [nocache]`, `poll <id>`, `stop <id>`,
   state in `/tmp/crew-gate-<id>/`. A green log is cached under `/tmp/crew-gate-cache`
   (`CREW_GATE_CACHE_DIR`; the tests point it at a fixture) by tree hash, physical directory
@@ -267,8 +246,7 @@ Paths in *Map* are relative to `plugin/`, the directory users install.
   writes `log` and `exit` 0 and no `pid`. `/crew:review` and `lead` name it by
   `${CLAUDE_PLUGIN_ROOT}`, which Claude Code substitutes in command and agent bodies.
 - `tests/` — a guard is `stdin JSON → exit 0/2`: assert allow/block plus a stderr substring.
-  Exceptions: `lane-guard` asserts its stdout note (`assert_note`) or silence (`assert_quiet`),
-  `format` asserts its stderr
+  Exceptions: `format` asserts its stderr
   report through fake tools, `dispatch-denied` asserts its stdout JSON with `jq`,
   `plan-guard` uses real agents, then fixtures via `CREW_AGENTS_DIR`, and `gate` runs the script. Every validator section has
   a negative fixture and a silent control (assert on the FAIL message).
@@ -289,8 +267,7 @@ Paths in *Map* are relative to `plugin/`, the directory users install.
 - Loop mode: generic contract in the shared `loop-engineering` skill; crew bindings (gate GO
   success, second-NO-GO cap, `/crew:pr`, generalist no-op) in `agents/lead.md` §"Loop-mode
   bindings". The outer loop is `commands/loop.md`.
-- Every crew agent carries `owns-git` and `lane-guarded` before `skills:` (§9); exactly one
-  (`lead`) owns git.
+- Every crew agent carries `owns-git` before `skills:` (§9); exactly one (`lead`) owns git.
 - `omitClaudeMd: true` only on `incident-triage` and `visual-review` (read-only, fully briefed). Never on an
   implementer: the project's `CLAUDE.md` holds its conventions. Not on `debt-scout` either: the
   project's `CLAUDE.md` may carry the debt policy section it has to honor.

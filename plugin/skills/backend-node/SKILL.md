@@ -36,8 +36,7 @@ When the frontend stack is Next.js, its route handlers (`app/**/route.ts`) physi
 inside the frontend app directory but are **your lane by concern** — the same way Razor's
 `@functions`/`@code` blocks are yours inside a `.cshtml` file frontend otherwise owns the
 markup of. Implement route-handler business logic there rather than leaving it to frontend;
-coordinate the markup/data contract instead of avoiding the file. `lane-guard.sh` exempts
-these paths from your directory-based lane note for this reason.
+coordinate the markup/data contract instead of avoiding the file.
 
 ## Build
 

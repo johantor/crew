@@ -7,7 +7,6 @@ maxTurns: 120
 color: magenta
 memory: local
 owns-git: false
-lane-guarded: true
 skills:
   - context-discipline
   - worker-contract

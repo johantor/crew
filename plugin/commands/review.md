@@ -26,7 +26,7 @@ backend suite for a lane nothing touched.
 
 Compute the files changed on this branch vs. the resolved base branch
 (`git diff --name-only <base>...HEAD`, plus any staged/unstaged changes), then
-classify each path — same split the lane guard uses:
+classify each path:
 
 - **Frontend lane** — its sources (`*.ts`, `*.tsx`, `*.jsx`, `*.js`, `*.mjs`, `*.scss`, `*.css`,
   `*.html`, and `*.cshtml` in server-rendered mode, where frontend owns the markup) and its
@@ -37,14 +37,11 @@ classify each path — same split the lane guard uses:
 - **Backend lane** — every other changed file that is not documentation (`*.md` outside
   `.claude/`, `docs/**`, `.github/**`, `LICENSE`): sources, manifests, lockfiles and gate
   configuration alike. `*.cshtml` carries server-side logic, so it counts here too. When in
-  doubt, backend: an extra build costs minutes, a skipped gate costs a bad merge. No list to keep
-  in step with `lane-guard.sh` — the guard decides who may *edit* a file, this step only decides
-  which gates *run*.
+  doubt, backend: an extra build costs minutes, a skipped gate costs a bad merge.
 - **Both lanes** — `.claude/crew.md`: a changed gate command changes what both lanes' gates do.
 - **Node is the exception.** The whole JS/TS set — `.ts`, `.tsx`, `.js`, `.jsx`, `.mjs`, `.cjs`,
-  `.mts`, `.cts` — **and the manifests, lockfiles and tool configs above** belong to whichever
-  lane the **Backend/Frontend lane path(s)** put them in (the same split `lane-guard.sh` falls
-  back to), so `apps/api/package.json` is backend under a backend lane path; and to the backend
+  `.mts`, `.cts` — **and the manifests, lockfiles and tool configs above** count toward both
+  lanes beside a frontend, since the extension cannot tell them apart, and toward the backend
   alone when **Frontend stack** is `none`. Classifying by extension would skip the backend gates
   on a backend-only Node repo.
 - **No view layer, no frontend gates.** When **Frontend stack** is `none` there is no frontend

@@ -57,8 +57,7 @@ _fail() {
 # _status (exit code), _stderr and _stdout (both captured).
 #
 # The guards say everything on stderr, so _stdout is empty for them. The
-# exceptions put JSON on stdout: dispatch-denied.sh (its whole decision) and
-# lane-guard.sh (its lane note).
+# exception puts JSON on stdout: dispatch-denied.sh (its whole decision).
 run_hook() {
   local hook="$1" payload="$2" cwd="${3:-}"
   local tmp_cwd="" err_file out_file
@@ -114,7 +113,7 @@ payload_bash() {
   fi
 }
 
-# payload_file <agent_type> <file_path>   (for lane-guard)
+# payload_file <agent_type> <file_path>   (for gitdir-guard and format)
 payload_file() {
   jq -nc --arg a "$1" --arg f "$2" '{agent_type: $a, tool_input: {file_path: $f}}'
 }
@@ -154,7 +153,7 @@ make_crew_md() {
 # make_tree <relpath>:<content> ... -> echoes a throwaway dir containing each
 # file, parent directories created. Splits each argument on its first colon, so
 # the content may contain colons (JSON) but the path may not. For fixtures whose
-# shape is what the hook reads: lane-guard's marker files, a project's configs.
+# shape is what the hook reads: a project's configs, plan-guard's agent files.
 make_tree() {
   local dir spec rel
   dir="$(new_tmpdir)"

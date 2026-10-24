@@ -6,8 +6,6 @@ frontendStack: none
 frontendSkill: unset
 frontendE2eTool: unset
 frontendUnitTestTool: unset
-backendLanePaths: unset
-frontendLanePaths: unset
 backendTestCommand: none
 frontendTestCommand: none
 backendBuildCommand: none
@@ -28,8 +26,7 @@ in the root [AGENTS.md](../AGENTS.md), *Validating changes*: the validator, the 
 the hook tests, and shellcheck.
 
 `backendStack` is `shell` and `frontendStack` is `none`: the hooks and scripts are the
-deliverable, and there is no view. Mode and lane-path slots stay `unset` because nothing needs
-them. `baseBranch` is `main`; `branchNaming` is the convention in AGENTS.md.
+deliverable, and there is no view. The mode slot stays `unset` because nothing needs it. `baseBranch` is `main`; `branchNaming` is the convention in AGENTS.md.
 
 `planDirectory` is `unset`, so plans land in the `.claude/` fallback, which this repo does not
 track.

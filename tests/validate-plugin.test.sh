@@ -109,11 +109,11 @@ mkdir -p "$d/plugin/skills/real"; printf -- '---\nname: real\ndescription: d\n--
 mk_agent "$d/plugin" real
 assert_silent "§2g silent when the skill exists" "$d" "does not resolve"
 
-# --- §9: hook rosters must be in lockstep with agent owns-git/lane-guarded -----
-mk_roster_agent() {  # <plugin_dir> <name> <tools> <owns-git> <lane-guarded>
+# --- §9: the no-git roster must be in lockstep with agent owns-git ------------
+mk_roster_agent() {  # <plugin_dir> <name> <tools> <owns-git>
   mkdir -p "$1/agents"
-  printf -- '---\nname: %s\ndescription: d\ntools: %s\nowns-git: %s\nlane-guarded: %s\n---\nbody\n' \
-    "$2" "$3" "$4" "$5" > "$1/agents/$2.md"
+  printf -- '---\nname: %s\ndescription: d\ntools: %s\nowns-git: %s\n---\nbody\n' \
+    "$2" "$3" "$4" > "$1/agents/$2.md"
 }
 mk_roster_hook() {  # <plugin_dir> <hook-basename> <roster-name> <arm-alternation>
   mkdir -p "$1/hooks"
@@ -125,8 +125,8 @@ mk_roster_hook() {  # <plugin_dir> <hook-basename> <roster-name> <arm-alternatio
 }
 # A Bash-capable non-owner missing from the no-git roster would run git unguarded.
 d="$(new_repo_foo)"
-mk_roster_agent "$d/plugin" boss "Read, Bash" true false
-mk_roster_agent "$d/plugin" hand "Read, Bash" false false
+mk_roster_agent "$d/plugin" boss "Read, Bash" true
+mk_roster_agent "$d/plugin" hand "Read, Bash" false
 mk_roster_hook "$d/plugin" bash-safety.sh no-git 'other'
 assert_emits "§9 bites on a Bash agent missing from the no-git roster" "$d" \
   "no no-git roster entry for 'hand'"
@@ -135,25 +135,25 @@ assert_emits "§9 bites on a stale no-git roster name" "$d" \
 
 # Listing the git owner in the no-git roster would block the one agent that must commit.
 d="$(new_repo_foo)"
-mk_roster_agent "$d/plugin" boss "Read, Bash" true false
+mk_roster_agent "$d/plugin" boss "Read, Bash" true
 mk_roster_hook "$d/plugin" bash-safety.sh no-git 'boss'
 assert_emits "§9 bites when the git owner is in the no-git roster" "$d" \
   "lists the git owner 'boss'"
 
 # Exactly one owner: neither zero nor two.
 d="$(new_repo_foo)"
-mk_roster_agent "$d/plugin" a "Read, Bash" false false
+mk_roster_agent "$d/plugin" a "Read, Bash" false
 mk_roster_hook "$d/plugin" bash-safety.sh no-git 'a'
 assert_emits "§9 bites when no agent owns git" "$d" "exactly one agent with 'owns-git: true'"
 d="$(new_repo_foo)"
-mk_roster_agent "$d/plugin" a "Read, Bash" true false
-mk_roster_agent "$d/plugin" b "Read, Bash" true false
+mk_roster_agent "$d/plugin" a "Read, Bash" true
+mk_roster_agent "$d/plugin" b "Read, Bash" true
 mk_roster_hook "$d/plugin" bash-safety.sh no-git 'none'
 assert_emits "§9 bites on two git owners" "$d" "found 2"
 
 # A new agent that declares neither fact is the drift this section exists to catch.
 d="$(new_repo_foo)"
-mk_roster_agent "$d/plugin" boss "Read, Bash" true false
+mk_roster_agent "$d/plugin" boss "Read, Bash" true
 mk_roster_hook "$d/plugin" bash-safety.sh no-git 'none'
 printf -- '---\nname: newbie\ndescription: d\ntools: Read, Bash\n---\nbody\n' > "$d/plugin/agents/newbie.md"
 assert_emits "§9 bites on an agent declaring no owns-git" "$d" \
@@ -161,13 +161,13 @@ assert_emits "§9 bites on an agent declaring no owns-git" "$d" \
 
 # Dropping the marker must fail loudly, not silently disable the check.
 d="$(new_repo_foo)"
-mk_roster_agent "$d/plugin" boss "Read, Bash" true false
+mk_roster_agent "$d/plugin" boss "Read, Bash" true
 mkdir -p "$d/plugin/hooks"; printf '#!/usr/bin/env bash\nexit 0\n' > "$d/plugin/hooks/bash-safety.sh"
 assert_emits "§9 bites on a missing no-git marker" "$d" "has no parseable '# crew-roster: no-git'"
 
 # No hook file at all must report, not abort the validator under `set -e`.
 d="$(new_repo_foo)"
-mk_roster_agent "$d/plugin" boss "Read, Bash" true false
+mk_roster_agent "$d/plugin" boss "Read, Bash" true
 assert_emits "§9 bites when the hook file is absent entirely" "$d" \
   "has no parseable '# crew-roster: no-git'"
 assert_emits "§9 keeps running after an absent hook" "$d" "Plugin validation failed."
@@ -175,7 +175,7 @@ assert_emits "§9 keeps running after an absent hook" "$d" "Plugin validation fa
 # A reformatted arm must fail loudly, not silently resolve to another case
 # statement further down the hook (bash-safety has a `main|master|develop)` arm).
 d="$(new_repo_foo)"
-mk_roster_agent "$d/plugin" boss "Read, Bash" true false
+mk_roster_agent "$d/plugin" boss "Read, Bash" true
 mkdir -p "$d/plugin/hooks"
 # shellcheck disable=SC2016
 printf '#!/usr/bin/env bash\n# crew-roster: no-git -- fixture\ncase "$agent_type" in\n  a | b)\n  ;;\nesac\ncase "$branch" in\n  main|master|develop) ;;\nesac\n' \
@@ -186,33 +186,15 @@ assert_silent "§9 does not adopt a later case statement's arm" "$d" "'main'"
 
 # A duplicated roster name is a copy-paste error, not a silent dedupe.
 d="$(new_repo_foo)"
-mk_roster_agent "$d/plugin" boss "Read, Bash" true false
-mk_roster_agent "$d/plugin" hand "Read, Bash" false false
+mk_roster_agent "$d/plugin" boss "Read, Bash" true
+mk_roster_agent "$d/plugin" hand "Read, Bash" false
 mk_roster_hook "$d/plugin" bash-safety.sh no-git 'hand|hand'
 assert_emits "§9 bites on a duplicated roster name" "$d" "names 'hand' more than once"
-
-# lane-guarded, both directions.
-d="$(new_repo_foo)"
-mk_roster_agent "$d/plugin" boss "Read, Bash" true false
-mk_roster_agent "$d/plugin" laned "Read, Bash" false true
-mk_roster_hook "$d/plugin" bash-safety.sh no-git 'laned'
-mk_roster_hook "$d/plugin" lane-guard.sh lane-guarded 'other'
-assert_emits "§9 bites when a lane-guarded agent is missing from the roster" "$d" \
-  "roster omits 'laned'"
-assert_emits "§9 bites on a stale lane roster name" "$d" \
-  "lane roster entry 'other' does not match any"
-d="$(new_repo_foo)"
-mk_roster_agent "$d/plugin" boss "Read, Bash" true false
-mk_roster_agent "$d/plugin" laned "Read, Bash" false true
-mk_roster_hook "$d/plugin" bash-safety.sh no-git 'laned'
-mk_roster_hook "$d/plugin" lane-guard.sh lane-guarded 'laned|laned'
-assert_emits "§9 bites on a duplicated lane roster name" "$d" \
-  "lane roster names 'laned' more than once"
 
 # An empty `owns-git:` must fail loudly, not skip §9 for the whole plugin.
 d="$(new_repo_foo)"
 mkdir -p "$d/plugin/agents"
-printf -- '---\nname: boss\ndescription: d\ntools: Read, Bash\nowns-git:\nlane-guarded: false\n---\nbody\n' \
+printf -- '---\nname: boss\ndescription: d\ntools: Read, Bash\nowns-git:\n---\nbody\n' \
   > "$d/plugin/agents/boss.md"
 mk_roster_hook "$d/plugin" bash-safety.sh no-git 'none'
 assert_emits "§9 opt-in keys on presence, not value" "$d" \
@@ -220,8 +202,8 @@ assert_emits "§9 opt-in keys on presence, not value" "$d" \
 
 # A Bash-less agent in the no-git roster is a dead entry: it can never run git.
 d="$(new_repo_foo)"
-mk_roster_agent "$d/plugin" boss "Read, Bash" true false
-mk_roster_agent "$d/plugin" looker "Read, Grep" false false
+mk_roster_agent "$d/plugin" boss "Read, Bash" true
+mk_roster_agent "$d/plugin" looker "Read, Grep" false
 mk_roster_hook "$d/plugin" bash-safety.sh no-git 'looker'
 assert_emits "§9 bites on a Bash-less agent in the no-git roster" "$d" \
   "has no Bash tool; remove the dead entry"
@@ -229,28 +211,19 @@ assert_emits "§9 bites on a Bash-less agent in the no-git roster" "$d" \
 # An inline YAML comment on a declaration is valid YAML, not a broken value.
 d="$(new_repo_foo)"
 mkdir -p "$d/plugin/agents"
-printf -- '---\nname: boss\ndescription: d\ntools: Read, Bash\nowns-git: true  # sole git owner\nlane-guarded: false\n---\nbody\n' \
+printf -- '---\nname: boss\ndescription: d\ntools: Read, Bash\nowns-git: true  # sole git owner\n---\nbody\n' \
   > "$d/plugin/agents/boss.md"
 mk_roster_hook "$d/plugin" bash-safety.sh no-git 'none'
 assert_silent "§9 accepts an inline comment after a declaration" "$d" "expected true or false"
 
-d="$(new_repo_foo)"
-mk_roster_agent "$d/plugin" boss "Read, Bash" true false
-mk_roster_agent "$d/plugin" free "Read, Bash" false false
-mk_roster_hook "$d/plugin" bash-safety.sh no-git 'free'
-mk_roster_hook "$d/plugin" lane-guard.sh lane-guarded 'free'
-assert_emits "§9 bites when the roster lists a lane-guarded: false agent" "$d" \
-  "declares 'lane-guarded: false'"
-
 # A Bash-less agent needs no no-git entry, and the control must stay silent.
 d="$(new_repo_foo)"
-mk_roster_agent "$d/plugin" boss "Read, Bash" true false
-mk_roster_agent "$d/plugin" laned "Read, Bash" false true
-mk_roster_agent "$d/plugin" looker "Read, Grep" false false
-mk_roster_hook "$d/plugin" bash-safety.sh no-git 'laned'
-mk_roster_hook "$d/plugin" lane-guard.sh lane-guarded 'laned'
+mk_roster_agent "$d/plugin" boss "Read, Bash" true
+mk_roster_agent "$d/plugin" hand "Read, Bash" false
+mk_roster_agent "$d/plugin" looker "Read, Grep" false
+mk_roster_hook "$d/plugin" bash-safety.sh no-git 'hand'
 # Assert on FAIL-only phrasing: the `ok:` lines also contain the word "roster".
-assert_silent "§9 silent when both rosters are in lockstep" "$d" "add it to the arm"
+assert_silent "§9 silent when the roster is in lockstep" "$d" "add it to the arm"
 assert_silent "§9 silent: no stale-name complaint in lockstep" "$d" "remove the stale name"
 assert_silent "§9 silent: no owner complaint in lockstep" "$d" "exactly one agent"
 

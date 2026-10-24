@@ -36,9 +36,8 @@ run until this command fills it (`branchNaming` is asked once per run instead, a
   template.
 - **Backend stack** (`backendStack`) — `dotnet`, `node`, `python`, or `shell`; `other` for a
   stack the crew ships no skill for (Go, Rust, Java, Ruby, …), best effort: the crew works from
-  the configured commands and the project's own skill, and `lead`'s plan, not the lane guard,
-  keeps `backend` and `frontend` apart unless lane paths are set. The
-  lane guard notes on every `backend`/`frontend` write while it is `unset`.
+  the configured commands and the project's own skill, and `lead`'s plan keeps `backend` and
+  `frontend` apart, as for every stack.
 - **Backend skill** (`backendSkill`) — only with `other`: the project's own skill for its stack,
   by name, which `lead` hands to `backend` and `unit-tests`; `none` when it has none. `unset`
   for every other stack.
@@ -56,15 +55,6 @@ run until this command fills it (`branchNaming` is asked once per run instead, a
   project has no e2e suite (a confirmed absence: `e2e` is then never dispatched).
 - **Frontend unit test tool** (`frontendUnitTestTool`) — `vitest`, `jest`, or `cypress`; `unset`
   when the project has no frontend unit tests, and `unit-tests` then scopes to backend tests.
-- **Backend lane path(s)** (`backendLanePaths`) — comma-separated path prefixes, e.g. `apps/api/`.
-  Only when backend and frontend stacks are the same language (Node backend + Next.js): by
-  extension `lane-guard.sh` cannot tell `backend`'s and `frontend`'s files apart and falls back
-  to these. Optional with an `other` stack, for the guard to split the lanes there too. `unset`
-  otherwise.
-- **Frontend lane path(s)** (`frontendLanePaths`) — e.g. `apps/web/`; same caveat. A lane path
-  is a directory: never `./` or `.` (it covers the whole tree, so the other lane can write
-  nothing). Files outside both lanes (a backend's root `Program.cs`) are open to both, except
-  route handlers (`app/**/route.ts`, `pages/api/**`), which stay `backend`'s.
 - **Backend test command** (`backendTestCommand`) — e.g. `dotnet test`.
 - **Frontend test command** (`frontendTestCommand`) — the **e2e** suite only (e.g. `npx playwright
   test`); `unit-tests` derives unit/component runs from the Frontend unit test tool instead.
@@ -102,8 +92,6 @@ frontendSkill: unset
 frontendMode: server-rendered
 frontendE2eTool: cypress
 frontendUnitTestTool: unset
-backendLanePaths: unset
-frontendLanePaths: unset
 backendTestCommand: dotnet test
 frontendTestCommand: npx playwright test
 backendBuildCommand: dotnet build
@@ -140,7 +128,6 @@ trust or correct it; never invent a command you can't see configured.
 | Frontend mode | An SPA build (React, Vue, Svelte, Angular, Next, Nuxt, …) → `headless`; Razor `.cshtml` views without an SPA bundle → `server-rendered`. Mixed or unclear → **ask** which mode governs the areas the crew will work in, write that one, and describe the split in the body notes. Never leave it `unset`: `lead` stops on it and sends the user back here. |
 | Frontend e2e tool | `cypress.config.*` or a `cypress/` directory → `cypress`; `playwright.config.*` → `playwright`; neither → `none`, a confirmed absence, never `unset`. |
 | Frontend unit test tool | `vitest.config.*` → `vitest`; `jest.config.*` or a `jest` key with no vitest → `jest`; a `cypress.config.*` `component` key with neither → `cypress`. Absent → `unset`, a confirmed absence that stops nothing. |
-| Lane paths | Never auto-detect. Only when backend and frontend stacks are the same language, and then ask for the paths. With an `other` stack beside a frontend, say they are optional and leave them `unset` unless the user gives them. |
 | Base branch | `git symbolic-ref refs/remotes/origin/HEAD`, else an existing `main`/`develop`. Ambiguous → ask; `origin/HEAD` is often unset or stale, and a wrong base is expensive. |
 | Run/dev URL, branch naming | Dev scripts, `launchSettings.json`, existing branch names; else `unset`. |
 | Plan directory | Only an obvious existing convention (`docs/plans/`, tracked `plan-*.md` outside `.claude/`); else `unset`. |
@@ -185,9 +172,9 @@ implementer edits them (`visual-review`, `incident-triage`, `debt-scout`, `analy
 a summary. It is not remote execution, and it sends nothing outside the repository.
 
 The crew's guard hooks bound what a worker can do: only `lead` touches git, no agent commits on
-the base branch, each worker's edit outside its own lane gets a note that `lead` checks — through
-`Edit`/`Write`, and file-mutating Bash is refused so a write cannot skip the note — and destructive shell
-commands are refused. Nothing is pushed and no pull request is opened on its own — `/crew:pr` is the only
+the base branch, no agent writes inside `.git/`, `lead` checks each worker's changed files
+against its plan step, file-mutating Bash is refused so a write cannot skip the Edit/Write hooks,
+and destructive shell commands are refused. Nothing is pushed and no pull request is opened on its own — `/crew:pr` is the only
 path out of the machine, and the user invokes it.
 ```
 
@@ -250,7 +237,8 @@ already there. Until that write succeeds, write nothing else: if it fails, stop 
   diff rather than rewriting the block. Preserve the body notes verbatim. The one exception: a
   value §1 no longer lists (a `backendStack` of `go`, `rust` or `java` from crew 6)
   is shown as "unsupported" with the supported values, `other` proposed first, and the user
-  picks one or removes the crew from the project.
+  picks one or removes the crew from the project. A key §1 no longer lists
+  (`backendLanePaths` and `frontendLanePaths`, from crew 11) is shown as "dropped" and removed.
 
 Before writing, show the exact set of additions and removals — a short diff of slots, plus the
 `CLAUDE.md` lines kept, reworded, and dropped — and apply only after the user confirms.
