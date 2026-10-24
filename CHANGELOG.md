@@ -9,8 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- The plugin is the repository root, like `johantor/board`, and releases are tagged `vX.Y.Z`.
-  Install from `johantor/plugins` as before.
+- The plugin lives in `plugin/`, like `johantor/board`, so installs carry only the plugin, and
+  releases are tagged `vX.Y.Z`. Install from `johantor/plugins` as before.
 
 ## [11.0.2] - 2026-10-24
 

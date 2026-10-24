@@ -9,7 +9,7 @@
 
 # Fail open: a note that cannot be computed is no note.
 _lib="${BASH_SOURCE[0]%/*}/lib/guard-lib.sh"
-# shellcheck source=hooks/lib/guard-lib.sh
+# shellcheck source=plugin/hooks/lib/guard-lib.sh
 # shellcheck disable=SC1090,SC1091
 . "$_lib" 2>/dev/null || exit 0
 command -v jq >/dev/null 2>&1 || exit 0

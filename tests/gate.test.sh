@@ -7,7 +7,7 @@
 # shellcheck source=tests/lib.sh
 # shellcheck disable=SC1090,SC1091
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
-GATE="$(cd "$(dirname "${BASH_SOURCE[0]}")/../scripts" && pwd)/gate.sh"
+GATE="$(cd "$(dirname "${BASH_SOURCE[0]}")/../plugin/scripts" && pwd)/gate.sh"
 
 # Ids are unique per run so parallel suites never share a /tmp directory.
 id="t-$$-$RANDOM"; id2="${id}-b"

@@ -23,10 +23,10 @@ stay anonymous.
 Anything that lets an agent do something the guards are meant to prevent — for
 example:
 
-- A command that `hooks/bash-safety.sh` should block (destructive
+- A command that `plugin/hooks/bash-safety.sh` should block (destructive
   `rm`, force-push, writes into `.git/`, a CLI call that prints an access token,
   a worker running `git`, a protected-branch commit) but doesn't.
-- An `Edit`/`Write` into `.git/` by a lane worker that `hooks/lane-guard.sh`
+- An `Edit`/`Write` into `.git/` by a lane worker that `plugin/hooks/lane-guard.sh`
   lets through.
 - A guard that fails **open** where it's documented to fail **closed**
   (`bash-safety.sh` must block when it can't inspect its input; `lane-guard.sh`

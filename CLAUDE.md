@@ -1,7 +1,7 @@
 # crew — Claude Code notes
 
 This repository is the `crew` Claude Code plugin: orchestrated agents, commands, hooks, and
-skills. **The plugin is the repository root** — there is no application code to build or ship. The
+skills. **The plugin is `plugin/`** — there is no application code to build or ship. The
 `johantor` marketplace lives in [johantor/plugins](https://github.com/johantor/plugins).
 
 **Start with [AGENTS.md](AGENTS.md)** — the contributor guide (repository layout, how the
@@ -22,7 +22,7 @@ docs, and commit messages keep the repo's own voice.
 ## Engineering rules
 
 Every change here follows
-[`engineering-principles`](skills/engineering-principles/SKILL.md). Read it before
+[`engineering-principles`](plugin/skills/engineering-principles/SKILL.md). Read it before
 you write code, and re-read your diff against it before you finish. Before you open a PR or push
 to one, run the `crew-review` skill on the diff and fix its Blocking and Warning findings first
 (`AGENTS.md`, *Conventions*).
@@ -55,7 +55,7 @@ The rules live once, in [AGENTS.md](AGENTS.md). Read the section before you touc
 
 Reads and writes in this repository go through the `Read`, `Edit` and `Write` tools, not
 through the shell. A guard hook enforces it (start a session here with
-`claude --plugin-dir .`, which loads the crew hooks), so the glance-level habit fails
+`claude --plugin-dir plugin`, which loads the crew hooks), so the glance-level habit fails
 here:
 
 - **Reading a file**: use `Read`. A bare `cat <file>` is refused in agent sessions — a shell
@@ -94,6 +94,8 @@ commands are refused. Nothing is pushed and no pull request is opened on its own
 path out of the machine, and the user invokes it.
 
 ## Map
+
+Paths in *Map* are relative to `plugin/`, the directory users install.
 
 - `agents/` — auto-discovered, not in the manifest.
   - `lead`: orchestrator, `model: opus`, sole git owner. Its `Agent(...)` allowlist (fourteen
@@ -198,7 +200,7 @@ path out of the machine, and the user invokes it.
     Next.js, headless and server-rendered frontend skills; `optimizely-ocp`
     by `backend-node`, `optimizely-odp` and `optimizely-opal`.
 - `hooks/` — wired in `hooks/hooks.json`, the one copy; in this repo they load through
-  `claude --plugin-dir .`. `bash-safety` fails closed; `lane-guard`, `read-guard`,
+  `claude --plugin-dir plugin`. `bash-safety` fails closed; `lane-guard`, `read-guard`,
   `format`, `dispatch-denied` and `plan-guard` fail open.
   - `bash-safety.sh`: token-printing CLI calls refused for every session (`az account
     get-access-token`, `Get-AzAccessToken`, `gh auth token`; AGENTS.md has the gaps);

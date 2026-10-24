@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Self-tests for the release scripts (johantor/board carries the same suite):
-#   scripts/check-changelog.sh — a shipped change must bump the version. Diff-driven, so each
-#     case builds a throwaway repo with real commits.
+# Self-tests for the release scripts (johantor/crew and johantor/board carry the same suite):
+#   scripts/check-changelog.sh — a change under plugin/ must bump the version. Diff-driven, so
+#     each case builds a throwaway repo with real commits.
 #   scripts/release-notes.sh   — one version's CHANGELOG section, the GitHub Release notes.
 # Assert on the message, not the exit code, so it is clear which check fired.
 # shellcheck source=tests/lib.sh
@@ -10,8 +10,8 @@ source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
-# new_gate_repo -> a repo on `main` holding the gate and a plugin at the root (v1.0.0),
-# with a `work` branch checked out. The base is local; the script falls back to it.
+# new_gate_repo -> a repo on `main` holding the gate and a plugin in plugin/ (v1.0.0), with a
+# `work` branch checked out. The base is local; the script falls back to it.
 new_gate_repo() {
   local d
   d="$(new_tmpdir)"
@@ -20,12 +20,12 @@ new_gate_repo() {
   git -C "$d" config user.email test@example.com
   git -C "$d" config user.name "Test"
   git -C "$d" config commit.gpgsign false
-  mkdir -p "$d/scripts" "$d/.claude-plugin" "$d/commands"
+  mkdir -p "$d/scripts" "$d/plugin/.claude-plugin" "$d/plugin/commands"
   cp "$REPO_ROOT/scripts/check-changelog.sh" "$d/scripts/" || die "cp script failed into $d"
-  printf '{"name":"foo","version":"1.0.0"}\n' > "$d/.claude-plugin/plugin.json"
+  printf '{"name":"foo","version":"1.0.0"}\n' > "$d/plugin/.claude-plugin/plugin.json"
   printf '# Changelog\n\n## [1.0.0] - 2026-01-01\n\n### Added\n- initial\n' > "$d/CHANGELOG.md"
   printf 'readme v1\n' > "$d/README.md"
-  printf 'open v1\n' > "$d/commands/open.md"
+  printf 'open v1\n' > "$d/plugin/commands/open.md"
   gate_commit "$d" "initial"
   git -C "$d" checkout -q -b work
   printf '%s' "$d"
@@ -35,7 +35,7 @@ gate_commit() { git -C "$1" add -A >/dev/null 2>&1; git -C "$1" commit -q -m "$2
 
 # bump <repo> <version> [changelog: yes|no]
 bump() {
-  printf '{"name":"foo","version":"%s"}\n' "$2" > "$1/.claude-plugin/plugin.json"
+  printf '{"name":"foo","version":"%s"}\n' "$2" > "$1/plugin/.claude-plugin/plugin.json"
   if [ "${3:-yes}" = yes ]; then
     printf '# Changelog\n\n## [%s] - 2026-02-02\n\n### Changed\n- bumped\n\n## [1.0.0] - 2026-01-01\n- initial\n' "$2" \
       > "$1/CHANGELOG.md"
@@ -53,39 +53,35 @@ assert_no_out() { # <label> <substr>
 
 NOBUMP="without a version bump"
 
-# --- A shipped change needs a bump --------------------------------------------
-d="$(new_gate_repo)"; printf 'readme v2\n' > "$d/README.md"; gate_commit "$d" "docs: reword"
-run_gate "$d"; assert_out "bites on a README change with no bump" "$NOBUMP"
+# --- A change under plugin/ needs a bump --------------------------------------
+d="$(new_gate_repo)"; printf 'open v2\n' > "$d/plugin/commands/open.md"; gate_commit "$d" "fix: open"
+run_gate "$d"; assert_out "bites on a plugin/ change with no bump" "$NOBUMP"
 
-d="$(new_gate_repo)"; printf 'open v2\n' > "$d/commands/open.md"; gate_commit "$d" "fix: open"
-run_gate "$d"; assert_out "bites on a commands/ change: *.md under a dir still ships" "$NOBUMP"
+d="$(new_gate_repo)"; mkdir -p "$d/plugin/scripts"; printf 'x\n' > "$d/plugin/scripts/x.sh"; gate_commit "$d" "feat: x"
+run_gate "$d"; assert_out "bites on a new file under plugin/" "$NOBUMP"
 
-d="$(new_gate_repo)"; mkdir -p "$d/scripts"; printf 'x\n' > "$d/scripts/gate.sh"; gate_commit "$d" "fix: gate"
-run_gate "$d"; assert_out "bites on scripts/gate.sh: it ships, unlike the tooling beside it" "$NOBUMP"
-
-d="$(new_gate_repo)"; printf 'readme v2\n' > "$d/README.md"; bump "$d" 1.1.0
-gate_commit "$d" "feat: reword (v1.1.0)"
+d="$(new_gate_repo)"; printf 'open v2\n' > "$d/plugin/commands/open.md"; bump "$d" 1.1.0
+gate_commit "$d" "feat: open (v1.1.0)"
 run_gate "$d"; assert_no_out "silent when the version is bumped" "$NOBUMP"
 assert_out "names the bump" "1.0.0 -> 1.1.0"
 
-d="$(new_gate_repo)"; printf 'readme v2\n' > "$d/README.md"; bump "$d" 1.1.0 no
-gate_commit "$d" "feat: reword (v1.1.0)"
+d="$(new_gate_repo)"; printf 'open v2\n' > "$d/plugin/commands/open.md"; bump "$d" 1.1.0 no
+gate_commit "$d" "feat: open (v1.1.0)"
 run_gate "$d"; assert_out "a bump needs its changelog entry" "has no '## [1.1.0]' entry"
 
 # Mid-branch: an uncommitted edit counts, so the check is useful before the commit.
-d="$(new_gate_repo)"; printf 'readme v2\n' > "$d/README.md"
-run_gate "$d"; assert_out "bites on an uncommitted shipped change" "$NOBUMP"
+d="$(new_gate_repo)"; printf 'open v2\n' > "$d/plugin/commands/open.md"
+run_gate "$d"; assert_out "bites on an uncommitted plugin/ change" "$NOBUMP"
 
-# --- The gate ignores what users never receive --------------------------------
-for f in tests/t.sh docs/index.html .claude/crew.md .github/x.yml AGENTS.md CLAUDE.md SECURITY.md PRIVACY.md \
-         VERIFICATION.md scripts/validate-plugin.sh scripts/check-changelog.sh; do
-  d="$(new_gate_repo)"; mkdir -p "$d/$(dirname "$f")"; printf 'x\n' > "$d/$f"; gate_commit "$d" "chore: $f"
+# --- Nothing outside plugin/ ships --------------------------------------------
+for f in README.md tests/t.sh docs/index.html scripts/x.sh .claude/crew.md .github/x.yml AGENTS.md CLAUDE.md; do
+  d="$(new_gate_repo)"; mkdir -p "$d/$(dirname "$f")"; printf 'x\n' >> "$d/$f"; gate_commit "$d" "chore: $f"
   run_gate "$d"; assert_no_out "silent on a $f-only change" "$NOBUMP"
 done
 
 # Unrelated commits on main since the branch forked are not this PR's changes.
 d="$(new_gate_repo)"; git -C "$d" checkout -q main
-printf 'readme v2\n' > "$d/README.md"; gate_commit "$d" "docs: on main"
+printf 'open v2\n' > "$d/plugin/commands/open.md"; gate_commit "$d" "fix: on main"
 git -C "$d" checkout -q work; mkdir -p "$d/tests"; printf 'x\n' > "$d/tests/t.sh"
 gate_commit "$d" "test: add a case"
 run_gate "$d"; assert_no_out "silent when only main moved" "$NOBUMP"

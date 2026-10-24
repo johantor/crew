@@ -9,7 +9,7 @@
 # Fails closed: a guard that can't read its input must block, not pass the
 # command through uninspected. jq is a documented dependency.
 _lib="${BASH_SOURCE[0]%/*}/lib/guard-lib.sh"
-# shellcheck source=hooks/lib/guard-lib.sh
+# shellcheck source=plugin/hooks/lib/guard-lib.sh
 # shellcheck disable=SC1090,SC1091
 if ! . "$_lib" 2>/dev/null; then
   echo "Blocked: bash-safety could not load its guard library ($_lib)." >&2

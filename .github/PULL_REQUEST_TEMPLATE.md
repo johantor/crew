@@ -18,12 +18,12 @@ See AGENTS.md, "Conventions". -->
 
 <!-- Per AGENTS.md "Releasing": a shipped change bumps the version. If this PR touches anything
 under the plugin except tests/, CLAUDE.md, VERIFICATION.md and the changelog itself, bump
-`version` in the plugin's `.claude-plugin/plugin.json` and add a matching `CHANGELOG.md` entry.
+`version` in `plugin/.claude-plugin/plugin.json` and add a matching `CHANGELOG.md` entry.
 CI (`scripts/check-changelog.sh`) blocks a shipped change without a bump. Only changes that
 reach no user through `claude plugin update` are N/A. Entries are one line, two at most: what
 changed, not why — the why is in the commit message. -->
 
-- [ ] Bumped `.claude-plugin/plugin.json` version + matching `CHANGELOG.md` entry
+- [ ] Bumped `plugin/.claude-plugin/plugin.json` version + matching `CHANGELOG.md` entry
 - [ ] Each changelog bullet is one line, two at most
 - [ ] N/A — nothing shipped changed (CI, root docs, tests)
 
@@ -32,7 +32,7 @@ changed, not why — the why is in the commit message. -->
 <!-- What you ran, as results not transcripts: "ran X, all green", or one line
 per case. Never paste output. Per AGENTS.md "Validating changes". -->
 
-- [ ] `shellcheck hooks/*.sh hooks/lib/*.sh tests/*.sh scripts/*.sh`
+- [ ] `shellcheck plugin/hooks/*.sh plugin/hooks/lib/*.sh plugin/scripts/*.sh tests/*.sh scripts/*.sh`
 - [ ] `bash scripts/validate-plugin.sh`
 - [ ] Manually exercised the affected agent/command/skill flow
 

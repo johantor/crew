@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
-# Fails a PR that changes the plugin's shipped files without bumping its version.
+# Fails a PR that changes the plugin without bumping its version.
 # `claude plugin update` keys on `version`, and a version's release notes are its
 # CHANGELOG section, so an unbumped change ships described nowhere.
 #
-# Shipped = everything except repo tooling (tests/, .github/, .claude/, and the scripts below;
-# scripts/gate.sh ships), the site (docs/), and contributor material (the root guides and
-# policies below). README.md counts.
+# Shipped = everything under plugin/: the marketplace installs that directory and
+# nothing else. johantor/crew and johantor/board carry the same script.
 #   scripts/check-changelog.sh [<branch>]     # default: main
 set -euo pipefail
 
@@ -21,14 +20,8 @@ done
 [ -n "$base_sha" ] || { echo "FAIL: cannot resolve base ref '$base_ref'" >&2; exit 1; }
 merge_base="$(git merge-base "$base_sha" HEAD)"
 
-manifest=".claude-plugin/plugin.json"
-changed="$(git diff --name-only "$merge_base" -- . \
-  ':(exclude)tests' ':(exclude).github' ':(exclude).claude' ':(exclude)docs' \
-  ':(exclude)scripts/check-changelog.sh' ':(exclude)scripts/release-notes.sh' \
-  ':(exclude)scripts/validate-plugin.sh' ':(exclude).gitattributes' ':(exclude).gitignore' \
-  ':(exclude)AGENTS.md' ':(exclude)CLAUDE.md' ':(exclude)CHANGELOG.md' ':(exclude)CONTRIBUTING.md' \
-  ':(exclude)CODE_OF_CONDUCT.md' ':(exclude)PRIVACY.md' ':(exclude)SECURITY.md' \
-  ':(exclude)VERIFICATION.md')"
+manifest="plugin/.claude-plugin/plugin.json"
+changed="$(git diff --name-only "$merge_base" -- plugin)"
 if [ -z "$changed" ]; then
   echo "Changelog check passed (no shipped changes)."
   exit 0

@@ -24,9 +24,9 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       # The shell's `*` does not cross directory separators (git's does), so the
-      # sourced libraries under hooks/lib/ need their own pattern here.
+      # sourced libraries under plugin/hooks/lib/ need their own pattern here.
       - name: Lint shell files
-        run: shellcheck hooks/*.sh hooks/lib/*.sh tests/*.sh scripts/*.sh
+        run: shellcheck plugin/hooks/*.sh plugin/hooks/lib/*.sh plugin/scripts/*.sh tests/*.sh scripts/*.sh
 
   plugin:
     permissions:
