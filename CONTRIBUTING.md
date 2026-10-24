@@ -7,7 +7,8 @@ only points there, so the two cannot drift.
 The short version:
 
 1. Open an issue first for anything bigger than a typo. Use the bug or feature template.
-2. Branch from the latest `main`. One branch and one PR per issue.
+2. Branch from the latest `main`, named `<type>/<issue>-<slug>`, such as
+   `fix/12-lane-guard-on-windows` (*Conventions* in AGENTS.md). One branch and one PR per issue.
 3. Run what CI runs (*Validating changes* in AGENTS.md) before you push.
 4. A change under `plugins/<name>/` bumps the version and adds a changelog line (*Releasing*).
 5. Title the PR in Conventional Commits form and fill in the PR template.
