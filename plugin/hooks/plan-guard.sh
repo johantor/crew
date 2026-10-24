@@ -5,8 +5,8 @@
 # Plan mode refuses every Edit/Write until the plan is approved, so an
 # implementer dispatched during planning spends its turns on refused edits and
 # hands back nothing. The worker's own frontmatter decides, not a roster (the
-# rosters validator §9 pins live in bash-safety/lane-guard; a third one here
-# would drift unwatched): `owns-git: true` marks the orchestrator, which plans
+# roster validator §9 pins lives in bash-safety; a second one here would
+# drift unwatched): `owns-git: true` marks the orchestrator, which plans
 # in plan mode and passes; any other crew agent whose `tools:` carry
 # Edit/Write/NotebookEdit is refused until the plan is approved; a worker with
 # none of those passes.

@@ -6,7 +6,6 @@ model: sonnet
 maxTurns: 60
 color: purple
 owns-git: false
-lane-guarded: false
 skills:
   - context-discipline
   - mid-run-direction
@@ -38,15 +37,13 @@ that reads as prose is still only a name or a line.
 First load `debt-taxonomy` with the Skill tool. Every rubric, heuristic, filter and tier named
 below lives there or in its per-stack skill.
 
-1. **Parse the scope.** Valid scopes: a path, a lane (`backend`/`frontend`), a rule family
-   (`nullability`, `eslint`, `skipped-tests`, `ts-suppressions`, `analyzers`), `stale`,
-   `outdated` (optionally narrowed by a lane or path), or `diff`. A `diff` scope arrives as the
+1. **Parse the scope.** Valid scopes: a path, a rule family (`nullability`, `eslint`,
+   `skipped-tests`, `ts-suppressions`, `analyzers`), `stale`, `outdated` (optionally narrowed by
+   a path), or `diff`. A `diff` scope arrives as the
    **file list your caller resolved**; an `outdated` scope arrives as the **discover-outdated
-   output your caller ran**. Either with no data block → say so and stop. A lane names the
-   crew-config lane paths (`.claude/crew.md`, `backendLanePaths` / `frontendLanePaths`); unset →
-   say the lane is not configured and stop.
+   output your caller ran**. Either with no data block → say so and stop.
 2. **Detect the stack** with the `debt-taxonomy` **Stack detection** pass — marker files via
-   `Glob`, lanes are not stacks — and load each detected `debt-taxonomy-<stack>`. No stack
+   `Glob` — and load each detected `debt-taxonomy-<stack>`. No stack
    matches → report the markers you found and stop; never scan a stack with no taxonomy.
 3. **Enumerate** with `Grep` — counts and file lists only. `stale`: the **Stale-suppression
    heuristic**, grep-only candidates. `outdated`: triage each `current → target` line of the
@@ -57,7 +54,7 @@ below lives there or in its per-stack skill.
 5. **Drop justified findings from the list, keep them in the totals** (*Justified
    suppressions*): a meaningfully justified suppression, or one a policy section excludes, is
    counted but not listed — a justified suppression that also looks stale is still excluded in a
-   path, lane, rule-family or `diff` scope. Only the **`stale` scope** lists justified candidates
+   path, rule-family or `diff` scope. Only the **`stale` scope** lists justified candidates
    (tagged `justified`), and skipped tests are never excluded in any scope. Unclear intent →
    list it. Audit has no `--force`: excluded sites go under *Excluded from the ranking* with
    their rationale.

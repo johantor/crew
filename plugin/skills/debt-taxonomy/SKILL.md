@@ -31,8 +31,8 @@ find . -maxdepth 3 \( -name '*.csproj' -o -name 'package.json' -o -name 'tsconfi
 A repo may match more than one stack (a typical Optimizely + React solution matches both) —
 that is expected; apply each stack's skill to its own lane.
 
-**Lanes are not stacks.** A lane (`backend`/`frontend`) names a *file area* used for scoping
-and delegation; a stack names a *language*. Never infer the taxonomy from the lane name — a
+**Lanes are not stacks.** A lane (`backend`/`frontend`) names a *file area* used for
+delegation; a stack names a *language*. Never infer the taxonomy from the lane name — a
 `backend` lane is C# in an Optimizely repo but TypeScript in a Node repo. The skill applied to
 a file always comes from the marker-file detection above, regardless of which lane the file
 sits in.
@@ -145,7 +145,7 @@ excluded)` — so the debt is never silently invisible. This formalizes class 1'
 
 | Audit scope | Justification filter |
 |---|---|
-| path, lane, rule family, `diff` | **Applies** — justified findings excluded from the report, counted in totals |
+| path, rule family, `diff` | **Applies** — justified findings excluded from the report, counted in totals |
 | `stale` | **Does not apply.** Staleness is orthogonal to legitimacy: a justified suppression whose diagnostic no longer fires is still removable, and the justification explains why it was *added*, not why it should stay now. Justified candidates are listed, tagged `justified` |
 | `outdated` | Not applicable — no suppressions involved |
 

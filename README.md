@@ -56,8 +56,8 @@ front end.
 - **Specialists, not one generalist.** Backend, the client-facing layer, unit tests, e2e, and
   design conformance each go to an agent scoped to that work, with only the tools it needs.
 - **Guardrails in code, not prose.** Workers are blocked from `git` outright by `PreToolUse`
-  hooks, enforced by the harness rather than by asking politely. File edits get a lane note,
-  not a block: a write outside a worker's lane goes through, and the worker is told.
+  hooks, enforced by the harness rather than by asking politely. File edits are not fenced:
+  each plan step names its files, and `lead` checks every changed file before it commits.
 - **A gate that can say no, and you hold the door.** `/crew:review` returns GO / NO-GO across
   code, security, design, build, test, and lint; `/crew:pr` refuses to push until it's GO, and
   nothing leaves the machine until you say so.
@@ -71,8 +71,7 @@ front end.
   delegates. Background workers can't prompt, so a step that still needs a decision has to get one
   from you first.
 - **`/crew:init` is not optional.** It is the only place the crew learns what the project is.
-  `lead` stops a run while a slot it needs is `unset`, and the lane guard notes the missing slot
-  on every `backend`/`frontend` write rather than guess.
+  `lead` stops a run while a slot it needs is `unset` rather than guess.
 - **Nothing ships on its own.** No push, no PR, not even in loop mode. If you wanted
   fire-and-forget, this is the wrong tool.
 
@@ -104,7 +103,7 @@ reason `Blocked by classifier`. Crew is subagent dispatch end to end, so it feel
 most plugins. From **14 August 2026** auto mode is the default for new sessions on Pro, Max, and
 Team plans — a fresh install lands there unless you switch.
 
-What bounds a run is the crew's own guards — git ownership, lane notes, refused destructive
+What bounds a run is the crew's own guards — git ownership, the `.git/` guard, refused destructive
 commands, and `/crew:pr` as the only user-invoked way anything leaves your machine. Those apply in
 every permission mode.
 
@@ -199,7 +198,7 @@ another plugin's command of the same short name.
 ## Safety guarantees
 
 The bash-safety guard enforces the boundaries and **fails closed**. The read guard blocks large
-raw reads, the lane guard blocks `.git/` writes and notes the rest, and both fail open, as do the advisory hooks
+raw reads, the `.git/` guard blocks agent writes into `.git/`, and both fail open, as do the advisory hooks
 (formatting, denied dispatches, plan-mode dispatches) — `plan-guard` does
 block a dispatch, but only one plan mode would have refused anyway, and on any path it can't read
 it allows.
@@ -208,38 +207,26 @@ it allows.
   plain `git mv` to rename a file, which lands in `lead`'s next commit. `lead` is the sole
   git owner, enforced in code. Every agent, `lead` included, is refused
   `git commit` while HEAD is `main`/`master`/`develop`.
-- **Each worker has a lane, and a write outside it gets a note.** `backend` and `frontend` each
-  have their side's files; `unit-tests`/`e2e` their test paths, `copywriter` copy and resource
-  files, `designer` tokens and design specs. A write outside the lane goes through, and the
-  worker is told to name the file in its summary; `lead` checks the split. The review and
-  planning agents are read-only (`generalist` has no lane by design; that's the express lane).
-  This covers `Edit`/`Write` — and file-mutating Bash (`sed -i`, `tee`, a `>` redirect,
-  `cp`/`mv`) is refused outright, so a write cannot skip the note or the formatter.
+- **Each plan step names its files, and `lead` checks them.** Before it commits a step, `lead`
+  compares the changed files with the step's files and the worker's summary, and reverts or
+  re-delegates a file outside the step. No hook fences a worker's edits, except that no crew
+  agent writes inside `.git/`. The review and planning agents are read-only. File-mutating
+  Bash (`sed -i`, `tee`, a `>` redirect, `cp`/`mv`) is refused outright, so a write cannot skip
+  the `.git/` guard or the formatter.
 - **Destructive and hanging commands are refused.** Recursive force-`rm` of `/`/`~`/`*`,
   force-push, redirects into `.env` or `.git/`, and never-terminating watch/dev/serve commands.
 - **Context stays bounded.** Raw reads over 64 KiB are blocked in favour of grep/jq.
 
-All git, watch, and lane rules are scoped by `agent_type`, so **your own main session is never
+All git, watch, and `.git/` rules are scoped by `agent_type`, so **your own main session is never
 intercepted**.
 
 <details>
 <summary>Hook mechanics in detail</summary>
 
-- **lane-guard** routes on the payload's `agent_type` and checks `Edit`/`Write` only. It blocks
-  only a write into `.git/` (`lead` keeps `.git/info/exclude`): a write outside the lane passes
-  with a note to the agent (`additionalContext`), and a payload it cannot read passes silently. File writes via Bash (`sed -i`, `tee`, redirects) are
-  refused by **bash-safety** instead, so there is one lane check rather than two lane
-  implementations that can drift.
-  Two regimes: extension-based globs by default (correct when the backend and the client-facing
-  layer are different languages — dotnet beside a JS frontend), or
-  directory-based paths (the `backendLanePaths` / `frontendLanePaths` slots) when both resolved
-  stacks are the same language (e.g. node+nextjs) and an extension alone can't tell the lanes
-  apart. Node shares its extensions with a frontend, so beside one it needs the paths; without
-  them every write gets a note naming them rather than a guess. An `other` stack (backend or
-  frontend) has no extensions the guard knows: without lane paths both agents write anywhere
-  with no note, and `lead`'s plan keeps them apart. The regime comes from the stack slots alone:
-  while it is `unset`, `backend` and `frontend` writes get a note naming `/crew:init`. The guard
-  never probes the tree. `e2e` also gets any file whose name contains `e2e`.
+- **gitdir-guard** routes on the payload's `agent_type` and checks `Edit`/`Write` only. It
+  refuses a write inside `.git/` by any crew agent (`lead` keeps `.git/info/exclude`), and a
+  payload it cannot read passes. File writes via Bash (`sed -i`, `tee`, redirects) are refused
+  by **bash-safety** instead.
 - **read-guard** blocks raw reads of files over 64 KiB (65536 bytes); an explicit `limit` of
   ≤ 2000 lines passes. See the `context-discipline` skill.
 - **bash-safety** blocks destructive commands (recursive+force `rm` of `/`/`~`/`*` in any flag
@@ -352,7 +339,7 @@ one that isn't installed, so it just reports the server as unavailable.
   command delegates.
 - **Commands:** `/crew:init`, `/crew:feature`, `/crew:debt`, `/crew:audit`, `/crew:review`,
   `/crew:pr`, `/crew:address`, `/crew:triage`, `/crew:loop`, `/crew:notify`.
-- **Hooks:** lane guard, read guard, bash safety, formatter entrypoint,
+- **Hooks:** `.git/` guard, read guard, bash safety, formatter entrypoint,
   dispatch-denied advisor (see *Permission mode*).
 - **Skills:** always on for every agent: `context-discipline`. For `lead`: `loop-engineering`,
   `operator-voice` and `review-gate` (the gate rules, which `/crew:review` loads too). For the implementers `backend`, `frontend` and `generalist`: `engineering-principles`.
@@ -370,7 +357,7 @@ resolve relative to the project directory — memory at `.claude/agent-memory-lo
 **Plan directory** slot or `.claude/` when it is unset — so they sit inside the worktree, and
 `git worktree remove` deletes those copies. Configuration is never in memory: it lives in
 `.claude/crew.md`, which travels with the branch when committed. A local, git-excluded
-`.claude/crew.md` is not in a new worktree, so `lead` stops there and `backend`/`frontend` writes get a lane note. Point **Plan directory** at a
+`.claude/crew.md` is not in a new worktree, so `lead` stops there. Point **Plan directory** at a
 tracked path (e.g. `docs/plans/`) so a plan you commit lands on the branch instead of in the
 untracked `.claude/` fallback.
 

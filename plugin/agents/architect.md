@@ -6,7 +6,6 @@ model: opus
 maxTurns: 60
 color: pink
 owns-git: false
-lane-guarded: false
 skills:
   - context-discipline
   - mid-run-direction

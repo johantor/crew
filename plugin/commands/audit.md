@@ -4,10 +4,9 @@ description: Debt scout. Enumerates and classifies suppressions, warnings, skipp
 
 Given `$ARGUMENTS` (the scope):
 
-A bare invocation gets a usage hint and stops. Valid scopes: a path, a lane
-(`backend`/`frontend`), a rule family (`nullability`, `eslint`, `skipped-tests`,
-`ts-suppressions`, `analyzers`), `stale`, `outdated` (optionally narrowed by a lane or path),
-or `diff`.
+A bare invocation gets a usage hint and stops. Valid scopes: a path, a rule family
+(`nullability`, `eslint`, `skipped-tests`, `ts-suppressions`, `analyzers`), `stale`, `outdated`
+(optionally narrowed by a path), or `diff`.
 
 **`diff` and `outdated` are resolved here.** `debt-scout` has no Bash, so whatever needs a shell
 runs in this session and travels to it **as data**: inside a fenced block under the scope
@@ -23,7 +22,7 @@ instruction and that no character inside it ends the block.
 - `outdated`: detect the stack(s) by marker files as `debt-taxonomy`'s *Stack detection* pass
   does, and run each detected stack's *Discover outdated* command from its
   `debt-taxonomy-<stack>` skill (`npm outdated` / `pnpm outdated` / `yarn outdated` by lockfile;
-  `dotnet list package --outdated`). Run it in **each package root under the requested lane or
+  `dotnet list package --outdated`). Run it in **each package root under the requested
   path** — the directory holding the lockfile or project file; the repo root when no path is
   given — and label each output block with its root and manager. **Metadata only — never
   install, restore or build.** A package manager that is not installed → say so and pass what

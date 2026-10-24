@@ -6,7 +6,6 @@ model: sonnet
 maxTurns: 60
 color: orange
 owns-git: false
-lane-guarded: false
 omitClaudeMd: true
 skills:
   - context-discipline

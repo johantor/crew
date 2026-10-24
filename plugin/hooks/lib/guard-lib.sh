@@ -205,7 +205,7 @@ GUARD_RE_CAT="${_g_cmdpos}${_g_pfx}"'cat[[:space:]]+[^|><;&]+([[:space:]]*($|[;&
 
 # Bash can mutate a file without any Edit|Write hook seeing it: a redirect, a
 # `tee`, an in-place stream edit, a copy into the tree. Such a write skips every
-# PreToolUse(Edit|Write) guard (write lanes, write allowlists) and every
+# PreToolUse(Edit|Write) guard (the .git/ refusal) and every
 # PostToolUse(Edit|Write) one (formatting), so for an agent session it is a way
 # around a guard rather than a matter of style.
 #
@@ -314,8 +314,8 @@ guard_write_sink_exempt() {
 }
 
 # guard_outside_project <path> -- true for an absolute path outside
-# $CLAUDE_PROJECT_DIR, such as an out-of-tree build root (#240): the lane and
-# format hooks guard only the checkout. An allow-list, so it fails closed: the
+# $CLAUDE_PROJECT_DIR, such as an out-of-tree build root (#240): the Edit|Write
+# hooks guard only the checkout. An allow-list, so it fails closed: the
 # path must be absolute and every segment plain (`[A-Za-z0-9_-][A-Za-z0-9._-]*`),
 # so `$VAR`, a backtick, a glob, `.`, `..`, `//` or a hidden segment counts as
 # inside. Parsing what bash would expand was tried in #264 and leaked. On Windows
@@ -395,7 +395,7 @@ guard_mask_quotes() {
 guard_write_refuse() {
   local hint=''
   case "$guard_cmd_raw" in *'<<'*) hint=' A heredoc body is scanned too: write its text with Write to a scratch file and pass the file.' ;; esac
-  echo "Blocked: $1 writes a file from Bash, which reaches no Edit|Write hook — write lanes and formatting are wired to Edit/Write, so the write would land unguarded. Use Edit/Write for files in the checkout; send scratch output under /tmp.$hint" >&2
+  echo "Blocked: $1 writes a file from Bash, which reaches no Edit|Write hook — the .git/ guard and formatting are wired to Edit/Write, so the write would land unguarded. Use Edit/Write for files in the checkout; send scratch output under /tmp.$hint" >&2
   exit 2
 }
 
@@ -406,12 +406,12 @@ guard_write_refuse() {
 GUARD_GIT_MV_MASK='@gitmv@'
 
 # guard_block_file_writes -- refuse a Bash command that edits a file in the
-# checkout. Callers scope it to agent sessions: the operator's own session is not
-# lane-guarded, so it has no guard to route around.
+# checkout. Callers scope it to agent sessions: the operator's own session has
+# no Edit|Write guard, so it has none to route around.
 #
 # `git mv` is the one carve-out, for every agent. It renames a tracked path and
 # records the rename in the index; no bytes change, so there is nothing for a
-# lane guard or a formatter to inspect, and the rename lands in a commit, where
+# formatter to inspect, and the rename lands in a commit, where
 # it is reviewed. Which agents may run git at all is the roster's policy, after
 # the floor; guard_is_plain_git_mv is the one git a worker may run.
 # `-f`/`--force` stays
@@ -518,10 +518,10 @@ guard_block_protected_branch_commit() {
 #
 # Crew configuration lives in `.claude/crew.md` as YAML frontmatter, one key per
 # slot. It is the only location: the `--local` file and the legacy `CLAUDE.md`
-# block went in 5.0.0 (#248). Read by lane-guard (lanes) and format (the matrix).
+# block went in 5.0.0 (#248). Read by format (the matrix).
 
 # guard_config_load -- the frontmatter into $_cfg_text, once, in the PARENT
-# shell (config_slot runs in `$(...)`, so a lazy load would be discarded). The
+# shell (config_block runs in `$(...)`, so a lazy load would be discarded). The
 # body is prose and may quote an example block, so only the frontmatter counts.
 guard_config_load() {
   local _cfg_raw="" _cfg_line _cfg_first=1
@@ -538,37 +538,6 @@ guard_config_load() {
     [ "$_cfg_line" = "---" ] && break
     _cfg_text+="$_cfg_line"$'\n'
   done <<<"$_cfg_raw"
-}
-
-# config_slot <frontmatter-key> -- a slot's scalar value. Missing file, missing
-# slot, or the unset/none placeholders all mean "not configured" -> empty string.
-config_slot() {
-  local line v=""
-  [ -n "${_cfg_text:-}" ] || return 0
-  while IFS= read -r line; do
-    # Only the key is a literal here; the trailing * is the glob. Slot names are
-    # fixed strings, so a caller cannot turn this into a pattern.
-    case "$line" in
-      "$1:"*) v="${line#"$1:"}" ;;
-      *) continue ;;
-    esac
-    v="${v#"${v%%[![:space:]]*}"}"       # trim leading whitespace
-    # Unwrap quotes, then drop a ` #` comment: either left in place builds a lane
-    # glob that matches nothing, which reads as "no lane" and widens the agent.
-    case "$v" in
-      '"'*) v="${v#\"}"; v="${v%%\"*}" ;;
-      "'"*) v="${v#\'}"; v="${v%%\'*}" ;;
-      *[[:space:]]'#'*) v="${v%%[[:space:]]#*}" ;;
-    esac
-    v="${v%"${v##*[![:space:]]}"}"       # trim trailing whitespace
-    break
-  done <<<"$_cfg_text"
-  case "$v" in
-    # The `unset` placeholder, empty, and any value starting with "none" (e.g.
-    # "none (no e2e suite detected)") all mean not configured.
-    unset|none|none[!A-Za-z0-9]*|'') return 0 ;;
-    *) printf '%s' "$v" ;;
-  esac
 }
 
 # config_block <frontmatter-key> -- the lines of a block scalar (`key: |`),

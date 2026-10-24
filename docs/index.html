@@ -8,7 +8,7 @@
 <link rel="canonical" href="https://johantor.github.io/crew/">
 <meta property="og:type" content="website">
 <meta property="og:title" content="crew — an agent team for Optimizely work in Claude Code">
-<meta property="og:description" content="A lead agent plans, specialists build, hooks keep every lane honest, and one review gate decides.">
+<meta property="og:description" content="A lead agent plans, specialists build, hooks guard git and the shell, and one review gate decides.">
 <meta property="og:url" content="https://johantor.github.io/crew/">
 <meta property="og:image" content="https://johantor.github.io/crew/solo-vs-crew.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -36,8 +36,8 @@
     <h1>Ship Optimizely features like a <em>team.</em></h1>
     <p class="lede">One agent holding a whole feature reviews its own work. crew splits the job the way
       your team does: a <strong>lead</strong> that plans and delegates, <strong>specialists</strong>
-      that know the CMS they work in, and <strong>guardrails in code</strong> that keep every lane
-      honest until one review gate says go.</p>
+      that know the CMS they work in, and <strong>guardrails in code</strong> on git and the shell
+      until one review gate says go.</p>
 
     <div class="install" id="install">
 <pre id="cmd"><span class="p">$ </span>claude plugin marketplace add johantor/plugins
@@ -154,7 +154,7 @@
       </div>
       <ul class="checks">
         <li><b>One pair of hands on git.</b> Only the lead runs git, on a feature branch.</li>
-        <li><b>Writes stay in lane.</b> Shell writes that would route around the guard are refused.</li>
+        <li><b>Writes go through Edit.</b> Shell writes that would route around the hooks are refused.</li>
         <li><b>Destructive commands refused.</b> Force-push and writes into <code>.git/</code> are blocked.</li>
         <li><b>Nothing leaves on its own.</b> No push and no pull request until you run <code>/crew:pr</code>.</li>
       </ul>

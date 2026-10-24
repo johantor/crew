@@ -24,7 +24,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/lane-guard.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/gitdir-guard.sh"
           }
         ]
       },

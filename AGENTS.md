@@ -49,15 +49,11 @@ reaches users. The `johantor` marketplace is its own repository,
 - The plan at `<plan-dir>/plan-<feature>.md` (the `planDirectory` slot, else `.claude/`) carries
   per-step acceptance criteria. It is presented once for the user's go-ahead before the branch
   or any delegation (the plan checkpoint); a standing "just build it" counts as the go-ahead.
-- Each worker has a lane (the plugin map lists them). `lane-guard.sh` checks the write lane by
-  extension where the stacks' languages differ, or by the configured lane paths where they are
-  the same (Node + Next.js), and notes a miss without blocking it (*Why lanes warn*); an `other`
-  stack without lane paths has open lanes (*Why an `other` stack has open lanes*). With
-  `backendStack` unset it notes that `backend`/`frontend` have no lane.
-  `copywriter` (copy and resource files) and `designer` (tokens and specs) have lanes by
-  filename, the same in every stack. `generalist` has no lane guard; `visual-review`,
-  `incident-triage`, `debt-scout`, `analyst`, `architect`, `security-review` and `web-review`
-  are read-only.
+- Each worker has a lane, its role (the plugin map lists them). No hook enforces it: each plan
+  step names its files, and `lead` compares a step's changed files with them before it commits
+  (*Why the crew has no write lanes*). The one Edit/Write refusal is `gitdir-guard.sh`: no crew
+  agent writes inside `.git/`. `visual-review`, `incident-triage`, `debt-scout`, `analyst`,
+  `architect`, `security-review` and `web-review` are read-only.
 - `lead` **right-sizes by task size**: small, low-risk work takes the express lane (`generalist`,
   no plan or full gate, a quick self-review, commit) and escalates on evidence; features take the
   full flow; a pointer to known debt takes the **debt lane** (`debt-lane` skill: gate on blast
@@ -80,8 +76,7 @@ reaches users. The `johantor` marketplace is its own repository,
 Runtime configuration (commands, base branch, mode, stacks) lives in `.claude/crew.md`: YAML
 frontmatter, one key per slot, plus a prose body. It is the one location (#248). `/crew:init`
 writes and reconciles it and is the only detector (*Init is the only detector*). A slot reads
-`unset` when unresolved (the orchestrator stops and names `/crew:init`; the lane guard notes it
-on a worker's write) and `none` when the project has no such tooling (the gate skips). A project's `CLAUDE.md`
+`unset` when unresolved (the orchestrator stops and names `/crew:init`) and `none` when the project has no such tooling (the gate skips). A project's `CLAUDE.md`
 holds no configuration, only the `## Crew orchestration` prose, because auto mode's permission
 classifier reads only `CLAUDE.md`. To keep the configuration out of the repo, `/crew:init`
 git-excludes the same file, so no reader changes, and moves the prose to a git-excluded
@@ -181,13 +176,6 @@ rule costs more than a sentence of prose, and motivation measurably helps compli
   contracts, so the fixer rules travel in each handoff. The audit greps untrusted content and
   must edit nothing; `debt-scout`'s `tools:` list without Edit/Write/Bash is the boundary, and
   `/crew:audit` resolves the two shell-needing scopes as data blocks.
-- **Why `lead` is lane-guarded, and why its lane is a filename shape.** It writes plans,
-  ledgers, config and memory, never production code. A directory allowlist needed a root and a
-  slot that could overlap source, and three review rounds each found an edge case; production
-  code is never named `plan-*.md`. Ticket drafts (`tickets/*.md`) fit the same shape, and so
-  does what `/crew:init` writes (`CLAUDE.md`, `CLAUDE.local.md`, `.git/info/exclude`). Outside
-  the project, `lead` writes anything (a scratchpad, an input file for a CLI): the lane guards
-  the checkout only, by `guard_outside_project`. A `..` segment gets a note for every lane agent.
 - **Class 4 waits for the user**: routing a skipped test on the pointer alone turns "investigate"
   into "unskip".
 - **Exit contract and resume** make re-running a cleared pointer a cheap no-op.
@@ -235,9 +223,9 @@ FAIL message, not the exit code: a minimal fixture trips unrelated sections.
 What the lockstep sections protect:
 
 - **§2g**: a `skills:` typo fails silently at runtime; the agent guesses.
-- **§9**: a name missing from a guard's roster **fails open**: unrestricted git, no lane note. Each
-  agent declares `owns-git` and `lane-guarded`; each roster carries a `# crew-roster:` marker in
-  the load-bearing `a|b|c)` arm shape; exactly one git owner.
+- **§9**: a name missing from `bash-safety.sh`'s no-git roster **fails open**: unrestricted git.
+  Each agent declares `owns-git`; the roster carries a `# crew-roster: no-git` marker in the
+  load-bearing `a|b|c)` arm shape; exactly one git owner.
 - **§10**: a `crew:` reference in prose that resolves to no agent, command or skill fails late.
 - **§11**: `init.md` §1's `- **Slot** (`key`) —` bullets and `.claude/crew.md`'s keys agree both
   ways, paired on the key.
@@ -331,27 +319,21 @@ layout cannot express; or a second review round finds a new edge case of the sam
 Opening up removes code; locking down adds it and still leaks. The worked example is the next
 section. Reviewers: an opening documented here is not a fail-open finding.
 
-### Why lanes warn
+### Why the crew has no write lanes
 
-A lane is division of labour, so by the rule above it does not fail closed. `lane-guard` passes
-every lane miss: it returns a `Lane note:` to the agent (PreToolUse `additionalContext`, since
-stderr at exit 0 never reaches the model), and the agent names the file in its summary. `lead`
-reads the summary and the diff, so a misplaced file shows up at the review gate. A block cost
-more than it bought: each project layout the globs missed (a co-located `*.e2e-cy.ts`) stopped a
-step that was right. The safety guards (git, destructive and file-mutating Bash) still block.
+A lane is division of labour, so by the rule above it does not fail closed. Until 12.0.0
+`lane-guard.sh` checked each write against per-agent globs, then only noted a miss (a block had
+stopped right steps whenever a layout escaped the globs). A note the worker repeats in its summary
+adds nothing to what `lead` already sees in the diff, and the guard cost 250 lines, a 480-line
+suite, two lane-path slots, a roster and a Windows path layer. Each plan step names its files
+instead, which is per step rather than per stack, and `lead` compares `git status` with them and
+the worker's summary before it commits. Gap: parallel workers share one tree, so the summaries,
+not the diff, say which worker wrote a file.
 
-One `Edit`/`Write` is safety, not a lane: a path inside `.git/` is refused for every lane agent
-(`lead` keeps `.git/info/exclude`), checked before any note, case-blind, whatever the stack. It is
-a floor like the Bash guards: like the lanes it fails open on a broken install (no library, no
-`jq`), and the main session and `generalist` have no lane agent type, so it does not see them.
-
-### Why an `other` stack has open lanes
-
-No extension list can split `backend`'s files from `frontend`'s for a stack the crew knows
-nothing about (#301 found `.styl` past one), and required lane paths cannot express a root-level
-backend. So with an `other` stack and no lane paths, `lane-guard` lets both write anywhere and
-`lead`'s plan gives each step its own files. Every safety guard is unchanged, as are the
-`unit-tests`, `e2e` and `lead` lanes; lane paths, when set, restore the directory split.
+One `Edit`/`Write` is safety, not a lane: `gitdir-guard.sh` refuses a path inside `.git/` for
+every `crew:` agent (`lead` keeps `.git/info/exclude`), case-blind. It is a floor like the Bash
+guards: it fails open on a broken install (no library, no `jq`), and it does not see the main
+session or a project's own agents.
 
 ### The Bash guards are floors, not sandboxes
 
@@ -373,8 +355,8 @@ not; several were widened once and reverted, and the hooks point here so it is n
   or the literal directory of `git -C <dir>` / `cd <dir> &&`; other shapes also check the hook's
   own directory, so it is never weaker than before #224 (a full shell walk drew 100+ threads and
   was replaced). Open gap: `CDPATH`.
-- **A redirect outside the project is exempt, by allow-list** (#240): lanes and formatting guard
-  only the checkout, and an out-of-tree build root is where builds write. Only an absolute path
+- **A redirect outside the project is exempt, by allow-list** (#240): the `.git/` guard and
+  formatting guard only the checkout, and an out-of-tree build root is where builds write. Only an absolute path
   of plain segments outside `$CLAUDE_PROJECT_DIR` passes; `$`, backticks, globs, `.`, `..`, `//`,
   hidden segments, quotes and an unset project dir all count as inside. Reasoning about what bash
   would expand leaked three rounds running (#264). Open gaps: a symlink outside the project that
@@ -396,9 +378,8 @@ not; several were widened once and reverted, and the hooks point here so it is n
   only wave through a `git mv` inside a string, never refuse anything. The floor decides *what* a
   `git mv` is, not *whose*: it lets any agent run a plain one. `bash-safety.sh`'s no-git roster
   lets a worker run only a `git mv` alone in the command with relative paths (no `-C`, `cd` or
-  `..`), so the rename stays in the tree it was dispatched to (#249, #263). Open gaps: no lane
-  guard sees a `git mv`, so `lead` checks renames in the staged diff; a cwd a worker moved
-  with an earlier `cd` call is not checked.
+  `..`), so the rename stays in the tree it was dispatched to (#249, #263). Open gap: a cwd a
+  worker moved with an earlier `cd` call is not checked.
 
 ### Init is the only detector
 
@@ -406,9 +387,9 @@ A value that is a property of the project and that a human can confirm once (the
 tools, the paths, the commands) is a slot in `.claude/crew.md`, proposed by `/crew:init` from the
 stack skills' *Crew config* sections and confirmed by the user. Hooks and `lead` read slots;
 none of them detects, and a missing slot is a stop naming `/crew:init`, never a guess. Until
-7.0.0, `lead`, `lane-guard.sh` and `format.sh` each detected too: duplicated markers, misses that
-failed open, and agent memory as a second config store. A rule of behavior (who owns git, what a
-lane may touch, which commands hang) stays in the crew; the Bash guards' command lists are
+7.0.0, `lead`, the lane guard and `format.sh` each detected too: duplicated markers, misses that
+failed open, and agent memory as a second config store. A rule of behavior (who owns git, which
+commands hang) stays in the crew; the Bash guards' command lists are
 floors, not project knowledge.
 
 ### Why `format.sh` runs a matrix and detects nothing

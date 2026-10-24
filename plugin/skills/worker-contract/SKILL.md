@@ -10,11 +10,11 @@ your own prompt adds what is specific to your role, and your stack skill adds wh
 to its tool.
 
 - **Never run `git`, except a plain `git mv`.** `crew:lead` owns branching and commits. A
-  rename your step needs is `git mv <from> <to>` inside your lane: alone in the command, paths
+  rename your step needs is `git mv <from> <to>`: alone in the command, paths
   relative to the worktree, never `-f`, `-C` or `cd`. Say it in your summary so the commit
   carries it. Never recreate the file under the new path instead.
-- **A `Lane note:` means the file is outside your lane.** The write went through. Keep it only
-  if your step names the file, and list it in your summary under "lane note" either way.
+- **Edit the files your step names.** If the step needs another file, edit it and list it in
+  your summary under "outside the step". `lead` checks every changed file before it commits.
 - **Ask, don't guess.** If the delegation omits something you must resolve from it — the stack,
   the mode, the test tool, the list of failing tests — ask `lead` rather than guessing.
 - **The build and the full test suite are `lead`'s final gate, not your self-check.** Verify

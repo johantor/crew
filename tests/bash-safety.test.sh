@@ -190,9 +190,9 @@ assert_block "pager refusal gives the reason"    "$HOOK" "$(payload_bash 'less f
 assert_block "stream refusal gives the reason"   "$HOOK" "$(payload_bash 'tail -f app.log' crew:backend)" "reaches no Read hook"
 
 # --- File writes through Bash (agent sessions only) ---------------------------
-# lane-guard and format.sh are wired to Edit|Write, so a Bash write would land
+# gitdir-guard and format.sh are wired to Edit|Write, so a Bash write would land
 # outside both. Blocking it here keeps one enforcement point instead of
-# reimplementing lane resolution on the Bash path (#192).
+# reimplementing both on the Bash path (#192).
 gap="reaches no Edit|Write hook"
 assert_block "sed -i"             "$HOOK" "$(payload_bash "sed -i 's/a/b/' src/Foo.cs" crew:backend)"   "$gap"
 assert_block "sed -i.bak"         "$HOOK" "$(payload_bash 'sed -i.bak s/a/b/ src/Foo.cs' crew:backend)" "$gap"
@@ -205,7 +205,7 @@ assert_block "quoted redirect target" "$HOOK" "$(payload_bash 'echo x > "src/Foo
 # The masker closes a span early at `\"`; the quote after it opens a span with
 # no end, which must stay unmasked so the redirect behind it is still seen.
 assert_block "redirect after an escaped quote" "$HOOK" "$(payload_bash $'echo "a \\" b"\necho x > src/Foo.cs' crew:backend)" "$gap"
-# An absolute path outside the project is not guarded by the lane or format
+# An absolute path outside the project is not guarded by the Edit|Write
 # hooks, so a redirect there (an out-of-tree build log, #240) is allowed. Inside
 # the project, unset project dir, `..`, and /dev stay refused.
 export CLAUDE_PROJECT_DIR=/home/dev/proj
@@ -258,7 +258,7 @@ assert_block "angle brackets in a quoted heredoc" "$HOOK" "$(payload_bash $'clip
 run_hook "$HOOK" "$(payload_bash 'cp /tmp/x src/Foo.cs' crew:backend)"
 if [[ $_stderr == *heredoc* ]]; then _fail "no heredoc hint without a heredoc (got: $_stderr)"; else _pass; fi
 # `git mv` is a rename recorded in the index, not a write: no bytes change, so no
-# lane guard or formatter has anything to inspect, and the rename lands in a
+# formatter has anything to inspect, and the rename lands in a
 # commit, where it is reviewed. The floor lets any agent run it, and crew's own
 # no-git arm lets its workers run a plain one too. Bare `mv`/`cp` stay refused for
 # everyone, and so does a forced `git mv`, which can clobber.

@@ -6,7 +6,6 @@ model: sonnet
 maxTurns: 60
 color: red
 owns-git: false
-lane-guarded: false
 skills:
   - context-discipline
   - mid-run-direction

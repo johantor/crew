@@ -271,14 +271,12 @@ while IFS= read -r hooks_json; do
   done < <(git ls-files 'plugin/hooks/*.sh')
 done < <(git ls-files 'plugin/hooks/hooks.json')
 
-# 9. Hook rosters <-> agent `owns-git`/`lane-guarded`, both ways. These hooks
-#    gate on a hardcoded name list, which fails OPEN for any name missing from
+# 9. bash-safety's no-git roster <-> agent `owns-git`, both ways. The hook
+#    gates on a hardcoded name list, which fails OPEN for any name missing from
 #    it. See AGENTS.md, "Validating changes".
 #
-#    Opt-in per plugin, keyed on the fields being declared, so plugins that gate
-#    differently are skipped. lane-guard's per-agent
-#    dispatch arms are deliberately NOT checked -- nested `case`, and a parser
-#    that misread them would report false lockstep.
+#    Opt-in per plugin, keyed on the field being declared, so plugins that gate
+#    differently are skipped.
 
 # Read one `key: value` from a Markdown file's YAML frontmatter.
 #
@@ -344,10 +342,9 @@ while IFS= read -r _manifest; do  # one plugin; the loop keeps §9 skippable whe
   [ "${#agents[@]}" -eq 0 ] && continue
 
   # Does this plugin opt in? (any agent declaring the field)
-  declares_git=0 declares_lane=0
+  declares_git=0
   for agent in "${agents[@]}"; do
     fm_has_key "$agent" owns-git && declares_git=1
-    fm_has_key "$agent" lane-guarded && declares_lane=1
   done
 
   if [ "$declares_git" -eq 1 ]; then
@@ -408,43 +405,6 @@ while IFS= read -r _manifest; do  # one plugin; the loop keeps §9 skippable whe
     fi
   fi
 
-  if [ "$declares_lane" -eq 1 ]; then
-    hook="$plugin_dir/hooks/lane-guard.sh"
-    arm=""
-    if [ -f "$hook" ]; then arm="$(roster_arm "$hook" lane-guarded)"; fi
-    read -ra arm_names <<<"$arm"
-    if [ -z "$arm" ]; then
-      err "$plugin_dir agents declare 'lane-guarded' but $hook has no parseable '# crew-roster: lane-guarded' marker + case arm; cannot verify the lane roster"
-    else
-      declare -A laned=() lane_seen=()
-      for n in "${arm_names[@]}"; do
-        [ -n "${laned[$n]:-}" ] && err "$hook lane roster names '$n' more than once"
-        laned["$n"]=1
-      done
-      for agent in "${agents[@]}"; do
-        aname="$(basename "$agent" .md)"
-        lg="$(fm_field "$agent" lane-guarded)"
-        case "$lg" in
-          true|false) ;;
-          "") err "$agent has no 'lane-guarded' (sibling agents declare it); add 'lane-guarded: true|false'"; continue ;;
-          *) err "$agent has 'lane-guarded: $lg'; expected true or false"; continue ;;
-        esac
-        lane_seen["$aname"]=1
-        if [ "$lg" = true ] && [ -z "${laned[$aname]:-}" ]; then
-          err "$agent declares 'lane-guarded: true' but $hook's roster omits '$aname'; it would write outside any lane -- add it to the arm"
-        elif [ "$lg" = false ] && [ -n "${laned[$aname]:-}" ]; then
-          err "$hook's roster lists '$aname' but $agent declares 'lane-guarded: false'; drop one side"
-        else
-          ok "$aname lane-guarded: $lg matches $hook's roster"
-        fi
-      done
-      for n in "${arm_names[@]}"; do
-        if [ -z "${lane_seen[$n]:-}" ]; then
-          err "$hook lane roster entry '$n' does not match any $plugin_dir/agents/*.md; remove the stale name"
-        fi
-      done
-    fi
-  fi
 done < <(git ls-files 'plugin/.claude-plugin/plugin.json')
 
 # 10. Every `<plugin>:<name>` in prose must resolve to an agent or command file

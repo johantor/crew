@@ -5,6 +5,20 @@ All notable changes to the `crew` plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [12.0.0] - 2026-10-24
+
+### Removed
+
+- The lane guard: workers' `Edit`/`Write` calls get no lane notes. Each plan step names its
+  files, and `lead` checks the changed files against them before it commits.
+- The `backendLanePaths` and `frontendLanePaths` slots; `/crew:init` drops them on reconcile.
+- The `backend`/`frontend` lane scope of `/crew:audit`; pass a path instead.
+
+### Changed
+
+- `gitdir-guard.sh` keeps the one refusal the lane guard had: no crew agent writes inside
+  `.git/`. It now covers `generalist` too.
+
 ## [11.0.3] - 2026-10-24
 
 ### Changed
