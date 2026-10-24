@@ -1,6 +1,6 @@
 {
   "name": "johantor",
-  "description": "Team-style software delivery for Claude Code: an orchestrated multi-agent crew for building features and paying down tech debt, and the shared review rubric behind it.",
+  "description": "Team-style software delivery for Claude Code: an orchestrated multi-agent crew for building features and paying down tech debt, and a local board of every session.",
   "owner": {
     "name": "johantor"
   },
@@ -12,7 +12,10 @@
     },
     {
       "name": "board",
-      "source": "./plugins/board",
+      "source": {
+        "source": "github",
+        "repo": "johantor/board"
+      },
       "description": "A local kanban board of every Claude Code session: what needs you, what is running, what you closed today. Hooks log each session's state, a small Node server on 127.0.0.1 shows it as cards, and a click copies the resume command. Crew runs show their subagents on the session's card."
     }
   ]

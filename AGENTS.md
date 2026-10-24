@@ -1,8 +1,8 @@
 # Contributing to crew
 
-This repository is the `johantor` Claude Code plugin marketplace: `crew`, orchestrated feature
-delivery plus a debt lane for tech-debt and upgrade fixes. **This repository *is* the plugins**:
-there is no application code to build or ship. Work here edits agent, command and skill
+This repository is the `crew` Claude Code plugin: orchestrated feature delivery plus a debt lane
+for tech-debt and upgrade fixes. **This repository *is* the plugin**: there is no application
+code to build or ship. Work here edits agent, command and skill
 definitions, hooks, and docs.
 
 This is the contributor guide for anyone, human or agent, changing this repo. It is tool-neutral
@@ -12,9 +12,11 @@ and each plugin's `CLAUDE.md` for its own map.
 
 ## Repository layout
 
-A **monorepo marketplace**: `.claude-plugin/marketplace.json` lists the plugins, each in its own
-directory under `plugins/<name>/`. Adding a plugin is additive: create the directory and add an
-entry.
+The plugin lives in `plugins/crew/`. The `johantor` marketplace is its own repository,
+[johantor/plugins](https://github.com/johantor/plugins), and lists `crew` from here and `board`
+from [johantor/board](https://github.com/johantor/board). `.claude-plugin/marketplace.json` here
+is a copy of that catalog, kept so `marketplace add johantor/crew` still works; change both
+together until it is removed. The tooling globs `plugins/*/`, so the layout stays.
 
 - `plugins/crew/`: the `crew` plugin. `.claude-plugin/plugin.json` is the manifest; `agents/`,
   `commands/` and `skills/` are auto-discovered, and `hooks/hooks.json` wires the hooks. The
@@ -23,11 +25,6 @@ entry.
   review-gate runner, shipped unlike the repo-level `scripts/`. `README.md` is user-facing,
   `VERIFICATION.md` is the manual scenario matrix, and `CLAUDE.md` is the plugin map: every
   agent, command, skill and hook, and how they fit.
-- `plugins/board/`: the `board` plugin, a local kanban of every Claude Code session. Its one hook
-  is Bash like crew's; the server and the page are Node (`server/`), and its suite runs
-  `node --test` from a `.test.sh`, so the hook tests need Node too. Accepted gap (#318, third
-  review round): the startup probe's HMAC does not bind the port, so another local user can
-  relay it to the operator's own board on a second port; the README names it.
 - `scripts/`: repo tooling, never shipped. `validate-plugin.sh` (tree-only structural checks,
   the `§N` sections below), `check-changelog.sh` (the diff-based release gate, takes the base
   branch), `release-notes.sh` (one version's changelog section, used by `auto-release.yml`).
@@ -223,8 +220,7 @@ unused), rosters §9, prose refs §10, `crew.md` keys §11, footprint §12, MCP
 pairs §13, YAML frontmatter §14. §2g and §12 index skills through `git ls-files`, so stage a
 new or renamed skill file before running the validator.
 
-`plugins/<plugin>/tests/` is a bash suite (`jq` and `git` only, no LLM, no network; `board`'s
-also needs Node and serves on 127.0.0.1) exercising the hooks' behavior: each guard is a pure
+`plugins/<plugin>/tests/` is a bash suite (`jq` and `git` only, no LLM, no network) exercising the hooks' behavior: each guard is a pure
 `stdin JSON → exit 0/2` function. The harness lives
 once in `tests/hooks/`; `run.sh` discovers every suite and **fails when a plugin ships `hooks/`
 with no suite beside it**. `format.sh` is covered through a fixture `formatMatrix` whose rows
