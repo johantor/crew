@@ -19,6 +19,8 @@
     --sans:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
     --wrap:1120px;
+    /* Terminal panels stay dark in both schemes: their text colour is fixed. */
+    --term:#0c0c1d;
   }
   @media (prefers-color-scheme:dark){
     :root{
@@ -26,10 +28,13 @@
       --ink:#f4f3ff; --text:#d9d9e8; --muted:#9b9db2;
       --accent:#8c93ff; --accent-ink:#0e0f1a; --accent-soft:#23264a;
       --go:#5fd3b0; --go-soft:#163a31; --warm:#f2a06e; --warm-soft:#3a2418;
+      --term:#05060c;
     }
   }
   *{box-sizing:border-box}
   html{scroll-behavior:smooth}
+  /* Anchor targets clear the sticky nav. */
+  [id]{scroll-margin-top:88px}
   body{margin:0;background:var(--bg);color:var(--text);font:17px/1.6 var(--sans);
        -webkit-font-smoothing:antialiased}
   .wrap{max-width:var(--wrap);margin:0 auto;padding:0 24px}
@@ -56,7 +61,7 @@
   .lede{max-width:40rem;margin:30px 0 0;font-size:clamp(1.08rem,2.1vw,1.3rem);color:var(--muted)}
   .lede strong{color:var(--ink);font-weight:700}
 
-  .install{max-width:620px;margin:40px 0 0;background:var(--ink);border-radius:18px;overflow:hidden}
+  .install{max-width:620px;margin:40px 0 0;background:var(--term);border:1px solid var(--line);border-radius:18px;overflow:hidden}
   .install pre{margin:0;padding:22px 24px 8px;font-family:var(--mono);font-size:14px;line-height:2;
                color:#e8e8f4;overflow-x:auto;white-space:pre}
   .install .p{color:#8c93ff;user-select:none}
@@ -84,7 +89,7 @@
   figcaption{margin-top:14px;font-size:14px;color:var(--muted)}
 
   /* cards */
-  .grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
+  .grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(min(250px,100%),1fr))}
   .card{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:24px;
         display:flex;flex-direction:column;gap:10px}
   .card p{margin:0;color:var(--muted);font-size:15px;flex:1}
@@ -100,7 +105,7 @@
                font-weight:700;font-size:14px}
 
   /* roster */
-  .roster{display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
+  .roster{display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(min(250px,100%),1fr))}
   .agent{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:22px}
   .agent b{font-family:var(--mono);font-size:15px;color:var(--accent)}
   .agent i{display:block;font-style:normal;font-weight:700;font-size:12px;letter-spacing:.08em;
@@ -114,7 +119,7 @@
   .cmds li > span{flex:1;min-width:15rem;color:var(--muted);font-size:15.5px}
   .cmds .tag{margin-left:8px;vertical-align:2px}
 
-  .rails{list-style:none;padding:0;margin:0;display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+  .rails{list-style:none;padding:0;margin:0;display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr))}
   .rails li{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:22px;color:var(--muted);font-size:15px}
   .rails b{display:block;color:var(--ink);font-family:var(--display);font-weight:800;font-size:1.1rem;
            letter-spacing:-.02em;margin-bottom:6px}
@@ -135,5 +140,6 @@
     nav .wrap{height:auto;padding-top:12px;padding-bottom:12px;flex-wrap:wrap;gap:12px}
     nav ul{gap:16px;margin-left:0}
     .cmds code{min-width:auto}
+    [id]{scroll-margin-top:160px}
   }
   @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}

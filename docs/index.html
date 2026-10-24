@@ -231,8 +231,15 @@
   document.getElementById('copy').addEventListener('click', function () {
     const text = document.getElementById('cmd').innerText.replace(/^\$ /gm, '').trim();
     const done = (ok) => {
-      this.textContent = ok ? 'Copied' : 'Press ⌘C to copy';
-      setTimeout(() => { this.textContent = 'Copy commands'; }, 1800);
+      if (!ok) {
+        // No clipboard access: select the commands so the platform's copy shortcut works.
+        const range = document.createRange();
+        range.selectNodeContents(document.getElementById('cmd'));
+        getSelection().removeAllRanges();
+        getSelection().addRange(range);
+      }
+      this.textContent = ok ? 'Copied' : 'Selected: copy with your shortcut';
+      setTimeout(() => { this.textContent = 'Copy commands'; }, 2400);
     };
     if (navigator.clipboard?.writeText) {
       navigator.clipboard.writeText(text).then(() => done(true), () => done(false));
