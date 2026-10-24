@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - The `johantor` marketplace moved to `johantor/plugins`, and `board` to `johantor/board`. The
-  install id stays `crew@johantor`; the README installs from the new marketplace.
+  install id stays `crew@johantor`; the README installs from the new marketplace (#320).
 
 ## [11.0.1] - 2026-10-15
 
