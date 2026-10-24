@@ -58,9 +58,8 @@ new_repo_foo() {
 }
 
 # Raw-JSON writers for the shapes the two above can't express: a manifest missing
-# a key, declaring component paths, or carrying a description; a marketplace.
+# a key, declaring component paths, or carrying a description.
 mk_manifest_json() { mkdir -p "$1/.claude-plugin"; printf '%s\n' "$2" > "$1/.claude-plugin/plugin.json"; }
-mk_marketplace()   { mkdir -p "$1/.claude-plugin"; printf '%s\n' "$2" > "$1/.claude-plugin/marketplace.json"; }
 
 # mk_hook <plugin_dir> <filename> <body> — a valid, executable hook, so §3's two
 # guards stay silent and the fixture isolates whichever section is under test.
@@ -307,33 +306,6 @@ assert_emits "§2e bites on a hooks/ dir with no hooks.json" "$d" "hooks/ exists
 d="$(new_repo_foo)"
 mk_hook "$d/plugins/foo" x.sh 'exit 0'; mk_hooks_json "$d/plugins/foo" "$wired_x"
 assert_silent "§2e silent when hooks.json is present" "$d" "hooks/ exists but hooks/hooks.json missing"
-
-# --- §2f: marketplace entries agree with the plugins on disk -------------------
-d="$(new_repo)"
-mk_marketplace "$d" '{"name":"m","plugins":[{"name":"foo","source":"./plugins/nope"}]}'
-assert_emits "§2f bites on a source that does not exist" "$d" "source ./plugins/nope does not exist"
-
-# A source directory that exists but ships no manifest. git tracks files, not
-# dirs, so the fixture needs a file inside for the source to survive `git add`.
-d="$(new_repo)"; mkdir -p "$d/plugins/foo"; printf 'placeholder\n' > "$d/plugins/foo/README.md"
-mk_marketplace "$d" '{"name":"m","plugins":[{"name":"foo","source":"./plugins/foo"}]}'
-assert_emits "§2f bites on a source with no manifest" "$d" "plugins/foo/.claude-plugin/plugin.json missing"
-
-d="$(new_repo_foo)"
-mk_marketplace "$d" '{"name":"m","plugins":[{"name":"bar","source":"./plugins/foo"}]}'
-assert_emits "§2f bites on an entry name != manifest name" "$d" "!= plugin.json name"
-
-d="$(new_repo)"
-mk_manifest_json "$d/plugins/foo" '{"name":"foo","version":"1.0.0","description":"canonical"}'
-mk_changelog "$d/plugins/foo" 1.0.0
-mk_marketplace "$d" '{"name":"m","plugins":[{"name":"foo","source":"./plugins/foo","description":"stale"}]}'
-assert_emits "§2f bites on a description that drifted" "$d" "description differs from"
-
-d="$(new_repo)"
-mk_manifest_json "$d/plugins/foo" '{"name":"foo","version":"1.0.0","description":"canonical"}'
-mk_changelog "$d/plugins/foo" 1.0.0
-mk_marketplace "$d" '{"name":"m","plugins":[{"name":"foo","source":"./plugins/foo","description":"canonical"}]}'
-assert_silent "§2f silent when the entry matches its manifest" "$d" "description differs from"
 
 # --- §3: hook scripts are valid bash and executable ----------------------------
 d="$(new_repo_foo)"

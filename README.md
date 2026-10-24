@@ -17,6 +17,9 @@ claude plugin marketplace add johantor/plugins
 claude plugin install crew@johantor
 ```
 
+Installed from `johantor/crew` before? That source is gone: run `claude plugin marketplace remove
+johantor`, then the two commands above.
+
 <!-- Illustration source: docs/solo-vs-crew.svg (edit the SVG, then re-export the PNG). -->
 ![A solo agent juggling every concern, versus the crew: planned lanes, a review gate, then a PR](docs/solo-vs-crew.png)
 

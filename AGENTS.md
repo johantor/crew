@@ -14,9 +14,8 @@ and each plugin's `CLAUDE.md` for its own map.
 
 The plugin lives in `plugins/crew/`. The `johantor` marketplace is its own repository,
 [johantor/plugins](https://github.com/johantor/plugins), and lists `crew` from here and `board`
-from [johantor/board](https://github.com/johantor/board). `.claude-plugin/marketplace.json` here
-is a copy of that catalog, kept so `marketplace add johantor/crew` still works; change both
-together until it is removed. The tooling globs `plugins/*/`, so the layout stays.
+from [johantor/board](https://github.com/johantor/board). The subfolder keeps repo tooling (`docs/`,
+`scripts/`, `tests/`) out of what users install, and the tooling globs `plugins/*/`.
 
 - `plugins/crew/`: the `crew` plugin. `.claude-plugin/plugin.json` is the manifest; `agents/`,
   `commands/` and `skills/` are auto-discovered, and `hooks/hooks.json` wires the hooks. The
@@ -214,7 +213,7 @@ bash tests/hooks/run.sh
 `check-changelog.sh` is the one diff-based check, which is why it takes a ref and lives outside
 the tree-only `validate-plugin.sh`.
 
-`validate-plugin.sh`'s sections, cited as `§N`: manifests §2, marketplace sync §2f, `skills:`
+`validate-plugin.sh`'s sections, cited as `§N`: manifests §2, `skills:`
 resolution §2g, version ↔ changelog §2h, hook file modes §3, wiring §6 (§4–§5, §7 and §8 are
 unused), rosters §9, prose refs §10, `crew.md` keys §11, footprint §12, MCP
 pairs §13, YAML frontmatter §14. §2g and §12 index skills through `git ls-files`, so stage a

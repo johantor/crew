@@ -106,45 +106,6 @@ while IFS= read -r manifest; do
   fi
 done < <(git ls-files 'plugins/*/.claude-plugin/plugin.json')
 
-# 2f. Marketplace entries agree with the plugins on disk: every listed source
-#     exists, has a manifest, its manifest name matches the entry name, and its
-#     description matches the manifest's (plugin.json is canonical — the two
-#     read the same to users, so wording drift is a doc bug).
-marketplace=".claude-plugin/marketplace.json"
-if [ -f "$marketplace" ] && jq empty "$marketplace" >/dev/null 2>&1; then
-  while IFS=$'\t' read -r mname msource; do
-    msource="${msource%$'\r'}"  # tolerate CRLF checkouts on Windows
-    src="${msource#./}"
-    if [ ! -d "$src" ]; then
-      err "$marketplace entry '$mname': source $msource does not exist"
-      continue
-    fi
-    pmanifest="$src/.claude-plugin/plugin.json"
-    if [ ! -f "$pmanifest" ]; then
-      err "$marketplace entry '$mname': $pmanifest missing"
-      continue
-    fi
-    pname="$(jq -r '.name // empty' "$pmanifest")"
-    pname="${pname%$'\r'}"  # tolerate CRLF checkouts on Windows
-    if [ "$pname" = "$mname" ]; then
-      ok "$marketplace entry '$mname' matches $pmanifest"
-    else
-      err "$marketplace entry '$mname' != plugin.json name '$pname' ($pmanifest)"
-    fi
-    # Descriptions are compared via jq (not the @tsv fields above) so tabs or
-    # escapes in either value can't skew the comparison.
-    mdesc="$(jq -r --arg n "$mname" '.plugins[] | select(.name == $n) | .description // ""' "$marketplace")"
-    pdesc="$(jq -r '.description // ""' "$pmanifest")"
-    if [ "$mdesc" = "$pdesc" ]; then
-      ok "$marketplace entry '$mname' description matches $pmanifest"
-    else
-      err "$marketplace entry '$mname' description differs from $pmanifest (plugin.json is canonical; copy it into the marketplace entry)"
-    fi
-  done < <(jq -r '.plugins[] | select((.source | type) == "string") | [.name, .source] | @tsv' "$marketplace")
-else
-  err "$marketplace missing or invalid"
-fi
-
 # 2g. Every skill referenced in an agent's YAML frontmatter `skills:` list must
 #     resolve to some plugins/*/skills/<name>/SKILL.md in the repo. Skills are
 #     referenced unqualified (per the existing convention), so resolution is
