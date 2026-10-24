@@ -1,6 +1,6 @@
 ---
 name: code-review
-description: Review a pull request or diff in the crew plugin marketplace — Bash guard hooks, Markdown agent/command/skill prompts, plugin manifests and changelogs. Use when asked to review code, a PR, or a diff in this repository.
+description: Review a pull request or diff in the crew plugin repository — Bash guard hooks, Markdown agent/command/skill prompts, plugin manifests and changelogs. Use when asked to review code, a PR, or a diff in this repository.
 ---
 
 # Reviewing a crew change

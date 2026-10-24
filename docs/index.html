@@ -40,7 +40,7 @@
       honest until one review gate says go.</p>
 
     <div class="install" id="install">
-<pre id="cmd"><span class="p">$ </span>claude plugin marketplace add johantor/crew
+<pre id="cmd"><span class="p">$ </span>claude plugin marketplace add johantor/plugins
 <span class="p">$ </span>claude plugin install crew@johantor</pre>
       <button class="copy" id="copy" type="button">Copy commands</button>
     </div>
@@ -60,29 +60,18 @@
       <p>One skill per product. The backend specialist reads your <code>EPiServer.CMS</code> version and
         loads the matching skill: content model rules, rendering, jobs, caching, security and DXP deploys.</p>
     </div>
-    <div class="grid">
-      <div class="card"><span class="tag ok">Available</span><h3>CMS 12</h3>
-        <p>ASP.NET Core PaaS: content types and GUIDs, <code>IContentLoader</code>, rendering, jobs, DXP.</p></div>
-      <div class="card"><span class="tag ok">Available</span><h3>CMS 13</h3>
-        <p>.NET 10: applications, Graph registration, Visual Builder, <code>[ScheduledJob]</code>.</p></div>
-      <div class="card"><span class="tag ok">Available</span><h3>12 → 13 upgrade</h3>
-        <p>The breaking changes, the API replacement map and the ordered upgrade steps.</p></div>
-      <div class="card"><span class="tag ok">Available</span><h3>Graph</h3>
-        <p>Sync, the per-type and unified schemas, keys, preview, caching, search and facets.</p></div>
-      <div class="card"><span class="tag ok">Available</span><h3>SaaS CMS</h3>
-        <p>Content types in code, Visual Builder, live preview and webhooks.</p></div>
-      <div class="card"><span class="tag ok">Available</span><h3>Search &amp; Navigation</h3>
-        <p>Find on CMS 12: indexing, typed and unified search, facets, and the move to Graph.</p></div>
-      <div class="card"><span class="tag ok">Available</span><h3>Commerce</h3>
-        <p>Customized Commerce on CMS, and Configured Commerce: catalog, orders, payments, extension points.</p></div>
-      <div class="card"><span class="tag ok">Available</span><h3>Data Platform</h3>
-        <p>ODP events and profiles, identity resolution, and real-time audiences for CMS and Experimentation.</p></div>
-      <div class="card"><span class="tag ok">Available</span><h3>Opal</h3>
-        <p>Custom tools in .NET, Node and Python: the discovery contract, registries, auth and the SDK traps.</p></div>
-      <div class="card"><span class="tag ok">Available</span><h3>Experimentation</h3>
-        <p>Feature and Web Experimentation: SDK setup, decisions, flicker, QA and flag cleanup.</p></div>
-      <div class="card"><span class="tag ok">Available</span><h3>Connect Platform</h3>
-        <p>OCP apps in TypeScript: functions, jobs, lifecycle hooks, settings, secrets and the CLI.</p></div>
+    <div class="spec">
+      <div><b>CMS 12</b><span>ASP.NET Core PaaS: content types and GUIDs, <code>IContentLoader</code>, rendering, jobs, DXP.</span></div>
+      <div><b>CMS 13</b><span>.NET 10: applications, Graph registration, Visual Builder, <code>[ScheduledJob]</code>.</span></div>
+      <div><b>12 → 13 upgrade</b><span>The breaking changes, the API replacement map and the ordered upgrade steps.</span></div>
+      <div><b>Graph</b><span>Sync, the per-type and unified schemas, keys, preview, caching, search and facets.</span></div>
+      <div><b>SaaS CMS</b><span>Content types in code, Visual Builder, live preview and webhooks.</span></div>
+      <div><b>Search &amp; Navigation</b><span>Find on CMS 12: indexing, typed and unified search, facets, and the move to Graph.</span></div>
+      <div><b>Commerce</b><span>Customized Commerce on CMS, and Configured Commerce: catalog, orders, payments, extension points.</span></div>
+      <div><b>Data Platform</b><span>ODP events and profiles, identity resolution, and real-time audiences.</span></div>
+      <div><b>Opal</b><span>Custom tools in .NET, Node and Python: the discovery contract, registries, auth.</span></div>
+      <div><b>Experimentation</b><span>Feature and Web Experimentation: SDK setup, decisions, flicker, QA and flag cleanup.</span></div>
+      <div><b>Connect Platform</b><span>OCP apps in TypeScript: functions, jobs, lifecycle hooks, settings and the CLI.</span></div>
     </div>
     <div class="stacks"><span>.NET</span><span>Node</span><span>Python</span><span>shell</span><span>React</span><span>Next.js</span></div>
   </div>
@@ -103,40 +92,38 @@
     <div class="sec-head">
       <div class="kicker">The crew</div>
       <h2>A lead, and a specialist per lane.</h2>
-      <p><code>lead</code> plans, waits for your go-ahead, then delegates each step. It writes no
-        production code and is the only agent that touches git.</p>
+      <p>Fourteen specialists, each in its own lane, and one lead that writes no production code.</p>
     </div>
-    <div class="roster">
-      <div class="agent"><b>lead</b><i>Plans · delegates · commits</i>
-        <p>Keeps a written plan with acceptance criteria and commits each step once it passes.</p></div>
-      <div class="agent"><b>backend</b><i>Backend</i>
-        <p>Server code for your stack, with the Optimizely skill for your CMS version.</p></div>
-      <div class="agent"><b>frontend</b><i>Client-facing layer</i>
-        <p>Views and components, including Razor markup in server-rendered mode.</p></div>
-      <div class="agent"><b>unit-tests</b><i>Unit tests</i>
-        <p>Backend tests, plus frontend component tests when a tool is configured.</p></div>
-      <div class="agent"><b>e2e</b><i>End-to-end</i>
-        <p>Browser tests with Playwright or Cypress.</p></div>
-      <div class="agent"><b>visual-review</b><i>Design · read-only</i>
-        <p>Checks the build against the design and names the token, not just the pixel.</p></div>
-      <div class="agent"><b>generalist</b><i>Express lane</i>
-        <p>Small, low-risk changes across lanes, without the full ceremony.</p></div>
-      <div class="agent"><b>incident-triage</b><i>Post-merge · read-only</i>
-        <p>Traces a production signal to the code and the suspect commits.</p></div>
-      <div class="agent"><b>debt-scout</b><i>Tech debt · read-only</i>
-        <p>Scouts a scope you name and returns ready-to-paste debt pointers.</p></div>
-      <div class="agent"><b>analyst</b><i>Requirements · read-only</i>
-        <p>Turns a ticket into acceptance criteria, content needs and a tracking plan.</p></div>
-      <div class="agent"><b>architect</b><i>Design · read-only</i>
-        <p>Designs content models, Graph schemas, catalogs and integrations before the plan.</p></div>
-      <div class="agent"><b>designer</b><i>Tokens and specs</i>
-        <p>Writes the tokens and component specs the frontend builds to.</p></div>
-      <div class="agent"><b>copywriter</b><i>Copy and locales</i>
-        <p>UI and editor copy, resource and locale files, and SEO text.</p></div>
-      <div class="agent"><b>security-review</b><i>Review · read-only</i>
-        <p>The security part of the review gate.</p></div>
-      <div class="agent"><b>web-review</b><i>Review · read-only</i>
-        <p>SEO, accessibility and performance in the review gate.</p></div>
+    <div class="band">
+      <div>
+        <h2>The lead plans, delegates, commits.</h2>
+        <p>It writes a plan with acceptance criteria, waits for your go-ahead, dispatches each step
+          to a specialist, and commits the step once it passes. It is the only agent that touches git.</p>
+      </div>
+    </div>
+    <div class="groups">
+      <div><h3>Plan</h3><ul>
+        <li><code>analyst</code>Acceptance criteria, content needs, a tracking plan.</li>
+        <li><code>architect</code>Content models, Graph schemas, catalogs, integrations.</li>
+        <li><code>designer</code>The tokens and component specs the frontend builds to.</li>
+      </ul></div>
+      <div><h3>Build</h3><ul>
+        <li><code>backend</code>Server code, with the Optimizely skill for your version.</li>
+        <li><code>frontend</code>Views and components, Razor included.</li>
+        <li><code>copywriter</code>UI and editor copy, resource and locale files.</li>
+        <li><code>generalist</code>Small, low-risk changes across lanes.</li>
+      </ul></div>
+      <div><h3>Test and review</h3><ul>
+        <li><code>unit-tests</code>Backend tests, plus component tests when configured.</li>
+        <li><code>e2e</code>Browser tests with Playwright or Cypress.</li>
+        <li><code>visual-review</code>The build against the design, by token.</li>
+        <li><code>security-review</code>The security part of the review gate.</li>
+        <li><code>web-review</code>SEO, accessibility and performance.</li>
+      </ul></div>
+      <div><h3>After merge</h3><ul>
+        <li><code>incident-triage</code>A production signal to the code and the suspect commits.</li>
+        <li><code>debt-scout</code>Ready-to-paste debt pointers for a scope you name.</li>
+      </ul></div>
     </div>
 
     <div class="sec-head" style="margin-top:72px">
@@ -157,23 +144,32 @@
 </section>
 
 <section id="guardrails">
-  <div class="wrap">
-    <div class="sec-head">
-      <div class="kicker">Guardrails</div>
-      <h2>Hooks, not promises.</h2>
-      <p>A prompt is a suggestion to a model. These run in the harness before each tool call, so a
-        worker cannot talk its way past them.</p>
+  <div class="wrap split">
+    <div>
+      <div class="sec-head">
+        <div class="kicker">Guardrails</div>
+        <h2>Hooks, not promises.</h2>
+        <p>A prompt is a suggestion to a model. These run in the harness before each tool call, so a
+          worker cannot talk its way past them.</p>
+      </div>
+      <ul class="checks">
+        <li><b>One pair of hands on git.</b> Only the lead runs git, on a feature branch.</li>
+        <li><b>Writes stay in lane.</b> Shell writes that would route around the guard are refused.</li>
+        <li><b>Destructive commands refused.</b> Force-push and writes into <code>.git/</code> are blocked.</li>
+        <li><b>Nothing leaves on its own.</b> No push and no pull request until you run <code>/crew:pr</code>.</li>
+      </ul>
     </div>
-    <ul class="rails">
-      <li><b>One pair of hands on git</b>Only the lead runs git. Workers never do.</li>
-      <li><b>No commits on the base branch</b>Work happens on a feature branch the lead creates.</li>
-      <li><b>Writes stay in lane</b>Each worker edits only its own files, and shell writes that would
-        route around the guard are refused.</li>
-      <li><b>Destructive commands refused</b>Destructive <code>rm</code>, force-push and writes into
-        <code>.git/</code> are blocked.</li>
-      <li><b>Guards fail closed</b>When a guard cannot read its input, it blocks.</li>
-      <li><b>Nothing leaves on its own</b>No push and no pull request until you run <code>/crew:pr</code>.</li>
-    </ul>
+<pre class="logline"><span class="c"># backend tries to commit</span>
+<span class="k">$</span> git commit -m wip
+<span class="x">Blocked:</span> backend runs no git but a plain `git mv`. Return your result; lead commits verified steps.
+
+<span class="c"># frontend edits through the shell</span>
+<span class="k">$</span> sed -i s/a/b/ src/app.ts
+<span class="x">Blocked:</span> sed writes a file from Bash, which reaches no Edit|Write hook. Use Edit/Write.
+
+<span class="c"># a worker starts a dev server</span>
+<span class="k">$</span> npm run dev
+<span class="x">Blocked:</span> watch/dev/serve commands never terminate. Use the one-shot build/test command.</pre>
   </div>
 </section>
 
@@ -183,12 +179,25 @@
       <div class="kicker">Requirements</div>
       <h2>Bring a repo. That's it.</h2>
     </div>
-    <ul class="rails">
-      <li><b>Claude Code</b>CLI, desktop or IDE extension, with plugin support.</li>
-      <li><b>A git repository</b>crew branches and commits its work.</li>
-      <li><b>Optional MCP servers</b>Playwright, Figma, and GitHub or Azure DevOps unlock visual review
-        and PR workflows. Everything else works without them.</li>
-    </ul>
+    <ol class="steps">
+      <li><b>Claude Code</b><span>CLI, desktop or IDE extension, with plugin support.</span></li>
+      <li><b>A git repository</b><span>crew branches and commits its work there.</span></li>
+      <li><b>Optional MCP servers</b><span>Playwright, Figma, and GitHub or Azure DevOps unlock visual
+        review and PR workflows. Everything else works without them.</span></li>
+    </ol>
+  </div>
+</section>
+
+<section id="board">
+  <div class="wrap">
+    <div class="band">
+      <div>
+        <h2>See every session on one board.</h2>
+        <p>board, from the same marketplace, is a local kanban of every Claude Code session. A crew
+          run shows its subagents on the session's card.</p>
+      </div>
+      <a class="btn primary" href="https://johantor.github.io/board/">Meet board</a>
+    </div>
   </div>
 </section>
 
@@ -201,6 +210,8 @@
       <a href="https://github.com/johantor/crew/blob/main/PRIVACY.md">Privacy</a>
       <a href="https://github.com/johantor/crew/blob/main/SECURITY.md">Security</a>
       <a href="https://github.com/johantor/crew/releases">Releases</a>
+      <a href="https://github.com/johantor/plugins">Marketplace</a>
+      <a href="https://johantor.github.io/board/">board</a>
     </div>
     <p class="fine">Apache-2.0. The plugin collects no data and sends nothing to the maintainers.</p>
     <p class="fine">An independent project. Not affiliated with or endorsed by Optimizely or Anthropic.</p>
@@ -211,8 +222,15 @@
   document.getElementById('copy').addEventListener('click', function () {
     const text = document.getElementById('cmd').innerText.replace(/^\$ /gm, '').trim();
     const done = (ok) => {
-      this.textContent = ok ? 'Copied' : 'Press ⌘C to copy';
-      setTimeout(() => { this.textContent = 'Copy commands'; }, 1800);
+      if (!ok) {
+        // No clipboard access: select the commands so the platform's copy shortcut works.
+        const range = document.createRange();
+        range.selectNodeContents(document.getElementById('cmd'));
+        getSelection().removeAllRanges();
+        getSelection().addRange(range);
+      }
+      this.textContent = ok ? 'Copied' : 'Selected: copy with your shortcut';
+      setTimeout(() => { this.textContent = 'Copy commands'; }, 2400);
     };
     if (navigator.clipboard?.writeText) {
       navigator.clipboard.writeText(text).then(() => done(true), () => done(false));

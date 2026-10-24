@@ -13,9 +13,12 @@ and delegates each step to specialists that know the CMS they work in, behind ho
 guardrails and one review gate. It also pays down tech debt, one verified fix at a time.
 
 ```bash
-claude plugin marketplace add johantor/crew
+claude plugin marketplace add johantor/plugins
 claude plugin install crew@johantor
 ```
+
+Installed from `johantor/crew` before? That source is gone: run `claude plugin marketplace remove
+johantor`, then the two commands above.
 
 <!-- Illustration source: docs/solo-vs-crew.svg (edit the SVG, then re-export the PNG). -->
 ![A solo agent juggling every concern, versus the crew: planned lanes, a review gate, then a PR](docs/solo-vs-crew.png)
@@ -111,8 +114,8 @@ Release notes: [CHANGELOG](plugins/crew/CHANGELOG.md).
 ## Documentation
 
 - [crew](plugins/crew/README.md): agents, commands, hooks, background delegation and MCP setup.
-- [board](plugins/board/README.md): a local kanban board of every Claude Code session, Crew runs
-  included (`claude plugin install board@johantor`).
+- [board](https://github.com/johantor/board): a local kanban board of every Claude Code session,
+  Crew runs included (`claude plugin install board@johantor`).
 - [AGENTS.md](AGENTS.md): contributing and hacking on the crew.
 
 ## License

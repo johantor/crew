@@ -5,6 +5,18 @@ All notable changes to the `crew` plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [11.0.2] - 2026-10-24
+
+### Changed
+
+- The `johantor` marketplace moved to `johantor/plugins`, and `board` to `johantor/board`. The
+  install id stays `crew@johantor`; the README installs from the new marketplace (#320).
+
+### Removed
+
+- The catalog copy in `johantor/crew`: `marketplace add johantor/crew` no longer works. Remove
+  that marketplace and add `johantor/plugins` (#320).
+
 ## [11.0.1] - 2026-10-15
 
 ### Fixed

@@ -1,21 +1,18 @@
 # crew — Claude Code notes
 
-This repository is the `johantor` Claude Code plugin marketplace (`crew`):
-orchestrated agents, commands, hooks, and skills. **This repository *is* the plugins** —
-there is no application code to build or ship.
+This repository is the `crew` Claude Code plugin: orchestrated agents, commands, hooks, and
+skills. **This repository *is* the plugin** — there is no application code to build or ship. The
+`johantor` marketplace lives in [johantor/plugins](https://github.com/johantor/plugins).
 
 **Start with [AGENTS.md](AGENTS.md)** — the contributor guide (repository layout, how the
 crew works, reviewing, validating, releasing, and conventions). It is tool-neutral and the
 single source of truth for working in this repo.
 
-Plugin-specific maps (schemas, file inventories, validator gotchas, release steps) live next
-to each plugin and load automatically when working under it — start there instead of
-re-exploring:
+The plugin map (schemas, file inventories, validator gotchas, release steps) lives next to the
+plugin and loads automatically when working under it — start there instead of re-exploring:
+[plugins/crew/CLAUDE.md](plugins/crew/CLAUDE.md).
 
-- [plugins/crew/CLAUDE.md](plugins/crew/CLAUDE.md)
-- [plugins/board/CLAUDE.md](plugins/board/CLAUDE.md)
-
-Keep them accurate: a PR that changes anything they state updates them in the same commit.
+Keep it accurate: a PR that changes anything it states updates it in the same commit.
 
 ## Communication style
 

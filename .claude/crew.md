@@ -21,7 +21,7 @@ runUrl: none
 planDirectory: unset
 ---
 
-This repository *is* the plugins — it holds no application code, so every build, test, and lint
+This repository *is* the plugin — it holds no application code, so every build, test, and lint
 slot is `none` and the matching `/crew:review` gates skip rather than fail. `formatMatrix` is
 `none` too: shell is the only language here and shfmt belongs to the gate. What CI runs here is
 in the root [AGENTS.md](../AGENTS.md), *Validating changes*: the validator, the changelog gate,

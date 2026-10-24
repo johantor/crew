@@ -12,7 +12,7 @@ layer says so with `frontendStack: none`, and the frontend half of the crew
 stays out of the way. You approve the plan, every step is verified and committed as it
 lands, and nothing reaches a pull request until a consolidated review gate returns **GO**.
 
-Part of the [`johantor`](../../README.md) marketplace.
+Part of the [`johantor`](https://github.com/johantor/plugins) marketplace.
 
 ## Why a crew
 
@@ -44,7 +44,7 @@ Part of the [`johantor`](../../README.md) marketplace.
 ## Install
 
 ```bash
-claude plugin marketplace add johantor/crew
+claude plugin marketplace add johantor/plugins
 claude plugin install crew@johantor
 ```
 
