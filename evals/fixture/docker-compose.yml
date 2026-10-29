@@ -8,7 +8,7 @@ services:
       ACCEPT_EULA: "Y"
       MSSQL_SA_PASSWORD: "Qwerty12345!"
     ports:
-      - "6000:1433"
+      - "127.0.0.1:6000:1433"
     # The check also creates the empty database, so `up --wait` returns once the site can connect.
     healthcheck:
       test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -Q \"IF DB_ID('EvalSite') IS NULL CREATE DATABASE EvalSite\""]

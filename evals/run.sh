@@ -39,8 +39,8 @@ for task in "${tasks[@]}"; do
   fi
 done
 
-out="$out_root/$(date -u +%Y%m%dT%H%M%SZ)"
-mkdir -p "$out" || exit 2
+# mktemp keeps two invocations started in the same second (two variants side by side) apart.
+mkdir -p "$out_root" && out="$(mktemp -d "$out_root/$(date -u +%Y%m%dT%H%M%SZ).XXXXXX")" || exit 2
 # Only what a crew run needs; the gate script is named by path since it takes a command string.
 allowed=(Agent Skill Read Glob Grep Edit Write TodoWrite "Bash(git:*)" "Bash(dotnet:*)" "Bash(bash $plugin/scripts/gate.sh:*)")
 
@@ -69,7 +69,7 @@ for task in "${tasks[@]}"; do
     verdict=pass
     [ "$grade" -eq 0 ] || verdict=fail
 
-    session="$(jq -c '{duration_ms, num_turns, total_cost_usd, usage, is_error}' "$run_dir/session.json" 2>/dev/null)" ||
+    session="$(jq -ce '{duration_ms, num_turns, total_cost_usd, usage, is_error}' "$run_dir/session.json" 2>/dev/null)" ||
       session='{"is_error":true,"note":"no JSON result"}'
     jq -nc --arg task "$task" --argjson run "$n" --arg verdict "$verdict" --arg plugin "$plugin" \
       --argjson session "$session" '{task: $task, run: $run, verdict: $verdict, plugin: $plugin} + $session' \

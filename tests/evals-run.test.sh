@@ -24,6 +24,7 @@ if [ -n "${CLAUDE_STUB_FIX:-}" ]; then
     >src/EvalSite/Components/TeaserBlockComponent.cs
   git -c user.name=stub -c user.email=stub@example.invalid commit -qam "Inject IUrlResolver"
 fi
+[ -n "${CLAUDE_STUB_SILENT:-}" ] && exit 1
 echo '{"type":"result","is_error":false,"duration_ms":1200,"num_turns":3,"total_cost_usd":0.5,"usage":{"input_tokens":10,"output_tokens":5}}'
 EOF
 chmod +x "$stubs/dotnet" "$stubs/claude"
@@ -53,6 +54,17 @@ run_eval "$out" -n 2 07-debt-service-locator
 check "an idle session grades fail, once per run" "fail fail" "$(jq -r .verdict <<<"$_summary" | xargs)"
 check "the grade names the missing branch" "1" \
   "$(grep -c '^FAIL work committed on a feature branch' "$out"/*/07-debt-service-locator-1/grade.log)"
+
+out="$(new_tmpdir)"
+CLAUDE_STUB_SILENT=1 run_eval "$out" -n 1 07-debt-service-locator
+check "a session with no output still gets a summary line" "fail true" \
+  "$(jq -r '"\(.verdict) \(.is_error)"' <<<"$_summary")"
+
+out="$(new_tmpdir)"
+run_eval "$out" -n 1 07-debt-service-locator &
+run_eval "$out" -n 1 07-debt-service-locator
+wait
+check "two runs in the same second get their own directories" "2" "$(find "$out" -name summary.jsonl | wc -l | tr -d ' ')"
 
 out="$(new_tmpdir)"
 run_eval "$out" no-such-task
