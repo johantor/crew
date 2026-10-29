@@ -1,0 +1,16 @@
+# The site's database only; the site itself runs on the host with `dotnet run`.
+# No volume: `docker compose down` throws the data away, so each `up` starts empty and
+# the CMS creates its schema on first start.
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "Qwerty12345!"
+    ports:
+      - "6000:1433"
+    # The check also creates the empty database, so `up --wait` returns once the site can connect.
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -Q \"IF DB_ID('EvalSite') IS NULL CREATE DATABASE EvalSite\""]
+      interval: 5s
+      retries: 30

@@ -1,0 +1,21 @@
+@model StartPageViewModel
+@{
+    ViewData["Title"] = Model.CurrentPage.Heading;
+}
+
+<h1 epi-property="@Model.CurrentPage.Heading"></h1>
+
+<div epi-property="@Model.CurrentPage.MainContentArea"></div>
+
+@if (Model.LatestArticles.Count > 0)
+{
+    <section>
+        <h2>Latest articles</h2>
+        <ul>
+            @foreach (var article in Model.LatestArticles)
+            {
+                <li><a href="@Url.ContentUrl(article.ContentLink)">@article.Heading</a></li>
+            }
+        </ul>
+    </section>
+}
