@@ -1,0 +1,10 @@
+@model ArticlePage
+@{
+    ViewData["Title"] = Model.Heading;
+}
+
+<article>
+    <h1 epi-property="@Model.Heading"></h1>
+    <p epi-property="@Model.Teaser"></p>
+    <div>@Html.Raw(Model.MainBody?.ToHtmlString())</div>
+</article>

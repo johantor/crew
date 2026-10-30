@@ -1,0 +1,10 @@
+@model TeaserBlockViewModel
+
+<div class="teaser">
+    <h2 epi-property="@Model.CurrentBlock.Heading"></h2>
+    <p epi-property="@Model.CurrentBlock.Text"></p>
+    @if (Model.Url is not null)
+    {
+        <a href="@Model.Url">Read more</a>
+    }
+</div>

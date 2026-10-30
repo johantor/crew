@@ -25,8 +25,10 @@ reaches users. The `johantor` marketplace is its own repository,
 - `scripts/`: repo tooling, never shipped: `validate-plugin.sh` (tree-only structural checks, the `§N` sections below),
   `check-changelog.sh` (the diff-based release gate, takes the base branch), `release-notes.sh`
   (one version's changelog section, used by `auto-release.yml`).
-- `tests/`: one bash suite per guard, the gate runner, the validator and the release scripts
-  (`*.test.sh`), and the shared harness, `lib.sh`.
+- `tests/`: one bash suite per guard, the gate runner, the validator, the release scripts and
+  the eval runner (`*.test.sh`), and the shared harness, `lib.sh`.
+- `evals/`: end-to-end evals on an Optimizely CMS 13 fixture, run by hand before a roster change
+  (`evals/README.md`); never shipped, not in CI but for shellcheck and the runner's stubbed test.
 - `docs/`: the site on GitHub Pages. `style.css` is shared with board's site (a copy there).
 - `VERIFICATION.md`: the manual scenario matrix. `CLAUDE.md`: how Claude works here, then the code
   map: every agent, command, skill and hook, and how they fit.
@@ -194,7 +196,7 @@ rule costs more than a sentence of prose, and motivation measurably helps compli
 This repo has no app build. Before opening a PR, run what CI runs:
 
 ```bash
-shellcheck plugin/hooks/*.sh plugin/hooks/lib/*.sh plugin/scripts/*.sh tests/*.sh scripts/*.sh
+shellcheck plugin/hooks/*.sh plugin/hooks/lib/*.sh plugin/scripts/*.sh tests/*.sh scripts/*.sh evals/*.sh evals/tasks/*/*.sh
 bash scripts/validate-plugin.sh
 bash scripts/check-changelog.sh          # takes the base branch; defaults to main
 for t in tests/*.test.sh; do bash "$t"; done

@@ -26,7 +26,7 @@ jobs:
       # The shell's `*` does not cross directory separators (git's does), so the
       # sourced libraries under plugin/hooks/lib/ need their own pattern here.
       - name: Lint shell files
-        run: shellcheck plugin/hooks/*.sh plugin/hooks/lib/*.sh plugin/scripts/*.sh tests/*.sh scripts/*.sh
+        run: shellcheck plugin/hooks/*.sh plugin/hooks/lib/*.sh plugin/scripts/*.sh tests/*.sh scripts/*.sh evals/*.sh evals/tasks/*/*.sh
 
   plugin:
     permissions:
