@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080"><defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#22201C"/></marker></defs><rect width="1920" height="1080" fill="#F5EFE3"/>
+<text x="120" y="420" font-family="Inter Display" font-size="150" font-weight="800" fill="#22201C" text-anchor="start" >My Knives</text>
+<text x="126" y="500" font-family="Inter" font-size="40" font-weight="400" fill="#7D776B" text-anchor="start" >A personal toolkit for agent development</text>
+<rect x="126" y="560" width="120" height="8" fill="#C8472B"/>
+<text x="126" y="640" font-family="Inter" font-size="36" font-weight="400" fill="#22201C" text-anchor="start" >You can copy the knives.</text>
+<text x="126" y="690" font-family="Inter" font-size="36" font-weight="600" fill="#22201C" text-anchor="start" >You won't cook like the chef.</text>
+<g transform="translate(980,170)"><rect width="820" height="740" rx="30" fill="#7A5236"/><rect x="24" y="24" width="772" height="692" rx="20" fill="#8E6141"/>
+<rect x="40" y="60" width="740" height="96" rx="14" fill="#7A5236" opacity=".55"/><rect x="40" y="190" width="740" height="96" rx="14" fill="#7A5236" opacity=".55"/><rect x="40" y="320" width="740" height="96" rx="14" fill="#7A5236" opacity=".55"/><rect x="40" y="450" width="740" height="96" rx="14" fill="#7A5236" opacity=".55"/><rect x="40" y="580" width="740" height="96" rx="14" fill="#7A5236" opacity=".55"/>
+<g transform="translate(260,90) rotate(0)">
+ <rect x="-170" y="-12" width="170" height="36" rx="12" fill="#5A3B2A"/><circle cx="-130" cy="6" r="5" fill="#D7DADD"/><circle cx="-85" cy="6" r="5" fill="#D7DADD"/><circle cx="-40" cy="6" r="5" fill="#D7DADD"/>
+ <rect x="-6" y="-16" width="14" height="44" rx="3" fill="#8C9196"/>
+ <path d="M8,-16 L400,-16 Q440,-16 470,-10 Q430,34 350,34 L8,34 Z" fill="#D7DADD" stroke="#8C9196" stroke-width="2"/>
+ <path d="M8,26 L350,26" stroke="#FFFFFF" stroke-width="3" opacity=".7"/>
+ <rect x="100" y="-6" width="200" height="30" rx="15" fill="#C8472B"/><text x="200" y="16" font-family="JetBrains Mono" font-size="20" font-weight="600" fill="#fff" text-anchor="middle" >the plan</text>
+</g><g transform="translate(260,220) rotate(0)">
+ <rect x="-170" y="-12" width="170" height="36" rx="12" fill="#5A3B2A"/><circle cx="-130" cy="6" r="5" fill="#D7DADD"/><circle cx="-85" cy="6" r="5" fill="#D7DADD"/><circle cx="-40" cy="6" r="5" fill="#D7DADD"/>
+ <rect x="-6" y="-16" width="14" height="44" rx="3" fill="#8C9196"/>
+ <path d="M8,-16 L330,-16 Q370,-16 400,-10 Q360,34 280,34 L8,34 Z" fill="#D7DADD" stroke="#8C9196" stroke-width="2"/>
+ <path d="M8,26 L280,26" stroke="#FFFFFF" stroke-width="3" opacity=".7"/>
+ <rect x="82.5" y="-6" width="165" height="30" rx="15" fill="#22201C"/><text x="165" y="16" font-family="JetBrains Mono" font-size="20" font-weight="600" fill="#fff" text-anchor="middle" >lead</text>
+</g><g transform="translate(260,350) rotate(0)">
+ <rect x="-170" y="-12" width="170" height="36" rx="12" fill="#5A3B2A"/><circle cx="-130" cy="6" r="5" fill="#D7DADD"/><circle cx="-85" cy="6" r="5" fill="#D7DADD"/><circle cx="-40" cy="6" r="5" fill="#D7DADD"/>
+ <rect x="-6" y="-16" width="14" height="44" rx="3" fill="#8C9196"/>
+ <path d="M8,-16 L430,-16 Q470,-16 500,-10 Q460,34 380,34 L8,34 Z" fill="#D7DADD" stroke="#8C9196" stroke-width="2"/>
+ <path d="M8,26 L380,26" stroke="#FFFFFF" stroke-width="3" opacity=".7"/>
+ <rect x="107.5" y="-6" width="215" height="30" rx="15" fill="#5E7F63"/><text x="215" y="16" font-family="JetBrains Mono" font-size="20" font-weight="600" fill="#fff" text-anchor="middle" >skills</text>
+</g><g transform="translate(260,480) rotate(0)">
+ <rect x="-170" y="-12" width="170" height="36" rx="12" fill="#5A3B2A"/><circle cx="-130" cy="6" r="5" fill="#D7DADD"/><circle cx="-85" cy="6" r="5" fill="#D7DADD"/><circle cx="-40" cy="6" r="5" fill="#D7DADD"/>
+ <rect x="-6" y="-16" width="14" height="44" rx="3" fill="#8C9196"/>
+ <path d="M8,-16 L300,-16 Q340,-16 370,-10 Q330,34 250,34 L8,34 Z" fill="#D7DADD" stroke="#8C9196" stroke-width="2"/>
+ <path d="M8,26 L250,26" stroke="#FFFFFF" stroke-width="3" opacity=".7"/>
+ <rect x="75" y="-6" width="150" height="30" rx="15" fill="#D99A2B"/><text x="150" y="16" font-family="JetBrains Mono" font-size="20" font-weight="600" fill="#fff" text-anchor="middle" >hooks</text>
+</g><g transform="translate(260,610) rotate(0)">
+ <rect x="-170" y="-12" width="170" height="36" rx="12" fill="#5A3B2A"/><circle cx="-130" cy="6" r="5" fill="#D7DADD"/><circle cx="-85" cy="6" r="5" fill="#D7DADD"/><circle cx="-40" cy="6" r="5" fill="#D7DADD"/>
+ <rect x="-6" y="-16" width="14" height="44" rx="3" fill="#8C9196"/>
+ <path d="M8,-16 L370,-16 Q410,-16 440,-10 Q400,34 320,34 L8,34 Z" fill="#D7DADD" stroke="#8C9196" stroke-width="2"/>
+ <path d="M8,26 L320,26" stroke="#FFFFFF" stroke-width="3" opacity=".7"/>
+ <rect x="92.5" y="-6" width="185" height="30" rx="15" fill="#C8472B"/><text x="185" y="16" font-family="JetBrains Mono" font-size="20" font-weight="600" fill="#fff" text-anchor="middle" >the gate</text>
+</g>
+</g></svg>
