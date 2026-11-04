@@ -1,13 +1,7 @@
 #!/usr/bin/env bash
-# Dispatch scope: `lead` launches only crew workers and the built-in
-# `Explore`/`Plan` research agents.
-#
-# `lead` inherits every tool of the session, so it can reach the user's own MCP
-# servers; that costs the frontmatter `Agent(...)` allowlist. Any other agent
-# type is not on bash-safety's no-git roster, so it would run git and edit
-# files outside lead's plan. Other sessions and agents are not this hook's
-# business. Fails open, like plan-guard: no jq or an unreadable payload allows.
-# See AGENTS.md, "crew:lead".
+# Dispatch scope: `lead` launches only crew workers and `Explore`/`Plan`. It
+# replaces the Agent(...) allowlist lead lost by inheriting every tool (AGENTS.md,
+# "crew:lead"). Fails open, like plan-guard.
 _lib="${BASH_SOURCE[0]%/*}/lib/guard-lib.sh"
 # shellcheck source=plugin/hooks/lib/guard-lib.sh
 # shellcheck disable=SC1090,SC1091
@@ -21,10 +15,15 @@ case "$guard_payload" in
   *) exit 0 ;;
 esac
 
-# An Agent call without a subagent_type launches general-purpose, so "" is refused.
-guard_jq2 '.tool_input.subagent_type // ""' '.agent_type // ""' || exit 0
+# Both trusted fields are harness-controlled. tool_name is checked too, so a
+# matcher read as a regex (TaskStop, TaskOutput) never reaches the refusal.
+guard_jq2 '.tool_input.subagent_type // ""' '(.tool_name // "") + " " + (.agent_type // "")' || exit 0
 # shellcheck disable=SC2154  # set by guard_jq2 in the library sourced above
-[ "$guard_trusted" = "crew:lead" ] || exit 0
+case "$guard_trusted" in
+  'Agent crew:lead'|'Task crew:lead') ;;
+  *) exit 0 ;;
+esac
+# An Agent call without a subagent_type launches general-purpose, so "" is refused.
 # shellcheck disable=SC2154
 case "$guard_untrusted" in
   crew:?*|Explore|Plan) exit 0 ;;

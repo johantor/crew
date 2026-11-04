@@ -5,11 +5,11 @@
 # shellcheck disable=SC1090,SC1091
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
-# payload_dispatch <subagent_type> <agent_type> — a PreToolUse(Agent) payload.
-# Pass "" to omit either field.
+# payload_dispatch <subagent_type> <agent_type> [tool_name] — a PreToolUse
+# payload, Agent by default. Pass "" to omit either of the first two fields.
 payload_dispatch() {
-  jq -nc --arg s "$1" --arg a "$2" \
-    '{hook_event_name: "PreToolUse", tool_name: "Agent",
+  jq -nc --arg s "$1" --arg a "$2" --arg t "${3:-Agent}" \
+    '{hook_event_name: "PreToolUse", tool_name: $t,
       tool_input: ({description: "Implement step 3", prompt: "…"}
                    + (if $s != "" then {subagent_type: $s} else {} end))}
      + (if $a != "" then {agent_type: $a} else {} end)'
@@ -29,8 +29,15 @@ for t in general-purpose claude backend crew: fork explore; do
 done
 assert_block "no subagent_type launches general-purpose -> refused" "$hook" \
   "$(payload_dispatch "" crew:lead)" "'general-purpose'"
+assert_block "the legacy Task tool name is a dispatch too" "$hook" \
+  "$(payload_dispatch general-purpose crew:lead Task)" "$msg"
 run_hook "$hook" "$(payload_dispatch general-purpose crew:lead)"
 if [[ "$_stderr" == *"'general-purpose'"* ]]; then _pass; else _fail "refusal should name the type (got: $_stderr)"; fi
+
+# --- Non-dispatch tools pass, should a matcher read as a regex reach them ---------
+for t in TaskStop TaskOutput TaskCreate; do
+  assert_allow "lead's $t is not a dispatch" "$hook" "$(payload_dispatch "" crew:lead "$t")"
+done
 
 # --- Other callers are not this hook's business -----------------------------------
 assert_allow "the user's own session may dispatch general-purpose" "$hook" "$(payload_dispatch general-purpose "")"
