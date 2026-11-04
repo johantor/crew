@@ -57,9 +57,11 @@ Most rows run in one or two minutes without a person at the keyboard:
   With `gh` signed out and the issue URL plus a sentence → `lead` says once it could not read the
   issue, plans from the sentence, branches `feature/7-<slug>` and keeps the URL in `work-item:`.
   (#315: observed all of it; the PR run took the no-MCP path and pushed nothing.)
-- [ ] **Lead stays on the crew** — `claude --agent crew:lead`, ask it to launch a
-  `general-purpose` agent → `dispatch-scope` refuses it; a `crew:analyst` dispatch launches, and a
-  user MCP server outside the plugin's list (`/mcp`) is callable from `lead`.
+- [x] **Lead stays on the crew** — `claude --agent crew:lead`, ask it to launch a
+  `general-purpose` agent → `dispatch-scope` refuses it; an `Explore` dispatch launches, and a
+  user MCP server outside the plugin's list (`/mcp`) is callable from `lead`. (#329: observed
+  `agent_type: crew:lead` in the payload, the refusal, the `Explore` run, and a stub `kleer`
+  server's tool called on the branch but reported unavailable on `main`.)
 
 ### Plan mode
 
