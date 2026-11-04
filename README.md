@@ -143,7 +143,7 @@ approval replaces `lead`'s own plan checkpoint, so you get one gate, not two. Wh
 underneath:
 
 - **In a `claude --agent crew:lead` session**, `lead` explores (itself, or through the
-  built-in `Explore`/`Plan` research agents, which its agent allowlist includes), presents the
+  built-in `Explore`/`Plan` research agents, which `dispatch-scope` lets through), presents the
   plan through plan mode's approval prompt, and only then writes `<plan-dir>/plan-<feature>.md`,
   branches, and delegates.
 - **From `/crew:feature` in a normal session**, `lead` runs as a subagent, and a subagent
@@ -201,7 +201,11 @@ The bash-safety guard enforces the boundaries and **fails closed**. The read gua
 raw reads, the `.git/` guard blocks agent writes into `.git/`, and both fail open, as do the advisory hooks
 (formatting, denied dispatches, plan-mode dispatches) — `plan-guard` does
 block a dispatch, but only one plan mode would have refused anyway, and on any path it can't read
-it allows.
+it allows. `dispatch-scope` also fails open.
+
+- **`lead` dispatches only the crew.** It may launch `crew:*` workers and the built-in
+  `Explore`/`Plan` agents, nothing else: a `general-purpose` agent would run git outside the
+  roster.
 
 - **Workers can't touch git.** Blocked for `backend`/`frontend`/`unit-tests`/`e2e`/`generalist`, except a
   plain `git mv` to rename a file, which lands in `lead`'s next commit. `lead` is the sole
@@ -262,6 +266,10 @@ intercepted**.
   carry no `Edit`/`Write`; an editing worker is refused with a message naming plan mode and what
   to do first. No roster, so nothing to keep in lockstep. Fails open: no `jq`, an unreadable
   payload, an agent file it can't find, all allow — plan mode itself still blocks the edits.
+- **dispatch-scope** runs on `PreToolUse` for `Agent`/`Task` calls and acts only when the
+  payload's `agent_type` is `crew:lead`. It refuses any target but `crew:<worker>`, `Explore`
+  and `Plan`; a call with no type (which launches `general-purpose`) is refused too. Your own
+  session and every other agent pass. Fails open: no `jq` or an unreadable payload allows.
 
 Hooks are registered in `hooks/hooks.json`.
 
@@ -302,7 +310,7 @@ allowlist matches out of the box:
 - `context7` (docs): `backend` + `frontend`
 - `mssql` / `postgres` (database): `backend` + `unit-tests`
 - `github` / `ado` (git host), `linear` / `atlassian` (issue tracking), `sentry` (errors):
-  `lead`
+  `lead`, which inherits every server of your session under any key, so it needs no grant
 
 `figma-desktop` is the key Figma's own install docs use for the Dev Mode server; `figma` is
 allowlisted too, so either works.
@@ -311,10 +319,10 @@ If you give a server a different key, grant the matching `mcp__<key>` to the rel
 
 **Connected it on claude.ai instead of adding it here?** A connector's namespace is its display
 name, and which form you get depends on the surface: `mcp__claude_ai_<Name>` in the Claude Code
-CLI, the bare `mcp__<Name>` on claude.ai's own surfaces. The design, git-host, issue-tracking, and
-error connectors are allowlisted in both forms (`claude_ai_Figma` / `Figma`, `claude_ai_GitHub` /
-`GitHub`, and so on for Linear, Atlassian, Sentry). A connector under any other display name needs
-its `mcp__<Name>` granted to the relevant agent(s).
+CLI, the bare `mcp__<Name>` on claude.ai's own surfaces. The design, git-host and issue-tracking
+connectors are allowlisted in both forms (`claude_ai_Figma` / `Figma`, `claude_ai_GitHub` /
+`GitHub`, and so on for Linear and Atlassian). A connector under any other display name needs
+its `mcp__<Name>` granted to the relevant worker(s); `lead` reaches every connector already.
 
 **Installed the server as a plugin instead?** Then its tools carry the plugin's name too —
 `mcp__plugin_<plugin>_<server>__<tool>` — and a bare `mcp__<key>` grant never matches them. Note

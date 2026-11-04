@@ -43,7 +43,7 @@ output format; Copilot reads it directly and Claude Code's `crew-review` skill l
 - Probe changed patterns with: a second line, a backslash-newline, a quoted string, a heredoc,
   `;`/`&&`/`|`, an env prefix (`FOO=1`, `env`, `command`), `find -exec`, and `*` or `[` in a value.
 - `bash-safety` fails closed (exit 2 without its library or `jq`); `gitdir-guard`,
-  `read-guard`, `format`, `dispatch-denied` and `plan-guard` fail open, and
+  `read-guard`, `format`, `dispatch-denied`, `plan-guard` and `dispatch-scope` fail open, and
   `gitdir-guard` exits 2 only for a write into `.git/` (AGENTS.md, "Why the crew has no write
   lanes"). A change that flips a
   hook's direction is Blocking.
