@@ -5,6 +5,18 @@ All notable changes to the `crew` plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [12.2.0] - 2026-11-04
+
+### Changed
+
+- `lead` inherits every tool and MCP server of the session (Kleer, a tracker under any key),
+  minus `NotebookEdit`, in place of its fixed `tools:` list.
+
+### Added
+
+- The `dispatch-scope` hook: `lead` launches only `crew:*` workers and `Explore`/`Plan`. It
+  replaces the `Agent(...)` allowlist, and holds via `/crew:feature` too.
+
 ## [12.1.0] - 2026-11-03
 
 ### Added

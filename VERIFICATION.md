@@ -57,12 +57,17 @@ Most rows run in one or two minutes without a person at the keyboard:
   With `gh` signed out and the issue URL plus a sentence → `lead` says once it could not read the
   issue, plans from the sentence, branches `feature/7-<slug>` and keeps the URL in `work-item:`.
   (#315: observed all of it; the PR run took the no-MCP path and pushed nothing.)
+- [x] **Lead stays on the crew** — `claude --agent crew:lead`, ask it to launch a
+  `general-purpose` agent → `dispatch-scope` refuses it; an `Explore` dispatch launches, and a
+  user MCP server outside the plugin's list (`/mcp`) is callable from `lead`. (#329: observed
+  `agent_type: crew:lead` in the payload, the refusal, the `Explore` run, and a stub `kleer`
+  server's tool called on the branch but reported unavailable on `main`.)
 
 ### Plan mode
 
 - [ ] **Main thread, one gate** — `claude --agent crew:lead --permission-mode plan`, ask for a
-  feature → `lead` explores (itself, or through `Explore`/`Plan`, which appear in its agent
-  list), presents the plan through `ExitPlanMode`, and after approval writes
+  feature → `lead` explores (itself, or through `Explore`/`Plan`, which `dispatch-scope` lets
+  through), presents the plan through `ExitPlanMode`, and after approval writes
   `<plan-dir>/plan-<feature>.md` and branches without asking a second time. **Interactive
   session only**: a headless `-p` run strips `ExitPlanMode` from every session, plain or
   `--agent`, so it can show the agent list (checked: `Explore`/`Plan` appear) but not the approval.

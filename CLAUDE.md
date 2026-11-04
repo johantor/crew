@@ -98,11 +98,11 @@ path out of the machine, and the user invokes it.
 Paths in *Map* are relative to `plugin/`, the directory users install.
 
 - `agents/` — auto-discovered, not in the manifest.
-  - `lead`: orchestrator, `model: opus`, sole git owner. Its `Agent(...)` allowlist (fourteen
-    workers plus `Explore`/`Plan`) and `ExitPlanMode` only work as the main thread of
-    `claude --agent crew:lead`; via `/crew:feature` the harness ignores both. It also has
-    `AskUserQuestion` (operator choices), `TaskStop`, `Skill`, `WebFetch` and `WebSearch`;
-    workers get no web tools.
+  - `lead`: orchestrator, `model: opus`, sole git owner. No `tools:` list: it inherits every
+    tool and MCP server of the session, minus `disallowedTools: NotebookEdit`; `dispatch-scope.sh`
+    limits its dispatches to `crew:*` plus `Explore`/`Plan`. `ExitPlanMode` and
+    `AskUserQuestion` only work as the main thread of `claude --agent crew:lead`. Workers get no
+    web tools.
   - Workers: `backend` (the stack's core: in a CLI or script pack, the commands and I/O),
     `frontend` (client-facing layer), `unit-tests`, `e2e`, `visual-review` (no Bash; measures
     computed styles through the browser MCP), `generalist` (express path), `incident-triage`
@@ -197,7 +197,7 @@ Paths in *Map* are relative to `plugin/`, the directory users install.
     by `backend-node`, `optimizely-odp` and `optimizely-opal`.
 - `hooks/` — wired in `hooks/hooks.json`, the one copy; in this repo they load through
   `claude --plugin-dir plugin`. `bash-safety` fails closed; `gitdir-guard`, `read-guard`,
-  `format`, `dispatch-denied` and `plan-guard` fail open.
+  `format`, `dispatch-denied`, `plan-guard` and `dispatch-scope` fail open.
   - `bash-safety.sh`: token-printing CLI calls refused for every session (`az account
     get-access-token`, `Get-AzAccessToken`, `gh auth token`; AGENTS.md has the gaps);
     workers run no git but a plain `git mv`; protected-branch commit backstop (reads the
@@ -234,6 +234,9 @@ Paths in *Map* are relative to `plugin/`, the directory users install.
   - `plan-guard.sh` (`PreToolUse`, `Agent|Task`): in plan mode, refuses a `crew:<worker>` whose
     frontmatter grants `Edit`/`Write`/`NotebookEdit`; `owns-git: true` passes. Reads both
     `tools:` shapes; `CREW_AGENTS_DIR` is the test override.
+  - `dispatch-scope.sh` (`PreToolUse`, `Agent|Task`): for `agent_type` `crew:lead` only, refuses
+    a `subagent_type` other than `crew:<name>`, `Explore` or `Plan` (none means
+    `general-purpose`). It replaces the `Agent(...)` allowlist `lead` lost by inheriting tools.
   - `lib/guard-lib.sh`: payload plumbing, `guard_agent_type` (only a `crew:<name>` agent
     reaches the bare rosters; any other agent, a project's own bare `backend` included, becomes
     `ext:<name>`, still an agent session), `guard_normalize`, `guard_is_windows`, `guard_posix_path`,

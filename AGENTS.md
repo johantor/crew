@@ -115,10 +115,15 @@ rule costs more than a sentence of prose, and motivation measurably helps compli
 - **Plan checkpoint** before the branch: the cheapest place to catch a misunderstood task.
 - **Plan mode: the approval is the checkpoint.** `ExitPlanMode` is the same gate, so both would
   ask twice. A subagent loses `ExitPlanMode` and inherits plan mode, so it returns the plan for
-  `/crew:feature` to present and re-launch as approved. `Explore`/`Plan` stay in the allowlist
-  because plan mode's own workflow reaches for them; `general-purpose` is absent because it is an
-  unguarded implementer. `plan-guard` reads frontmatter, not a roster, and fails open: plan mode
-  is the real boundary.
+  `/crew:feature` to present and re-launch as approved. `plan-guard` reads frontmatter, not a
+  roster, and fails open: plan mode is the real boundary.
+- **`lead` inherits every tool; a hook scopes its dispatches.** An orchestrator needs the
+  operator's own servers (a tracker, time reporting), and a `tools:` allowlist cannot say "every
+  MCP server". Inheriting costs the `Agent(...)` spawn allowlist, which only ever held in
+  `claude --agent`. `dispatch-scope.sh` replaces it on both paths: `lead` launches `crew:*`,
+  `Explore` and `Plan` (plan mode's own workflow reaches for those two), never `general-purpose`,
+  which is off bash-safety's no-git roster and so runs git unguarded. `NotebookEdit` stays
+  disallowed: no `Edit|Write` hook sees it.
 - **Stay responsive.** Foreground calls freeze the orchestrator for minutes, so background is the
   default; the status pulse is emitted after the result is reconciled, or it reports stale state.
 - **Fresh spawns; steering is the narrow exception.** `Agent` never continues a worker, so

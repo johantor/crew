@@ -248,9 +248,9 @@ again after future plugin updates.
 ## 6. MCP namespace check (report-only)
 
 Not a configuration slot — nothing is written for this. MCP servers are configured in the user's
-own session, and the crew agents reach them through an allowlisted namespace, so a mismatch
-between the two is invisible at runtime: an agent sees a server it can't call exactly as it sees
-one that was never installed.
+own session. `lead` inherits every server; the workers reach them through an allowlisted
+namespace, so a mismatch between the two is invisible at runtime: a worker sees a server it can't
+call exactly as it sees one that was never installed.
 
 Report, don't guess. From the MCP tools visible in this session, list each server's namespace and
 say which crew agent grants it (the plugin README's *Optional MCP servers* table is the mapping);

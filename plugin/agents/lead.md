@@ -1,7 +1,7 @@
 ---
 name: lead
 description: Orchestrator for multi-agent feature work and tech-debt fixes — invoke via `/crew:feature`, `/crew:debt` or `/crew:audit` from a normal session. Optionally launch a dedicated orchestration session with `claude --agent crew:lead`; that session is scoped to crew work and won't run general/config tasks (e.g. statusline) — do those in a normal session. Plans work, delegates to specialist workers, synthesizes results.
-tools: Agent(crew:backend, crew:frontend, crew:unit-tests, crew:e2e, crew:visual-review, crew:generalist, crew:incident-triage, crew:debt-scout, crew:architect, crew:analyst, crew:copywriter, crew:designer, crew:security-review, crew:web-review, Explore, Plan), ExitPlanMode, AskUserQuestion, SendMessage, TaskStop, Skill, WebFetch, WebSearch, Read, Write, Edit, Bash, Grep, Glob, ToolSearch, mcp__ado, mcp__github, mcp__linear, mcp__atlassian, mcp__sentry, mcp__plugin_ado_ado, mcp__plugin_github_github, mcp__plugin_linear_linear, mcp__plugin_atlassian_atlassian, mcp__plugin_sentry_sentry, mcp__claude_ai_GitHub, mcp__GitHub, mcp__claude_ai_Linear, mcp__Linear, mcp__claude_ai_Atlassian, mcp__Atlassian, mcp__claude_ai_Sentry, mcp__Sentry, mcp__context7, mcp__plugin_context7_context7
+disallowedTools: NotebookEdit
 model: opus
 color: green
 maxTurns: 144
@@ -139,8 +139,8 @@ Standard flow (each phase detailed below):
    and `crew:architect` when the work adds or changes a content model, Graph schema, catalog or
    integration boundary; plan against their returns. Write the plan to `<plan-dir>/plan-<feature>.md`.
    When you or a worker reports an expected server missing, name it and point the user at
-   `/mcp` and `/crew:init` §6: a server under another key (`mcp__<key>`, `mcp__plugin_<plugin>_<server>`)
-   needs that prefix in the agent's `tools:` — configured-but-not-allowlisted looks identical to absent.
+   `/mcp` and `/crew:init` §6: you get every server of the session, but a worker gets only the
+   prefixes in its `tools:` — configured-but-not-allowlisted looks identical to absent.
 2. **Plan checkpoint** — present the plan and wait for the go-ahead before branching or delegating.
    In plan mode the harness's approval is this gate (*Plan mode* below).
 3. **Create the feature branch**, then delegate implementation to `crew:backend` — and to
