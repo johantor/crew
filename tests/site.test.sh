@@ -111,10 +111,33 @@ for q in "$p1" "$p4" "$p8"; do
 done
 
 # --- config reading ------------------------------------------------------------
-# YAML quotes around a value are dropped; the prose body's `runCommand:` is not read.
-p9="$(project '"http://localhost:5000/"' "'echo \"quoted: value\" >said; echo \$\$ >up; exec sleep 300'")"; projects+=("$p9")
-check "a quoted URL and command are read" "ready" "$(site "$p9" start)"
-check "the quoted command ran as written" "quoted: value" "$(head -n 1 "$p9/said")"
+# The command runs as it stands, shell quotes and backslashes included; the
+# prose body's `runCommand:` is not read.
+# shellcheck disable=SC2016  # the fixture command's own expansions
+p9="$(project http://localhost:5000/ 'printf "%s\\n" "a: b" '\''c d'\'' >said; echo $$ >up; exec sleep 300')"; projects+=("$p9")
+check "a command with quotes and a backslash starts" "ready" "$(site "$p9" start)"
+check "the command ran verbatim" "a: b|c d" "$(paste -sd'|' "$p9/said")"
 site "$p9" stop >/dev/null
+# A YAML-quoted value is not decoded: it fails loudly instead of running something else.
+p10="$(project http://localhost:5000/ "'echo \$\$ >up; exec sleep 300'")"; projects+=("$p10")
+check "a YAML-quoted command is not unwrapped" "failed" "$(site "$p10" start | head -n 1)"
+
+# --- one start at a time, and only our own state directory -----------------------
+p11="$(project http://localhost:5000/ "$serve")"; projects+=("$p11")
+mkdir -p "$(state "$p11")/lock"
+site "$p11" start >"$p11/out" & held=$!
+sleep 2
+check "a start waits while another start holds the lock" "absent" "$([ -e "$p11/starts" ] && echo present || echo absent)"
+rmdir "$(state "$p11")/lock"; wait "$held"
+check "the waiting start then runs" "ready" "$(head -n 1 "$p11/out")"
+check "the lock is released" "absent" "$([ -e "$(state "$p11")/lock" ] && echo present || echo absent)"
+site "$p11" stop >/dev/null
+# A symlinked state directory is never read: its pid could name any process group.
+p12="$(project http://localhost:5000/ none)"; projects+=("$p12")
+planted="$(new_tmpdir)"; set -m; sleep 300 & victim=$!; set +m
+echo "$victim" >"$planted/pid"; ln -s "$planted" "$(state "$p12")"
+check "stop ignores a symlinked state directory" "stopped" "$(site "$p12" stop)"
+check "the process a planted pid names survives" "alive" "$(kill -0 "$victim" 2>/dev/null && echo alive || echo gone)"
+kill -- "-$victim" 2>/dev/null
 
 finish

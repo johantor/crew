@@ -76,7 +76,9 @@ run until this command fills it (`branchNaming` is asked once per run instead, a
 - **Run/dev URL** (`runUrl`) — the local dev URL, if the project serves one. The site runner
   probes it, and `visual-review` and `web-review` measure it.
 - **Run command** (`runCommand`) — the one command that serves the site on that URL, on one
-  line, run from the project root (`cd src/Web && …` when it must run elsewhere). The site
+  line, run from the project root (`cd src/Web && …` when it must run elsewhere). Write it and
+  the URL plain, never YAML-quoted: the runner runs the text after the key as it stands, and a
+  command YAML cannot hold plain goes in a script the slot names. The site
   runner starts and stops it, so a dev server is right here even though a worker may never run
   one; no hot-reload or watch form, which rebuilds while a gate runs. `none` when the project
   serves nothing or the user starts the site: the crew then uses a site that already answers.

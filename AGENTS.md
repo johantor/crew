@@ -171,6 +171,8 @@ rule costs more than a sentence of prose, and motivation measurably helps compli
   site locks build outputs. A site that already answers is `external` and never stopped.
   Accepted gaps: a command that returns while the site lives on (`docker compose up -d`) reads
   as `external`; any HTTP response counts as up; a site that ignores `TERM` is `still-running`.
+  The slot's text runs verbatim, so a YAML-quoted value fails at start: decoding YAML scalars
+  is a parser.
   An e2e suite keeps owning its own server (Playwright `webServer`).
 - **Isolation or a path, decided at dispatch.** An isolated worktree auto-cleans a gitignored
   deliverable (#241), and a relocation steer is refused inconsistently (#242).

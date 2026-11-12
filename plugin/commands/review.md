@@ -178,8 +178,10 @@ It reads the run command and URL from crew config and prints one word. `ready` o
 → hand the URL to items 3 and 4. `starting` → call it again. `failed`, or a refusal (no run
 command and nothing answering) → put its output in the summary, and hand no URL: design
 conformance is then ⏭️ skipped (*no running site*) and web review reads the code only. Never
-start the site another way. When both workers have returned, run the same script with `stop`:
-`external` is a site the user runs, which stays up, and `still-running` goes to the user as is.
+start the site another way. After a `ready`, run the same script with `stop` before you end,
+on every path: when the workers have returned, and before you stop on a dispatch that could not
+be launched. `external` is a site the user runs, which stays up, and `still-running` goes to
+the user as is.
 
 Delegate items 2–4 in one message, each with its own `steer-token:`: they are read-only and
 run side by side. If one cannot be launched, stop and report the exact error.

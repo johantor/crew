@@ -18,7 +18,8 @@ set -u
 
 die() { echo "site.sh: $1" >&2; exit 3; }
 
-# Prints a scalar slot from the frontmatter, one pair of surrounding quotes dropped.
+# Prints a slot's text from the frontmatter as it stands: no YAML quoting or
+# escapes are decoded, so the command that runs is the one a reader sees.
 slot() {
   local line first=1 v
   while IFS= read -r line; do
@@ -27,7 +28,6 @@ slot() {
     [ "$line" = '---' ] && return 0
     case "$line" in "$1:"*) ;; *) continue ;; esac
     v="${line#"$1:"}"; v="${v#"${v%%[![:space:]]*}"}"; v="${v%"${v##*[![:space:]]}"}"
-    case "$v" in \"*\"|\'*\') v="${v#?}"; v="${v%?}" ;; esac
     printf '%s' "$v"; return 0
   done <.claude/crew.md
 }
@@ -39,7 +39,7 @@ answers() { curl -ks -o /dev/null --max-time 5 --url "$url" 2>/dev/null; }
 # True while the process group `start` launched is alive; sets $p. A dead
 # group's pid file is dropped, so a reused pid is never taken for the site.
 own_alive() {
-  [ -O "$d" ] && [ -s "$d/pid" ] || return 1
+  [ ! -L "$d" ] && [ -O "$d" ] && [ -s "$d/pid" ] || return 1
   # The site's own exit removes the file, possibly between the test and this read.
   p="$(head -c 16 "$d/pid" 2>/dev/null)"
   case "$p" in ''|*[!0-9]*) return 1 ;; esac
@@ -73,13 +73,17 @@ p=''
 
 case "$1" in
   start)
-    if own_alive; then wait_ready; exit 0; fi
-    if answers; then echo external; exit 0; fi
-    cmd="$(slot runCommand)"
-    case "$cmd" in ''|unset|none) die "runCommand is '${cmd:-missing}' in .claude/crew.md; run /crew:init" ;; esac
     # /tmp is shared: the directory is ours and private, or nothing starts.
     (umask 077 && mkdir "$d") 2>/dev/null
     [ -d "$d" ] && [ ! -L "$d" ] && [ -O "$d" ] || die "$d is not a directory this user owns"
+    # One start at a time decides and launches; a second one waits for its pid file.
+    for ((i = 0; i < 30; i++)); do mkdir "$d/lock" 2>/dev/null && break; sleep 1; done
+    [ "$i" -lt 30 ] || die "$d/lock is held; remove it if no other start is running"
+    trap 'rmdir "$d/lock" 2>/dev/null' EXIT
+    if own_alive; then rmdir "$d/lock"; wait_ready; exit 0; fi
+    if answers; then echo external; exit 0; fi
+    cmd="$(slot runCommand)"
+    case "$cmd" in ''|unset|none) die "runCommand is '${cmd:-missing}' in .claude/crew.md; run /crew:init" ;; esac
     # Job control gives the job its own process group, so stop kills the whole
     # tree. Inside it job control is off, so the time limit shares that group
     # and `kill 0` ends it: at the limit, or when the command exits by itself.
@@ -95,6 +99,7 @@ case "$1" in
     echo $! >"$d/pid"
     # Out of the job table: this shell waits on, and would report the job's end.
     disown
+    rmdir "$d/lock"
     wait_ready
     ;;
   status)
