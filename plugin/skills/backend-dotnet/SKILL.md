@@ -35,6 +35,12 @@ Each product skill names its own markers and neighbours.
 {file}` when that config exists, else `dotnet format whitespace --include {file}` — full `dotnet format` evaluates
 analyzers against the project and takes 10-60s, so it stays at the lint gate.
 
+Run command and URL, from the web project's `Properties/launchSettings.json`: `dotnet run
+--project <web .csproj> --launch-profile <name>`, with that profile's first `applicationUrl`
+as the URL. Only a `"commandName": "Project"` profile qualifies (not `IISExpress` or `Docker`);
+with several, ask which one. No `launchSettings.json` → `dotnet run --project <web .csproj>`
+and ask for the URL. Never `dotnet watch`.
+
 ## Razor ownership (server-rendered mode)
 
 Own the server-side of Razor (`.cshtml`): view-model binding, `@functions`/`@code`, control
@@ -71,7 +77,25 @@ Before you change a lifetime, or approve one, answer each of these in your findi
 ## Build
 
 The gate is the crew-config backend build command, e.g. `dotnet build`. Watch/run forms that
-never terminate: `dotnet watch`, `dotnet run`.
+never terminate: `dotnet watch`, `dotnet run`. Never run either yourself, `&` or
+`run_in_background` included.
+
+### Running the site
+
+The site runs only through the crew's site runner, which `lead` starts and stops from the
+crew-config run command. If your step needs the site up (a rendered page, an endpoint to call),
+say so in your summary; do not start it.
+
+- **`dotnet run` restores and builds before it serves**, so each start serves the current tree:
+  a fix needs a stop and a start, not a watcher. It is also a writer of `bin/` and `obj/`
+  (below), so it never starts while a build, test or lint gate runs.
+- **A running site holds its output assemblies.** A build against the same `bin/` then fails
+  with the lock signature, which is why the site is stopped before a gate.
+- **`dotnet watch` is never the run command**: it rebuilds on every edit, racing the gates and
+  serving a half-applied step.
+- **The launch profile decides the URL and the environment** (`applicationUrl`,
+  `ASPNETCORE_ENVIRONMENT`). Report the profile from the run command when it matters to a
+  finding; do not pass `--urls` or another profile to get a different site.
 
 ### `obj/` is per-writer state, not a shared cache
 

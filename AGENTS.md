@@ -20,12 +20,12 @@ reaches users. The `johantor` marketplace is its own repository,
 - `plugin/`: `.claude-plugin/plugin.json` is the manifest; `agents/`, `commands/` and `skills/`
   are auto-discovered, and `hooks/hooks.json` wires the hooks. The top-level `hooks/*.sh` are
   entry points (`+x`, wired); `hooks/lib/*.sh` are sourced libraries (not `+x`, not wired);
-  validator §3 and §6 enforce the split. `scripts/gate.sh` is the review-gate runner.
+  validator §3 and §6 enforce the split. `scripts/gate.sh` is the review-gate runner, `scripts/site.sh` the site runner.
 - `README.md` is user-facing, `CHANGELOG.md` the release notes; both stay at the root.
 - `scripts/`: repo tooling, never shipped: `validate-plugin.sh` (tree-only structural checks, the `§N` sections below),
   `check-changelog.sh` (the diff-based release gate, takes the base branch), `release-notes.sh`
   (one version's changelog section, used by `auto-release.yml`).
-- `tests/`: one bash suite per guard, the gate runner, the validator, the release scripts and
+- `tests/`: one bash suite per guard, the gate and site runners, the validator, the release scripts and
   the eval runner (`*.test.sh`), and the shared harness, `lib.sh`.
 - `evals/`: end-to-end evals on an Optimizely CMS 13 fixture, run by hand before a roster change
   (`evals/README.md`); never shipped, not in CI but for shellcheck and the runner's stubbed test.
@@ -162,6 +162,16 @@ rule costs more than a sentence of prose, and motivation measurably helps compli
   writable: `/tmp` is shared and `CREW_GATE_CACHE_DIR` can name anything), and only when the
   whole log copies. Accepted gap: the key ignores ignored files and the toolchain; the user
   clears the cache.
+- **The site runs through `plugin/scripts/site.sh`, and only `lead` runs it.** The watch guard
+  refuses a dev server because it never ends inside a turn; the runner starts one detached,
+  returns when `runUrl` answers, and kills it at a time limit, so a headless or loop run can
+  measure a page and leaks no server. It reads `runCommand` from `.claude/crew.md` and takes no
+  command (unlike `gate.sh`, one site needs no narrowing), so its allow rule grants that one
+  committed string. One owner, as for git: the site is stopped before a gate, since a running
+  site locks build outputs. A site that already answers is `external` and never stopped.
+  Accepted gaps: a command that returns while the site lives on (`docker compose up -d`) reads
+  as `external`; any HTTP response counts as up; a site that ignores `TERM` is `still-running`.
+  An e2e suite keeps owning its own server (Playwright `webServer`).
 - **Isolation or a path, decided at dispatch.** An isolated worktree auto-cleans a gitignored
   deliverable (#241), and a relocation steer is refused inconsistently (#242).
 - **Address review feedback** with the same lane routing, git ownership and gate that built the

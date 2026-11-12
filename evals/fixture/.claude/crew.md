@@ -17,6 +17,7 @@ formatMatrix: |
 baseBranch: main
 branchNaming: feature/<slug>
 runUrl: http://localhost:5000/
+runCommand: none
 planDirectory: unset
 ---
 

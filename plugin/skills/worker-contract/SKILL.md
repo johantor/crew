@@ -20,7 +20,8 @@ to its tool.
 - **The build and the full test suite are `lead`'s final gate, not your self-check.** Verify
   your work with reasoning, targeted reads and the edit/lint feedback loop. Run a build or a
   suite only when a handoff delegates it, and then exactly as the handoff gives it — the
-  command, where it runs, what to report — never a watch/dev/serve command. Your stack skill
+  command, where it runs, what to report — never a watch/dev/serve command. A step that needs
+  the site running says so in its summary: `lead` starts it with the site runner. Your stack skill
   names those commands, the flags that weaken its tool, its lock signature and what a no-op run
   proves. If you think a gate is warranted earlier, say so in your summary and let `lead`
   decide.
