@@ -166,6 +166,23 @@ classification) in `quick` mode.
    their diff hunks, the resolved stacks and the running URL when there is one; fold its
    findings in as in item 2, each marked *web*.
 
+**The running URL comes from the site runner.** When item 3 or 4 runs and **Run/dev URL** is
+set, start the site yourself once every step 2 gate has ended (a running site locks the build
+outputs), from the project root, with Bash `timeout: 600000`:
+
+```sh
+bash "${CLAUDE_PLUGIN_ROOT}/scripts/site.sh" start
+```
+
+It reads the run command and URL from crew config and prints one word. `ready` or `external`
+→ hand the URL to items 3 and 4. `starting` → call it again. `failed`, or a refusal (no run
+command and nothing answering) → put its output in the summary, and hand no URL: design
+conformance is then ⏭️ skipped (*no running site*) and web review reads the code only. Never
+start the site another way. After a `ready`, run the same script with `stop` before you end,
+on every path: when the workers have returned, and before you stop on a dispatch that could not
+be launched. `external` is a site the user runs, which stays up, and `still-running` goes to
+the user as is.
+
 Delegate items 2–4 in one message, each with its own `steer-token:`: they are read-only and
 run side by side. If one cannot be launched, stop and report the exact error.
 
@@ -179,6 +196,6 @@ First the review judgment, under these exact headings:
 Then the gate summary. Every executable gate — plus design conformance and web review — appears with its
 status — **never skip silently**:
 
-- ✅ passed · ❌ failed · ⏭️ skipped (with reason: *lane untouched* or *no command configured*).
+- ✅ passed · ❌ failed · ⏭️ skipped (with reason: *lane untouched*, *no command configured* or *no running site*).
 - **GO** — all *run* gates passed and there are no `## Blocking` items.
 - **NO-GO** — list each failing gate with ❌ and the blocking items that must be resolved before merging.

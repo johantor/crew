@@ -73,7 +73,15 @@ run until this command fills it (`branchNaming` is asked once per run instead, a
   at the lint gate and get no row.
 - **Base branch** (`baseBranch`) — the branch `lead` branches off (`main` / `develop` / trunk).
 - **Branch naming** (`branchNaming`) — e.g. `feature/<ticket>-<slug>`.
-- **Run/dev URL** (`runUrl`) — the local dev URL, if the project serves one.
+- **Run/dev URL** (`runUrl`) — the local dev URL, if the project serves one. The site runner
+  probes it, and `visual-review` and `web-review` measure it.
+- **Run command** (`runCommand`) — the one command that serves the site on that URL, on one
+  line, run from the project root (`cd src/Web && …` when it must run elsewhere). Write it and
+  the URL plain, never YAML-quoted: the runner runs the text after the key as it stands, and a
+  command YAML cannot hold plain goes in a script the slot names. The site
+  runner starts and stops it, so a dev server is right here even though a worker may never run
+  one; no hot-reload or watch form, which rebuilds while a gate runs. `none` when the project
+  serves nothing or the user starts the site: the crew then uses a site that already answers.
 - **Plan directory** (`planDirectory`) — where `lead` writes `plan-<feature>.md`; `unset` uses
   the `.claude/` fallback. Set it (e.g. `docs/plans/`) for a committed location.
 
@@ -105,6 +113,7 @@ formatMatrix: |
 baseBranch: develop
 branchNaming: feature/<ticket>-<slug>
 runUrl: https://localhost:5001/
+runCommand: dotnet run --project src/Site --launch-profile https
 planDirectory: unset
 ---
 
@@ -129,13 +138,14 @@ trust or correct it; never invent a command you can't see configured.
 | Frontend e2e tool | `cypress.config.*` or a `cypress/` directory → `cypress`; `playwright.config.*` → `playwright`; neither → `none`, a confirmed absence, never `unset`. |
 | Frontend unit test tool | `vitest.config.*` → `vitest`; `jest.config.*` or a `jest` key with no vitest → `jest`; a `cypress.config.*` `component` key with neither → `cypress`. Absent → `unset`, a confirmed absence that stops nothing. |
 | Base branch | `git symbolic-ref refs/remotes/origin/HEAD`, else an existing `main`/`develop`. Ambiguous → ask; `origin/HEAD` is often unset or stale, and a wrong base is expensive. |
-| Run/dev URL, branch naming | Dev scripts, `launchSettings.json`, existing branch names; else `unset`. |
+| Run/dev URL, run command | The `backend-<stack>` skill's **Crew config** section when it names them; else the `package.json` dev or start script and the port it prints or configures. Several candidates (launch profiles, apps) → ask which one the crew runs. |
+| Branch naming | Existing branch names; else `unset`. |
 | Plan directory | Only an obvious existing convention (`docs/plans/`, tracked `plan-*.md` outside `.claude/`); else `unset`. |
 
 When detection comes up empty, pick the placeholder by slot type — never a value that makes the
 config unusable:
 
-- **Tooling slots** (test, build and lint commands; format matrix; run/dev URL): `none` when the
+- **Tooling slots** (test, build and lint commands; format matrix; run/dev URL; run command): `none` when the
   project genuinely has no such tooling. Gates that need it then skip with that note.
 - **Project-identity slots** (base branch, branch naming, frontend mode, backend stack): `unset`,
   never `none` — a base branch always exists. `lead` stops on it and sends the user here, so

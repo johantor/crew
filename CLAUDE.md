@@ -248,10 +248,17 @@ Paths in *Map* are relative to `plugin/`, the directory users install.
   and command, never in a repo with a gitlink or from a directory others can write; a hit
   writes `log` and `exit` 0 and no `pid`. `/crew:review` and `lead` name it by
   `${CLAUDE_PLUGIN_ROOT}`, which Claude Code substitutes in command and agent bodies.
+- `scripts/site.sh` — the site runner, run only by `lead` and `/crew:review`: `start`, `status`,
+  `stop`, no command argument. It reads `runCommand` and `runUrl` from `.claude/crew.md` in the
+  current directory, starts the command in its own process group, waits (`CREW_SITE_WAIT`,
+  default 540s) until the URL answers, and kills it after `CREW_SITE_TTL` (default 3600s).
+  State in `/tmp/crew-site-<cksum of the checkout path>/`. A URL that answers without a start
+  here is `external` and never stopped. The watch guard is unchanged: workers start no site.
 - `tests/` — a guard is `stdin JSON → exit 0/2`: assert allow/block plus a stderr substring.
   Exceptions: `format` asserts its stderr
   report through fake tools, `dispatch-denied` asserts its stdout JSON with `jq`,
-  `plan-guard` uses real agents, then fixtures via `CREW_AGENTS_DIR`, and `gate` runs the script. Every validator section has
+  `plan-guard` uses real agents, then fixtures via `CREW_AGENTS_DIR`, `gate` runs the script, and
+  `site` runs its script on a fake `curl`. Every validator section has
   a negative fixture and a silent control (assert on the FAIL message).
   `release.test.sh` builds real git history.
 
@@ -274,7 +281,7 @@ Paths in *Map* are relative to `plugin/`, the directory users install.
 - `omitClaudeMd: true` only on `incident-triage` and `visual-review` (read-only, fully briefed). Never on an
   implementer: the project's `CLAUDE.md` holds its conventions. Not on `debt-scout` either: the
   project's `CLAUDE.md` may carry the debt policy section it has to honor.
-- `lead` has `loaded-lines-cap: 612`, 1 line of slack (raised from 595 when the gate rules
+- `lead` has `loaded-lines-cap: 612`, no slack (raised from 595 when the gate rules
   moved into the preloaded `review-gate` skill, whose frontmatter and heading count, and from
   609 for the six roles of #275). Skills it loads on demand (`debt-lane`) do not count.
 

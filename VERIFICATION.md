@@ -354,6 +354,13 @@ running, then message the worker at the `agent-id:` the plan recorded.
 Needs a browser MCP configured and an app on a URL. The measurement rows are the ones that rot
 back into eyeballing, which reads as a passing review rather than a broken one.
 
+- [x] **The crew starts the site itself** — `runCommand` and `runUrl` set, nothing running,
+  `claude -p "/crew:review quick" --plugin-dir plugin` with `Bash(bash "<abs>/scripts/site.sh":*)`
+  allowed → the site starts, `visual-review` and `web-review` get the URL, and no site process
+  is left when the run ends. (#331: `start`, then both dispatches carrying the URL, then
+  `stop`; `status` printed `stopped`.)
+- [ ] **A site the user runs stays up** — the same run with the site already running →
+  `start` prints `external`, and the site still answers afterwards.
 - [ ] **Numbers, not adjectives** — `/crew:review full` against a UI with a planted 4px padding
   error → the finding carries actual, spec, and delta (`padding-left 12px · spec 16px · −4px`).
   A report saying only "spacing looks slightly off" is a fail, however correct it is.

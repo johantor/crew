@@ -16,6 +16,7 @@ formatMatrix: none
 baseBranch: main
 branchNaming: <type>/<issue>-<slug>
 runUrl: none
+runCommand: none
 planDirectory: unset
 ---
 

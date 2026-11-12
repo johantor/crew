@@ -5,6 +5,19 @@ All notable changes to the `crew` plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [12.3.0] - 2026-11-12
+
+### Added
+
+- The site runner, `scripts/site.sh`: `lead` and `/crew:review` start the project's site for
+  `visual-review` and `web-review` and stop it after, so a headless or loop run needs no person.
+- The `runCommand` slot: the command that serves `runUrl`. Run `/crew:init` to add it.
+
+### Changed
+
+- `backend-dotnet` says how the site runs: `dotnet run` with a launch profile, through the
+  runner only, never `dotnet watch`.
+
 ## [12.2.0] - 2026-11-04
 
 ### Changed
