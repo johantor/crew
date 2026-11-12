@@ -40,7 +40,8 @@ answers() { curl -ks -o /dev/null --max-time 5 --url "$url" 2>/dev/null; }
 # group's pid file is dropped, so a reused pid is never taken for the site.
 own_alive() {
   [ -O "$d" ] && [ -s "$d/pid" ] || return 1
-  p="$(head -c 16 "$d/pid")"
+  # The site's own exit removes the file, possibly between the test and this read.
+  p="$(head -c 16 "$d/pid" 2>/dev/null)"
   case "$p" in ''|*[!0-9]*) return 1 ;; esac
   kill -0 -- "-$p" 2>/dev/null || { rm -f "$d/pid"; return 1; }
 }
