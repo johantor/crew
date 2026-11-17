@@ -26,7 +26,7 @@ reaches users. The `johantor` marketplace is its own repository,
   `check-changelog.sh` (the diff-based release gate, takes the base branch), `release-notes.sh`
   (one version's changelog section, used by `auto-release.yml`).
 - `tests/`: one bash suite per guard, the gate and site runners, the validator, the release scripts and
-  the eval runner (`*.test.sh`), and the shared harness, `lib.sh`.
+  the eval runner and scorer (`*.test.sh`), and the shared harness, `lib.sh`.
 - `evals/`: end-to-end evals on an Optimizely CMS 13 fixture, run by hand before a roster change
   (`evals/README.md`); never shipped, not in CI but for shellcheck and the runner's stubbed test.
 - `docs/`: the site on GitHub Pages. `style.css` is shared with board's site (a copy there).
