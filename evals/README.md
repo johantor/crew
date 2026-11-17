@@ -55,7 +55,11 @@ moves it; keep it outside any checkout, or the session reads that checkout's `CL
 makes it a git repo on
 `main`, runs `setup.sh`, then `claude -p --agent crew:lead` with the prompt plus "Just build it."
 (the standing go-ahead, so the plan checkpoint does not stop a headless run). The session gets
-`acceptEdits` and a tool allow-list, never `--dangerously-skip-permissions`. `grade.log` has
+`acceptEdits` and a tool allow-list, never `--dangerously-skip-permissions`. A headless run
+cannot prompt, so a call outside the allow-list is refused, a worker's too. `permission-log.sh`,
+the session's `PermissionRequest` hook, writes each one to `permission-requests.jsonl` and
+decides nothing; the workflow's summary lists them under each failed run. The run waits for
+background workers without the default 10-minute limit. `grade.log` has
 one PASS or FAIL line per criterion; `summary.jsonl` has one line per run with the verdict, wall
 time, turns, cost and tokens. Delete the results when done, since each work tree keeps its
 build output.

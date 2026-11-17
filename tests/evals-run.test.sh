@@ -18,6 +18,7 @@ printf '#!/bin/sh\nexit 0\n' >"$stubs/dotnet"
 cat >"$stubs/claude" <<'EOF'
 #!/bin/sh
 printf '%s\n' "$@" >"$CLAUDE_STUB_ARGS"
+printf '%s %s\n' "${CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS-unset}" "${CREW_EVAL_PERMISSION_LOG##*/}" >"$CLAUDE_STUB_ARGS.env"
 if [ -n "${CLAUDE_STUB_FIX:-}" ]; then
   git checkout -qb feature/inject-url-resolver
   printf 'public class TeaserBlockComponent(IUrlResolver urlResolver) : BlockComponent<TeaserBlock> { }\n' \
@@ -48,6 +49,19 @@ check "the session runs as crew:lead" "crew:lead" "$(grep -A1 -- '^--agent$' "$C
 check "the prompt carries the standing go-ahead" "1" "$(grep -c '^Just build it\.$' "$CLAUDE_STUB_ARGS")"
 check "the gate rule reaches claude as one argument" "1" "$(grep -c '^Bash(bash .*/scripts/gate\.sh:\*)$' "$CLAUDE_STUB_ARGS")"
 check "the session never skips permissions" "0" "$(grep -c -- '--dangerously-skip-permissions' "$CLAUDE_STUB_ARGS")"
+check "permission requests go to the log hook" "bash '$(dirname "$RUN")/permission-log.sh'" \
+  "$(grep -A1 -- '^--settings$' "$CLAUDE_STUB_ARGS" | tail -n 1 | jq -r '.hooks.PermissionRequest[0].hooks[0].command')"
+check "the run waits for background workers and logs per run" "0 permission-requests.jsonl" "$(cat "$CLAUDE_STUB_ARGS.env")"
+
+# The hook logs a request, a worker's included, and decides nothing.
+log="$FIXTURE_ROOT/requests.jsonl"
+hook_out="$(printf '%s' '{"agent_type":"crew:unit-tests","tool_name":"Bash","tool_input":{"command":"cd tests && dotnet test"}}' |
+  CREW_EVAL_PERMISSION_LOG="$log" bash "$(dirname "$RUN")/permission-log.sh")"
+check "the hook prints no decision" "" "$hook_out"
+check "the hook logs agent, tool and command" '{"agent":"crew:unit-tests","tool":"Bash","input":"cd tests && dotnet test"}' "$(cat "$log")"
+printf '%s' '{"tool_name":"Edit","tool_input":{"file_path":".claude/plan.md"}}' |
+  CREW_EVAL_PERMISSION_LOG="$log" bash "$(dirname "$RUN")/permission-log.sh"
+check "lead's own request is labelled lead" '"lead"' "$(tail -n 1 "$log" | jq -c .agent)"
 
 out="$(new_tmpdir)"
 run_eval "$out" -n 2 07-debt-service-locator
