@@ -32,6 +32,12 @@ jobs:
       TASKS: ${{ inputs.tasks }}
       RUNS: ${{ inputs.runs }}
       BASE: ${{ inputs.base }}
+      # A runner has no git identity, and the session commits; run.sh sets one only for the
+      # fixture's first commit.
+      GIT_AUTHOR_NAME: eval
+      GIT_AUTHOR_EMAIL: eval@example.invalid
+      GIT_COMMITTER_NAME: eval
+      GIT_COMMITTER_EMAIL: eval@example.invalid
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -87,7 +93,8 @@ jobs:
         if: always()
         run: |
           set -uo pipefail
-          summary() { sed -n 's/^results: //p' "$RUNNER_TEMP/$1.log" 2>/dev/null; }
+          # No base.log without a base: Actions runs bash with -e, so a missing log must not fail.
+          summary() { sed -n 's/^results: //p' "$RUNNER_TEMP/$1.log" 2>/dev/null || true; }
           head="$(summary head)"
           base="$(summary base)"
           [ -n "$head" ] || { echo "::error::No results from this ref; see the run step's log."; exit 1; }
