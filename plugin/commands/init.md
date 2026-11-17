@@ -83,7 +83,9 @@ run until this command fills it (`branchNaming` is asked once per run instead, a
   one; no hot-reload or watch form, which rebuilds while a gate runs. `none` when the project
   serves nothing or the user starts the site: the crew then uses a site that already answers.
 - **Plan directory** (`planDirectory`) — where `lead` writes `plan-<feature>.md`; `unset` uses
-  the `.claude/` fallback. Set it (e.g. `docs/plans/`) for a committed location.
+  the `.claude/` fallback. Set it (e.g. `docs/plans/`) for a committed location. Set it too when
+  `lead` runs headless (`claude -p`): such a session may not edit under `.claude/`, so `lead`
+  stops before its first step. A git-ignored folder keeps plans out of commits.
 
 Free-text notes for the crew are not a slot: they go in the file's **body**, below the
 frontmatter — why a slot is set the way it is, a caveat on a command, which areas of the app are
