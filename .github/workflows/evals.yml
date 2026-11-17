@@ -1,10 +1,13 @@
 name: Evals
 
-# The end-to-end evals (evals/README.md), on demand only: a run costs real tokens and
-# minutes, so nothing triggers it but a person. Needs one of two secrets (evals/README.md, Run):
+# The end-to-end evals (evals/README.md), opt-in only: a run costs real tokens and minutes, so
+# nothing starts it but a person, by hand or with the `eval` label on a pull request (quick,
+# against the PR's base). Never a merge gate. Needs one of two secrets (evals/README.md, Run):
 # CLAUDE_CODE_OAUTH_TOKEN, a subscription token from `claude setup-token`, which Claude Code
 # reads from that variable only, or ANTHROPIC_API_KEY, a Console API key.
 on:
+  pull_request:
+    types: [labeled]
   workflow_dispatch:
     inputs:
       tasks:
@@ -25,15 +28,18 @@ concurrency:
 
 jobs:
   evals:
+    # A label run needs the `eval` label; any other label starts nothing.
+    if: github.event_name == 'workflow_dispatch' || github.event.label.name == 'eval'
     permissions:
       contents: read
     runs-on: ubuntu-latest
     timeout-minutes: 360
     env:
       # Inputs reach the shell as variables, never as ${{ }} text inside a script.
-      TASKS: ${{ inputs.tasks }}
-      RUNS: ${{ inputs.runs }}
-      BASE: ${{ inputs.base }}
+      # A label run has no inputs: quick, once, against the PR's base branch.
+      TASKS: ${{ inputs.tasks || 'quick' }}
+      RUNS: ${{ inputs.runs || '1' }}
+      BASE: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref || inputs.base }}
       # A runner has no git identity, and the session commits; run.sh sets one only for the
       # fixture's first commit.
       GIT_AUTHOR_NAME: eval
@@ -72,7 +78,7 @@ jobs:
           npm install -g @anthropic-ai/claude-code
 
       - name: Run the base
-        if: inputs.base != ''
+        if: env.BASE != ''
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
