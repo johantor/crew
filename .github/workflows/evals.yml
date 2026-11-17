@@ -98,12 +98,19 @@ jobs:
           head="$(summary head)"
           base="$(summary base)"
           [ -n "$head" ] || { echo "::error::No results from this ref; see the run step's log."; exit 1; }
-          # The criteria of every failed run, so a flip can be read without a rerun.
+          # Every failed run's criteria, and how its session ended, so a failure in the
+          # environment reads apart from a wrong change, without a rerun.
           failures() {  # <side> <summary.jsonl>
             for log in "$(dirname "$2")"/*/grade.log; do
               grep -q '^FAIL' "$log" || continue
-              printf '\n<details><summary>%s %s</summary>\n\n```\n' "$1" "$(basename "$(dirname "$log")")"
+              run="$(dirname "$log")"
+              printf '\n<details><summary>%s %s</summary>\n\n```\n' "$1" "$(basename "$run")"
               grep '^FAIL' "$log"
+              echo '--- session'
+              jq -r '"\(.subtype // "no result") error=\(.is_error // "-") turns=\(.num_turns // "-")",
+                (.result // "" | tostring | .[0:800])' "$run/session.json" 2>/dev/null ||
+                head -c 800 "$run/session.json" 2>/dev/null || true
+              tail -n 20 "$run/session.err" 2>/dev/null || true
               printf '```\n</details>\n'
             done
           }
