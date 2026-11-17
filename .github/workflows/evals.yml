@@ -111,7 +111,7 @@ jobs:
               printf '\n<details><summary>%s %s</summary>\n\n```\n' "$1" "$(basename "$run")"
               grep '^FAIL' "$log"
               echo '--- session'
-              jq -r '"\(.subtype // "no result") error=\(.is_error // "-") turns=\(.num_turns // "-")",
+              jq -r '"\(.subtype // "no result") error=\(if .is_error == null then "-" else .is_error end) turns=\(.num_turns // "-")",
                 (.result // "" | tostring | .[0:800])' "$run/session.json" 2>/dev/null ||
                 head -c 800 "$run/session.json" 2>/dev/null || true
               tail -n 20 "$run/session.err" 2>/dev/null || true
