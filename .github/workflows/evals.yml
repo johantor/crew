@@ -1,0 +1,113 @@
+name: Evals
+
+# The end-to-end evals (evals/README.md), on demand only: a run costs real tokens and
+# minutes, so nothing triggers it but a person. Needs the ANTHROPIC_API_KEY secret.
+on:
+  workflow_dispatch:
+    inputs:
+      tasks:
+        description: "Tasks: `all`, or task names separated by spaces"
+        default: all
+      runs:
+        description: Runs per task
+        default: "2"
+      base:
+        description: "Optional ref to compare against (a branch, tag or SHA); empty scores this ref alone"
+        default: ""
+
+permissions: {}
+
+# One eval at a time: two would share the API key's rate limit and skew the timings.
+concurrency:
+  group: evals
+
+jobs:
+  evals:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    env:
+      # Inputs reach the shell as variables, never as ${{ }} text inside a script.
+      TASKS: ${{ inputs.tasks }}
+      RUNS: ${{ inputs.runs }}
+      BASE: ${{ inputs.base }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # The base ref, when given, is checked out beside this one.
+          fetch-depth: 0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+
+      - name: Check the inputs and the key
+        env:
+          HAS_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+        run: |
+          set -euo pipefail
+          [ "$HAS_KEY" = true ] || { echo "::error::Set the ANTHROPIC_API_KEY repository secret first."; exit 1; }
+          [[ "$RUNS" =~ ^[1-9][0-9]?$ ]] || { echo "::error::runs must be a whole number from 1 to 99."; exit 1; }
+          [[ "$TASKS" =~ ^[a-z0-9\ -]+$ ]] || { echo "::error::tasks must be \`all\` or task names."; exit 1; }
+          if [ -n "$BASE" ]; then
+            git rev-parse --verify --quiet "$BASE^{commit}" >/dev/null ||
+              git rev-parse --verify --quiet "origin/$BASE^{commit}" >/dev/null ||
+              { echo "::error::base $BASE is not a ref in this repository."; exit 1; }
+          fi
+
+      - name: Install the .NET 10 SDK and Claude Code
+        run: |
+          set -euo pipefail
+          curl -fsSL https://dot.net/v1/dotnet-install.sh -o "$RUNNER_TEMP/dotnet-install.sh"
+          bash "$RUNNER_TEMP/dotnet-install.sh" --channel 10.0 --install-dir "$HOME/.dotnet"
+          echo "$HOME/.dotnet" >>"$GITHUB_PATH"
+          npm install -g @anthropic-ai/claude-code
+
+      - name: Run the base
+        if: inputs.base != ''
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          set -euo pipefail
+          ref="$BASE"
+          git rev-parse --verify --quiet "$ref^{commit}" >/dev/null || ref="origin/$BASE"
+          git worktree add --detach "$RUNNER_TEMP/base" "$ref"
+          # shellcheck disable=SC2086 # TASKS is a list of names, checked above.
+          CREW_EVAL_PLUGIN="$RUNNER_TEMP/base/plugin" bash evals/run.sh -n "$RUNS" $TASKS | tee "$RUNNER_TEMP/base.log"
+
+      - name: Run this ref
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          set -euo pipefail
+          # shellcheck disable=SC2086 # TASKS is a list of names, checked above.
+          bash evals/run.sh -n "$RUNS" $TASKS | tee "$RUNNER_TEMP/head.log"
+
+      - name: Score
+        if: always()
+        run: |
+          set -uo pipefail
+          summary() { sed -n 's/^results: //p' "$RUNNER_TEMP/$1.log" 2>/dev/null; }
+          head="$(summary head)"
+          base="$(summary base)"
+          [ -n "$head" ] || { echo "::error::No results from this ref; see the run step's log."; exit 1; }
+          # The criteria of every failed run, so a flip can be read without a rerun.
+          failures() {  # <side> <summary.jsonl>
+            for log in "$(dirname "$2")"/*/grade.log; do
+              grep -q '^FAIL' "$log" || continue
+              printf '\n<details><summary>%s %s</summary>\n\n```\n' "$1" "$(basename "$(dirname "$log")")"
+              grep '^FAIL' "$log"
+              printf '```\n</details>\n'
+            done
+          }
+          {
+            echo "## Evals: $GITHUB_REF_NAME${BASE:+ against $BASE}"
+            echo
+            echo "$(claude --version), $RUNS runs per task"
+            echo
+            echo '```'
+            if [ -n "$base" ]; then bash evals/score.sh "$base" "$head" 2>&1; else bash evals/score.sh "$head"; fi
+            echo '```'
+            if [ -n "$base" ]; then failures base "$base"; fi
+            failures "$GITHUB_REF_NAME" "$head"
+          } >>"$GITHUB_STEP_SUMMARY"

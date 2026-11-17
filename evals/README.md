@@ -2,8 +2,8 @@
 
 End-to-end evals for the crew (#325): real tasks on a small Optimizely CMS 13 site, graded on
 the result. They exist to decide **roster changes**, such as folding one worker into another,
-by score rather than by reading prompts. They are not part of CI: a run costs real tokens and
-minutes.
+by score rather than by reading prompts. No push or pull request runs them: a run costs real
+tokens and minutes. Run them by hand, or start the **Evals** workflow.
 
 ## Layout
 
@@ -27,6 +27,12 @@ evals/run.sh all                    # every task, twice
 evals/run.sh -n 3 04-article-list-page
 CREW_EVAL_PLUGIN=../crew-b/plugin evals/run.sh all   # the variant under test
 ```
+
+On GitHub, start **Actions › Evals › Run workflow** on the branch under test. It needs the
+`ANTHROPIC_API_KEY` repository secret. `tasks` and `runs` pass through to `run.sh`; `base`, a
+branch, tag or SHA, runs that ref's `plugin/` first on the same tasks, fixture and checks, then
+compares the two with `score.sh`. The scores and each failed run's criteria land in the run's
+summary.
 
 Each run copies `fixture/` into `$TMPDIR/crew-evals/<stamp>/<task>-<n>/work` (`CREW_EVAL_OUT`
 moves it; keep it outside any checkout, or the session reads that checkout's `CLAUDE.md` too),
