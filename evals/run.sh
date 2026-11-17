@@ -44,8 +44,14 @@ done
 
 # mktemp keeps two invocations started in the same second (two variants side by side) apart.
 mkdir -p "$out_root" && out="$(mktemp -d "$out_root/$(date -u +%Y%m%dT%H%M%SZ).XXXXXX")" || exit 2
-# Only what a crew run needs; the gate script is named by path since it takes a command string.
-allowed=(Agent Skill Read Glob Grep Edit Write TodoWrite "Bash(git:*)" "Bash(dotnet:*)" "Bash(bash $plugin/scripts/gate.sh:*)")
+# Only what a crew run needs; the gate and site scripts are named by path. A rule matches each
+# part of a compound command, so the helpers workers chain around a build or test (`cd`,
+# `timeout`, a filter on its log) and lead's token mint (`openssl rand`) are listed too: the
+# permission log of the first headless runs showed each refused (evals/README.md, Run).
+allowed=(Agent Skill Read Glob Grep Edit Write TodoWrite "Bash(git:*)" "Bash(dotnet:*)"
+  "Bash(bash $plugin/scripts/gate.sh:*)" "Bash(bash $plugin/scripts/site.sh:*)"
+  "Bash(cd:*)" "Bash(timeout:*)" "Bash(echo:*)" "Bash(grep:*)" "Bash(sort:*)" "Bash(head:*)"
+  "Bash(tail:*)" "Bash(sed:*)" "Bash(ls:*)" "Bash(tr:*)" "Bash(od:*)" "Bash(openssl rand:*)")
 # Every permission request goes to a log, workers' too, and is still refused.
 settings="$(jq -nc --arg cmd "bash '$EVAL_ROOT/permission-log.sh'" \
   '{hooks: {PermissionRequest: [{matcher: "*", hooks: [{type: "command", command: $cmd}]}]}}')"

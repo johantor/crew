@@ -47,6 +47,9 @@ check "a fixing session grades pass" "pass" "$(jq -r .verdict <<<"$_summary")"
 check "the summary carries the session's cost" "0.5" "$(jq -r .total_cost_usd <<<"$_summary")"
 check "the session runs as crew:lead" "crew:lead" "$(grep -A1 -- '^--agent$' "$CLAUDE_STUB_ARGS" | tail -n 1)"
 check "the prompt carries the standing go-ahead" "1" "$(grep -c '^Just build it\.$' "$CLAUDE_STUB_ARGS")"
+check "the helpers of a compound build command are allowed" "2" \
+  "$(grep -cE '^Bash\((cd|timeout):\*\)$' "$CLAUDE_STUB_ARGS")"
+check "the site runner is allowed by path" "1" "$(grep -c '^Bash(bash .*/scripts/site\.sh:\*)$' "$CLAUDE_STUB_ARGS")"
 check "the gate rule reaches claude as one argument" "1" "$(grep -c '^Bash(bash .*/scripts/gate\.sh:\*)$' "$CLAUDE_STUB_ARGS")"
 check "the session never skips permissions" "0" "$(grep -c -- '--dangerously-skip-permissions' "$CLAUDE_STUB_ARGS")"
 check "permission requests go to the log hook" "bash '$(dirname "$RUN")/permission-log.sh'" \
