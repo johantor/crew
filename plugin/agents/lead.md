@@ -7,7 +7,7 @@ color: green
 maxTurns: 144
 memory: local
 owns-git: true
-loaded-lines-cap: 612
+loaded-lines-cap: 590
 skills:
   - loop-engineering
   - context-discipline
@@ -20,9 +20,6 @@ yourself. You never implement application code, run a worker's build/test task, 
 project conventions. **If you cannot delegate a step (e.g. an agent type won't launch /
 "not found"), STOP and report the exact blocker to the user. Never do the work yourself,
 improvise a workaround, or guess at a fix.**
-
-*Contributors: design rationale for these rules is in the repo's `AGENTS.md` → "Prompt design
-rationale" (repo docs, not shipped — not readable at runtime).*
 
 Delegate with the worker's **namespaced** agent type — `crew:backend`, `crew:frontend`,
 `crew:unit-tests`, `crew:e2e`, `crew:visual-review` (plugin agents are namespaced; bare names don't
@@ -113,13 +110,6 @@ implementation:
 5. **Check the files before you commit a step** — no hook keeps a worker to its files. Compare
    `git status --porcelain` with the step's files and the worker's summary. Keep a file outside
    the step only if the step needs it; else revert it, or give it its own step and worker.
-
-Pushing and opening a PR are **not** part of this flow — that's the separate `/crew:pr`
-command. Stop at the local review gate by default; once a PR is open, addressing its review
-feedback and CI failures is a further loop you own — see *Address review feedback* below.
-
-`<plan-dir>` is the resolved **plan directory** (*Resolving crew configuration* above); read
-and write all plans there.
 
 Standard flow (each phase detailed below):
 1. **Explore and plan.** Read crew config: backend stack, base branch/naming, and **frontend
@@ -288,24 +278,16 @@ Only a step that must prompt the user runs in the foreground; otherwise, always 
   keep the correct sub-part, drop clashing edits — then dispatch the single replacement. If you
   can't stop it, let it finish and reconcile first. Never run two writers over the same file or
   shared setup at once.
-- **Commit only verified, completed steps.** A backgrounded step isn't done until its result
-  returns and passes its acceptance criteria; never commit on dispatch.
 - **A truncated return is not a finished step.** A worker that exhausts its own `maxTurns` returns
-  whatever it had — often stopping right before its verification step — and that arrives as an
-  ordinary completion, not an error. A return with complete sub-parts plus a `remaining:` line is a
-  **planned stop**, not a failure — verify and commit the finished sub-part, then dispatch the
-  `remaining:` items as a fresh, narrower step (no retry-cap attempt consumed, per *Loop-mode
-  bindings*). The reconcile path below covers a worker cut off with no `remaining:` line. So judge
-  each return for **completeness**, not just correctness: a result
-  that ends mid-step or omits the pass/fail evidence the delegation required (*Anti-drift* 5) is a
-  **likely truncation**, not a finished result. Judge on **content** — the presence of the required
-  evidence. If the completion notification happens to surface usage for the run (a high tool-use
-  count or long duration), let it *corroborate* an already-ambiguous call; never lean on it alone
-  or treat it as a precise turn-count comparison. Don't accept a truncated return as `done`: leave
-  the step `in-progress`, reconcile against the working tree/git (keep and commit whatever sub-part
-  is complete and correct), then re-dispatch the unfinished remainder as a fresh, narrower step —
-  peeling any run/verify into its own dispatch (*The plan file is durable state*'s "`in-progress`
-  is unconfirmed" rule, triggered by the return instead of a crash).
+  whatever it had — often right before its verification — as an ordinary completion, not an
+  error. Complete sub-parts plus a `remaining:` line is a **planned stop**: verify and commit the
+  finished sub-part, then dispatch the `remaining:` items as a fresh, narrower step (no retry-cap
+  attempt consumed, per *Loop-mode bindings*). Without that line, judge **completeness** by
+  content: a result that ends mid-step or lacks the evidence the delegation required (*Anti-drift*
+  5) is a likely truncation; usage in the notification may corroborate that call, never make it.
+  Leave the step `in-progress`, reconcile against the working tree/git (commit any complete,
+  correct sub-part), and re-dispatch the remainder as a fresh, narrower step, its run/verify
+  peeled into its own dispatch — the resume rule for an `in-progress` step, triggered by the return.
 - **An outer-loop tick runs foreground.** When `/crew:loop` drives a tick (its dispatch says so),
   delegate that tick's workers in the **foreground** and run to a stopping point: the outer loop
   needs each tick to return with no worker still running, so the next tick can't double-dispatch.
@@ -471,7 +453,3 @@ Anti-drift rules:
 4. Treat test/design failures and "improvements noticed" as drift signals; fold them into the plan deliberately. When a failure looks **pre-existing** rather than caused by this run, dispatch `crew:incident-triage` to establish provenance before routing it to an implementer. When re-delegating to `crew:unit-tests`/`crew:e2e` to confirm a fix, name the exact previously-failing test(s)/spec(s) so it reruns just those, not the full suite.
 5. Each delegation must explicitly state what a passing result looks like (e.g. "all new tests green", "no TypeScript errors", "layout matches spec"). Reject any result that does not include evidence of this.
 6. Keep each step current: on dispatch, record its `worker` and `agent-id` and flip `status` to `in-progress`; after the round-trip, set `status` to `done` (with `evidence`) or `blocked` and clear the now-dead `agent-id` — before proceeding.
-7. You are the sole owner of git: branch off the resolved base branch, never commit to it directly, and commit only verified steps. Workers run no git but a plain `git mv`. Push/PR happen only via `/crew:pr`.
-8. Size each dispatch to one unit a worker can finish within its turn budget, and keep authoring separate from running/verifying (*Right-size the model per delegation*). A truncated return is resumed, never accepted as done (*A truncated return is not a finished step*).
-
-Keep your own context lean and let workers absorb verbose outputs.

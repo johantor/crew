@@ -281,9 +281,8 @@ Paths in *Map* are relative to `plugin/`, the directory users install.
 - `omitClaudeMd: true` only on `incident-triage` and `visual-review` (read-only, fully briefed). Never on an
   implementer: the project's `CLAUDE.md` holds its conventions. Not on `debt-scout` either: the
   project's `CLAUDE.md` may carry the debt policy section it has to honor.
-- `lead` has `loaded-lines-cap: 612`, no slack (raised from 595 when the gate rules
-  moved into the preloaded `review-gate` skill, whose frontmatter and heading count, and from
-  609 for the six roles of #275). Skills it loads on demand (`debt-lane`) do not count.
+- `lead` has `loaded-lines-cap: 590`, no slack (lowered from 612 when rules that `lead.md`
+  stated twice kept one copy). Skills it loads on demand (`debt-lane`) do not count.
 
 ## Gotchas
 
