@@ -3,7 +3,8 @@
 # task's setup.sh, hands prompt.md to a headless `claude --agent crew:lead`, then grades the
 # tree with the task's check.sh. Method and decision rules: evals/README.md.
 #
-# usage: evals/run.sh [-n runs] <task>...   (a task is a directory name under evals/tasks/, or `all`)
+# usage: evals/run.sh [-n runs] <task>...   (a task is a directory name under evals/tasks/, `all`,
+#        or `quick`: one task per lane, for a first look at a change before a full run)
 # env:   CREW_EVAL_PLUGIN  plugin dir under test (default: this checkout's plugin/)
 #        CREW_EVAL_OUT     results root (default: $TMPDIR/crew-evals; outside any checkout, since a
 #                          session reads every CLAUDE.md above its work tree)
@@ -21,7 +22,7 @@ if [ "${1:-}" = "-n" ]; then
   shift 2
 fi
 case "$runs" in '' | *[!0-9]* | 0) echo "run.sh: -n takes a positive count" >&2; exit 2 ;; esac
-[ "$#" -gt 0 ] || { echo "usage: evals/run.sh [-n runs] <task>... | all" >&2; exit 2; }
+[ "$#" -gt 0 ] || { echo "usage: evals/run.sh [-n runs] <task>... | all | quick" >&2; exit 2; }
 for tool in claude dotnet git jq; do
   command -v "$tool" >/dev/null 2>&1 || { echo "run.sh: $tool is required" >&2; exit 2; }
 done
@@ -29,6 +30,8 @@ done
 tasks=()
 if [ "$1" = all ]; then
   for dir in "$EVAL_ROOT"/tasks/*/; do tasks+=("$(basename "$dir")"); done
+elif [ "$1" = quick ]; then
+  tasks=(02-article-date 04-article-list-page 09-regression-oldest-first)
 else
   tasks=("$@")
 fi
