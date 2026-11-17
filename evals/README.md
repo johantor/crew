@@ -28,8 +28,10 @@ evals/run.sh -n 3 04-article-list-page
 CREW_EVAL_PLUGIN=../crew-b/plugin evals/run.sh all   # the variant under test
 ```
 
-On GitHub, start **Actions › Evals › Run workflow** on the branch under test. It needs the
-`ANTHROPIC_API_KEY` repository secret. `tasks` and `runs` pass through to `run.sh`; `base`, a
+On GitHub, start **Actions › Evals › Run workflow** on the branch under test. It needs one
+repository secret: `ANTHROPIC_API_KEY` for a Console API key (`sk-ant-api…`), or
+`CLAUDE_CODE_OAUTH_TOKEN` for a subscription token from `claude setup-token` (`sk-ant-oat…`).
+A subscription token in `ANTHROPIC_API_KEY` makes every session fail at once. `tasks` and `runs` pass through to `run.sh`; `base`, a
 branch, tag or SHA, runs that ref's `plugin/` first on the same tasks, fixture and checks, then
 compares the two with `score.sh`. The scores and each failed run's criteria land in the run's
 summary.
