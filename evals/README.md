@@ -23,6 +23,7 @@ Needs the .NET 10 SDK, `claude`, `jq` and `git`, and the Optimizely NuGet feed
 (`nuget.optimizely.com`, named in `fixture/nuget.config`).
 
 ```bash
+evals/run.sh quick                  # one task per lane, twice
 evals/run.sh all                    # every task, twice
 evals/run.sh -n 3 04-article-list-page
 CREW_EVAL_PLUGIN=../crew-b/plugin evals/run.sh all   # the variant under test
@@ -31,16 +32,17 @@ CREW_EVAL_PLUGIN=../crew-b/plugin evals/run.sh all   # the variant under test
 Sessions bill the way `claude` is signed in. On your machine that is your login: with a Claude
 subscription, a run counts toward its usage limits, unless `ANTHROPIC_API_KEY` is set in the
 shell, which bills API credits instead. A task costs about $1 to $1.50 in API credits, since
-`lead` runs on Opus, so compare a change on a few tasks first, such as `02-article-date
-04-article-list-page 09-regression-oldest-first` (one per lane), and keep `all` for the decision.
+`lead` runs on Opus, so compare a change on `quick` first (`02-article-date`, `04-article-list-page` and
+`09-regression-oldest-first`, one per lane), and keep `all` for the decision.
 
 On GitHub, start **Actions › Evals › Run workflow** on the branch under test. It needs one
 repository secret: `CLAUDE_CODE_OAUTH_TOKEN`, a subscription token from `claude setup-token`
 (`sk-ant-oat…`), or `ANTHROPIC_API_KEY`, a Console API key, billed per token. A subscription
-token in `ANTHROPIC_API_KEY` makes every session fail at once. `tasks` and `runs` pass through
-to `run.sh`; `base`, a branch, tag or SHA, runs that ref's `plugin/` first on the same tasks,
-fixture and checks, then compares the two with `score.sh`. The scores, and each failed run's
-criteria and how its session ended, land in the run's summary and its log.
+token in `ANTHROPIC_API_KEY` makes every session fail at once. `tasks` (default `quick`) and
+`runs` (default 1) pass through to `run.sh`; `base`, a branch, tag or SHA, runs that ref's
+`plugin/` first on the same tasks, fixture and checks, then compares the two with `score.sh`.
+The scores, and each failed run's criteria and how its session ended, land in the run's summary
+and its log.
 
 Each run copies `fixture/` into `$TMPDIR/crew-evals/<stamp>/<task>-<n>/work` (`CREW_EVAL_OUT`
 moves it; keep it outside any checkout, or the session reads that checkout's `CLAUDE.md` too),

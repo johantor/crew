@@ -8,11 +8,11 @@ on:
   workflow_dispatch:
     inputs:
       tasks:
-        description: "Tasks: `all`, or task names separated by spaces"
-        default: all
+        description: "Tasks: `quick` (one per lane), `all`, or task names separated by spaces"
+        default: quick
       runs:
         description: Runs per task
-        default: "2"
+        default: "1"
       base:
         description: "Optional ref to compare against (a branch, tag or SHA); empty scores this ref alone"
         default: ""
@@ -56,7 +56,7 @@ jobs:
           set -euo pipefail
           [ "$HAS_KEY" = true ] || { echo "::error::Set the ANTHROPIC_API_KEY or CLAUDE_CODE_OAUTH_TOKEN repository secret first."; exit 1; }
           [[ "$RUNS" =~ ^[1-9][0-9]?$ ]] || { echo "::error::runs must be a whole number from 1 to 99."; exit 1; }
-          [[ "$TASKS" =~ ^[a-z0-9\ -]+$ ]] || { echo "::error::tasks must be \`all\` or task names."; exit 1; }
+          [[ "$TASKS" =~ ^[a-z0-9\ -]+$ ]] || { echo "::error::tasks must be \`quick\`, \`all\` or task names."; exit 1; }
           if [ -n "$BASE" ]; then
             git rev-parse --verify --quiet "$BASE^{commit}" >/dev/null ||
               git rev-parse --verify --quiet "origin/$BASE^{commit}" >/dev/null ||

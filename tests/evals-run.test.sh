@@ -67,6 +67,11 @@ wait
 check "two runs in the same second get their own directories" "2" "$(find "$out" -name summary.jsonl | wc -l | tr -d ' ')"
 
 out="$(new_tmpdir)"
+run_eval "$out" -n 1 quick
+check "quick runs one task per lane" "02-article-date 04-article-list-page 09-regression-oldest-first" \
+  "$(jq -r .task <<<"$_summary" | xargs)"
+
+out="$(new_tmpdir)"
 run_eval "$out" no-such-task
 check "an unknown task is refused" "2" "$_status"
 check "an unknown task runs nothing" "" "$_summary"
