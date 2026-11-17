@@ -5,6 +5,13 @@ All notable changes to the `crew` plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [12.3.1] - 2026-11-17
+
+### Fixed
+
+- `/crew:init` says to set `planDirectory` when `lead` runs headless: such a session may not
+  edit under `.claude/`, the default, so `lead` stopped before its first step.
+
 ## [12.3.0] - 2026-11-12
 
 ### Added
