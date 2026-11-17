@@ -1,9 +1,9 @@
 name: Evals
 
 # The end-to-end evals (evals/README.md), on demand only: a run costs real tokens and
-# minutes, so nothing triggers it but a person. Needs one of two secrets: ANTHROPIC_API_KEY (a
-# Console API key, sk-ant-api…) or CLAUDE_CODE_OAUTH_TOKEN (a subscription token from
-# `claude setup-token`, sk-ant-oat…), which Claude Code reads from that variable only.
+# minutes, so nothing triggers it but a person. Needs one of two secrets (evals/README.md, Run):
+# CLAUDE_CODE_OAUTH_TOKEN, a subscription token from `claude setup-token`, which Claude Code
+# reads from that variable only, or ANTHROPIC_API_KEY, a Console API key.
 on:
   workflow_dispatch:
     inputs:
