@@ -128,4 +128,4 @@ jobs:
             echo '```'
             if [ -n "$base" ]; then failures base "$base"; fi
             failures "$GITHUB_REF_NAME" "$head"
-          } >>"$GITHUB_STEP_SUMMARY"
+          } | tee -a "$GITHUB_STEP_SUMMARY"  # the log too: the API serves logs, not summaries
