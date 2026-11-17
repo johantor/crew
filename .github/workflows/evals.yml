@@ -129,6 +129,16 @@ jobs:
               printf '```\n</details>\n'
             done
           }
+          # A passing run can still have been refused a call, at a cost in turns: list those too.
+          refusals() {  # <side> <summary.jsonl>
+            for log in "$(dirname "$2")"/*/grade.log; do
+              run="$(dirname "$log")"
+              ! grep -q '^FAIL' "$log" && [ -s "$run/permission-requests.jsonl" ] || continue
+              printf '\n<details><summary>%s %s passed, with refused requests</summary>\n\n```\n' "$1" "$(basename "$run")"
+              jq -r '"request \(.agent) \(.tool): \(.input)"' "$run/permission-requests.jsonl" 2>/dev/null || true
+              printf '```\n</details>\n'
+            done
+          }
           {
             echo "## Evals: $GITHUB_REF_NAME${BASE:+ against $BASE}"
             echo
@@ -137,6 +147,7 @@ jobs:
             echo '```'
             if [ -n "$base" ]; then bash evals/score.sh "$base" "$head" 2>&1; else bash evals/score.sh "$head"; fi
             echo '```'
-            if [ -n "$base" ]; then failures base "$base"; fi
+            if [ -n "$base" ]; then failures base "$base"; refusals base "$base"; fi
             failures "$GITHUB_REF_NAME" "$head"
+            refusals "$GITHUB_REF_NAME" "$head"
           } | tee -a "$GITHUB_STEP_SUMMARY"  # the log too: the API serves logs, not summaries
