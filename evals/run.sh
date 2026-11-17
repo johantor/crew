@@ -46,6 +46,9 @@ done
 mkdir -p "$out_root" && out="$(mktemp -d "$out_root/$(date -u +%Y%m%dT%H%M%SZ).XXXXXX")" || exit 2
 # Only what a crew run needs; the gate script is named by path since it takes a command string.
 allowed=(Agent Skill Read Glob Grep Edit Write TodoWrite "Bash(git:*)" "Bash(dotnet:*)" "Bash(bash $plugin/scripts/gate.sh:*)")
+# Every permission request goes to a log, workers' too, and is still refused.
+settings="$(jq -nc --arg cmd "bash '$EVAL_ROOT/permission-log.sh'" \
+  '{hooks: {PermissionRequest: [{matcher: "*", hooks: [{type: "command", command: $cmd}]}]}}')"
 
 for task in "${tasks[@]}"; do
   task_dir="$EVAL_ROOT/tasks/$task"
@@ -63,8 +66,10 @@ for task in "${tasks[@]}"; do
     base="$(git -C "$work" rev-parse main)"
 
     # "Just build it" is the standing go-ahead that skips the plan checkpoint, as a user would give it.
-    (cd "$work" && claude -p "$(cat "$task_dir/prompt.md")"$'\n\nJust build it.' \
-      --agent crew:lead --plugin-dir "$plugin" --output-format json \
+    # A headless run waits 10 minutes at most for background workers; a crew step can take longer.
+    (cd "$work" && CREW_EVAL_PERMISSION_LOG="$run_dir/permission-requests.jsonl" CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS=0 \
+      claude -p "$(cat "$task_dir/prompt.md")"$'\n\nJust build it.' \
+      --agent crew:lead --plugin-dir "$plugin" --output-format json --settings "$settings" \
       --permission-mode acceptEdits --allowedTools "${allowed[@]}" </dev/null) >"$run_dir/session.json" 2>"$run_dir/session.err"
 
     (cd "$work" && EVAL_BASE="$base" EVAL_TASK_DIR="$task_dir" bash "$task_dir/check.sh") >"$run_dir/grade.log" 2>&1
