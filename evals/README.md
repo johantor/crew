@@ -14,7 +14,8 @@ minutes.
 - `tasks/<id>/`: `prompt.md` is what the session gets; `check.sh` grades the tree; optional
   `setup.sh` adds a commit before the session (the seeded regressions); optional `hidden/*.cs`
   are tests the session never sees, copied in at grading.
-- `run.sh` runs tasks; `grade.sh` holds the criteria the checks share.
+- `run.sh` runs tasks; `grade.sh` holds the criteria the checks share; `score.sh` reads the
+  results.
 
 ## Run
 
@@ -36,6 +37,15 @@ makes it a git repo on
 one PASS or FAIL line per criterion; `summary.jsonl` has one line per run with the verdict, wall
 time, turns, cost and tokens. Delete the results when done, since each work tree keeps its
 build output.
+
+`score.sh` turns a `summary.jsonl` into passes per task, session errors (a run with no result,
+which is not a wrong answer), and the median cost, turns and minutes. Given the variant's
+summary too, it shows both side by side, marks each task whose passes changed, and warns when
+the two differ in tasks or run counts:
+
+```bash
+evals/score.sh "$base/summary.jsonl" "$variant/summary.jsonl"
+```
 
 The site does not run during an eval yet: every criterion reads the tree or runs the build,
 test and lint gates. To run the site by hand, `docker compose up -d --wait` in `fixture/`, then
