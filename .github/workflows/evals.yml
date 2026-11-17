@@ -114,6 +114,9 @@ jobs:
               jq -r '"\(.subtype // "no result") error=\(if .is_error == null then "-" else .is_error end) turns=\(.num_turns // "-")",
                 (.result // "" | tostring | .[0:800])' "$run/session.json" 2>/dev/null ||
                 head -c 800 "$run/session.json" 2>/dev/null || true
+              # What the session's permissions refused: an eval allow-list gap reads as a crew failure.
+              jq -r '.permission_denials[]? | "denied \(.tool_name): \(.tool_input.command // (.tool_input | tostring) | .[0:200])"' \
+                "$run/session.json" 2>/dev/null || true
               tail -n 20 "$run/session.err" 2>/dev/null || true
               printf '```\n</details>\n'
             done
