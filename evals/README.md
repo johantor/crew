@@ -2,8 +2,14 @@
 
 End-to-end evals for the crew (#325): real tasks on a small Optimizely CMS 13 site, graded on
 the result. They exist to decide **roster changes**, such as folding one worker into another,
-by score rather than by reading prompts. No push or pull request runs them: a run costs real
-tokens and minutes. Run them by hand, or start the **Evals** workflow.
+by score rather than by reading prompts. They are opt-in and never a merge gate: a run costs real
+tokens and minutes, so nothing runs them unless a person asks.
+
+**When to run them:** for a change the checks cannot judge and you are unsure of, such as a
+roster change or a large rewrite of an agent prompt, and at milestones you pick. A pull request
+that only tidies prose merges on the normal checks. To ask on a pull request, add the `eval`
+label: the workflow runs `quick` once against the pull request's base and puts the side-by-side
+score in the run's summary and log. Remove and re-add the label to run it again.
 
 ## Layout
 

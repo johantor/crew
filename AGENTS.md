@@ -27,16 +27,17 @@ reaches users. The `johantor` marketplace is its own repository,
   (one version's changelog section, used by `auto-release.yml`).
 - `tests/`: one bash suite per guard, the gate and site runners, the validator, the release scripts and
   the eval runner and scorer (`*.test.sh`), and the shared harness, `lib.sh`.
-- `evals/`: end-to-end evals on an Optimizely CMS 13 fixture, run before a roster change, by hand
-  or by the manual `evals.yml` workflow (`evals/README.md`); never shipped. Push and PR CI run
-  only shellcheck and the runner's and scorer's stubbed tests.
+- `evals/`: end-to-end evals on an Optimizely CMS 13 fixture, opt-in and never a merge gate
+  (`evals/README.md`): run by hand, or by `evals.yml` when a person starts it or labels a PR
+  `eval`. Never shipped. Push and PR CI run only shellcheck and the runner's and scorer's
+  stubbed tests.
 - `docs/`: the site on GitHub Pages. `style.css` is shared with board's site (a copy there).
 - `VERIFICATION.md`: the manual scenario matrix. `CLAUDE.md`: how Claude works here, then the code
   map: every agent, command, skill and hook, and how they fit.
 - `.claude/crew.md`: this repo's own crew configuration. The repo carries no hook wiring of its
   own: work here with `claude --plugin-dir plugin`.
 - `.github/`: `workflows/validate.yml` runs the checks in *Validating changes*;
-  `auto-release.yml` tags; `evals.yml` runs the evals when a person starts it. `ISSUE_TEMPLATE/` holds the bug and feature forms. `skills/` holds
+  `auto-release.yml` tags; `evals.yml` runs the evals when a person starts it or labels a PR `eval`; never a merge gate. `ISSUE_TEMPLATE/` holds the bug and feature forms. `skills/` holds
   the repo's own skills, never shipped: `code-review` (the one review rubric, which Copilot reads
   through `copilot-instructions.md`) and `writing-style`. Each has a thin wrapper in
   `.claude/skills/` for Claude Code (`crew-review` adds the shell steps).
