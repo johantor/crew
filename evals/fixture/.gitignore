@@ -6,3 +6,4 @@ obj/
 *license.config
 modules/
 TestResults/
+.plans/

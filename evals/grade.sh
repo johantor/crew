@@ -24,7 +24,8 @@ lacks() { ! has "$@"; }
 
 on_feature_branch() { [ "$(git rev-parse --abbrev-ref HEAD)" != main ] && [ -n "$(git log --oneline main..HEAD)" ]; }
 main_untouched() { [ "$(git rev-parse main)" = "$EVAL_BASE" ]; }
-# The plan file lands in the untracked .claude/ fallback; it is the run's state, not its work.
+# The run's state is not its work: the plan lands in .plans/, which the fixture's .gitignore
+# hides, and .claude/ holds the crew's local files.
 tree_clean() { [ -z "$(git status --porcelain -- . ':!.claude')" ]; }
 
 # The checks every task shares: git posture first (before hidden tests touch the tree), then the gate.

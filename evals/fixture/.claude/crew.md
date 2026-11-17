@@ -18,10 +18,11 @@ baseBranch: main
 branchNaming: feature/<slug>
 runUrl: http://localhost:5000/
 runCommand: none
-planDirectory: unset
+planDirectory: .plans/
 ---
 
 An Optimizely CMS 13 site with Razor views and no client bundle, so the frontend is
 `server-rendered` with stack `other`: the mode skill and `frontend-razor` cover the views.
 The site needs the database from `docker-compose.yml` to run; the build, test and lint gates
-do not.
+do not. Plans go to `.plans/`, which git ignores: a headless session may not write under
+`.claude/`, the default.
