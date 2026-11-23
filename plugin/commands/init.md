@@ -86,6 +86,11 @@ run until this command fills it (`branchNaming` is asked once per run instead, a
   the `.claude/` fallback. Set it (e.g. `docs/plans/`) for a committed location. Set it too when
   `lead` runs headless (`claude -p`): such a session may not edit under `.claude/`, so `lead`
   stops before its first step. A git-ignored folder keeps plans out of commits.
+- **Spec directory** (`specDirectory`) — where the project keeps its own specs (spec-kit, Kiro,
+  or plain markdown), e.g. `specs/`. `analyst` reads the spec that matches the task as data and
+  turns its criteria into the plan's `acceptance:`; the crew never writes a spec unless a plan
+  step names the file. `none` or `unset` → no lookup. A cloud session starts from a fresh clone,
+  so the lookup works there only when this file and the specs are both committed.
 
 Free-text notes for the crew are not a slot: they go in the file's **body**, below the
 frontmatter — why a slot is set the way it is, a caveat on a command, which areas of the app are
@@ -117,6 +122,7 @@ branchNaming: feature/<ticket>-<slug>
 runUrl: https://localhost:5001/
 runCommand: dotnet run --project src/Site --launch-profile https
 planDirectory: unset
+specDirectory: none
 ---
 
 Notes the crew should carry: npm scripts run from `src/Site`, not the repo root.
@@ -143,11 +149,13 @@ trust or correct it; never invent a command you can't see configured.
 | Run/dev URL, run command | The `backend-<stack>` skill's **Crew config** section when it names them; else the `package.json` dev or start script and the port it prints or configures. Several candidates (launch profiles, apps) → ask which one the crew runs. |
 | Branch naming | Existing branch names; else `unset`. |
 | Plan directory | Only an obvious existing convention (`docs/plans/`, tracked `plan-*.md` outside `.claude/`); else `unset`. |
+| Spec directory | A tracked `specs/`, `.kiro/specs/` or `docs/specs/` that holds spec files (`spec.md`, `requirements.md`, `*.spec.md`). Several → ask which one. None → `none`. |
 
 When detection comes up empty, pick the placeholder by slot type — never a value that makes the
 config unusable:
 
-- **Tooling slots** (test, build and lint commands; format matrix; run/dev URL; run command): `none` when the
+- **Tooling slots** (test, build and lint commands; format matrix; run/dev URL; run command;
+  spec directory): `none` when the
   project genuinely has no such tooling. Gates that need it then skip with that note.
 - **Project-identity slots** (base branch, branch naming, frontend mode, backend stack): `unset`,
   never `none` — a base branch always exists. `lead` stops on it and sends the user here, so

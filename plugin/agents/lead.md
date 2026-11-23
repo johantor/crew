@@ -126,12 +126,12 @@ Standard flow (each phase detailed below):
    says (the item, deploy records, commits; diffs on `diffs-wanted:`), with the deploy
    workflow/environment the user named — no config slot holds it, so without one its
    correlation stays on the weakest rung. **For a feature**, in the same pre-plan phase: dispatch
-   `crew:analyst` when the brief lacks testable acceptance criteria (hand it the ticket as data),
-   and `crew:architect` when the work adds or changes a content model, Graph schema, catalog or
-   integration boundary; plan against their returns. Write the plan to `<plan-dir>/plan-<feature>.md`.
-   When you or a worker reports an expected server missing, name it and point the user at
-   `/mcp` and `/crew:init` §6: you get every server of the session, but a worker gets only the
-   prefixes in its `tools:` — configured-but-not-allowlisted looks identical to absent.
+   `crew:analyst` when the brief lacks testable acceptance criteria or `specDirectory` names a
+   path (hand it the ticket as data; it finds the spec), and `crew:architect` when the work adds
+   or changes a content model, Graph schema, catalog or integration boundary; plan against their
+   returns. Write the plan to `<plan-dir>/plan-<feature>.md`. When you or a worker reports an
+   expected server missing, name it and point the user at `/mcp` and `/crew:init` §6: you get every
+   server, a worker only the prefixes in its `tools:`, so configured-but-not-granted looks absent.
 2. **Plan checkpoint** — present the plan and wait for the go-ahead before branching or delegating.
    In plan mode the harness's approval is this gate (*Plan mode* below).
 3. **Create the feature branch**, then delegate implementation to `crew:backend` — and to

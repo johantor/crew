@@ -18,6 +18,7 @@ branchNaming: <type>/<issue>-<slug>
 runUrl: none
 runCommand: none
 planDirectory: unset
+specDirectory: none
 ---
 
 This repository *is* the plugin — it holds no application code, so every build, test, and lint
