@@ -149,7 +149,7 @@ trust or correct it; never invent a command you can't see configured.
 | Run/dev URL, run command | The `backend-<stack>` skill's **Crew config** section when it names them; else the `package.json` dev or start script and the port it prints or configures. Several candidates (launch profiles, apps) → ask which one the crew runs. |
 | Branch naming | Existing branch names; else `unset`. |
 | Plan directory | Only an obvious existing convention (`docs/plans/`, tracked `plan-*.md` outside `.claude/`); else `unset`. |
-| Spec directory | A tracked `specs/`, `.kiro/specs/` or `docs/specs/` that holds spec files (`spec.md`, `requirements.md`, `*.spec.md`). Several → ask which one. None → `none`. |
+| Spec directory | A tracked `specs/`, `.kiro/specs/` or `docs/specs/` that holds Markdown files (`spec.md`, `ABC-42.md`, any `*.md`). Several → ask which one. None → `none`. |
 
 When detection comes up empty, pick the placeholder by slot type — never a value that makes the
 config unusable:
