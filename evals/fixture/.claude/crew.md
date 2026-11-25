@@ -19,6 +19,7 @@ branchNaming: feature/<slug>
 runUrl: http://localhost:5000/
 runCommand: none
 planDirectory: .plans/
+specDirectory: none
 ---
 
 An Optimizely CMS 13 site with Razor views and no client bundle, so the frontend is

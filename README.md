@@ -372,6 +372,12 @@ resolve relative to the project directory — memory at `.claude/agent-memory-lo
 tracked path (e.g. `docs/plans/`) so a plan you commit lands on the branch instead of in the
 untracked `.claude/` fallback.
 
+**Your own specs.** If the project keeps specs in the repository (spec-kit, Kiro, or plain
+markdown under `specs/`), `/crew:init` records the folder in the **Spec directory** slot. Before
+`lead` plans, `analyst` reads the spec that matches the task and turns its criteria into the
+plan's acceptance criteria. The crew reads specs and does not write them. A cloud session or a
+new worktree finds them only when `.claude/crew.md` and the specs are committed.
+
 ## Contributing
 
 Start with [AGENTS.md](AGENTS.md), the contributor guide, and the code map in
