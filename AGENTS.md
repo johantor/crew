@@ -119,13 +119,17 @@ rule costs more than a sentence of prose, and motivation measurably helps compli
   ask twice. A subagent loses `ExitPlanMode` and inherits plan mode, so it returns the plan for
   `/crew:feature` to present and re-launch as approved. `plan-guard` reads frontmatter, not a
   roster, and fails open: plan mode is the real boundary.
-- **`lead` inherits every tool; a hook scopes its dispatches.** An orchestrator needs the
-  operator's own servers (a tracker, time reporting), and a `tools:` allowlist cannot say "every
-  MCP server". Inheriting costs the `Agent(...)` spawn allowlist, which only ever held in
-  `claude --agent`. `dispatch-scope.sh` replaces it on both paths: `lead` launches `crew:*`,
-  `Explore` and `Plan` (plan mode's own workflow reaches for those two), never `general-purpose`,
-  which is off bash-safety's no-git roster and so runs git unguarded. `NotebookEdit` stays
-  disallowed: no `Edit|Write` hook sees it.
+- **`lead` inherits every tool and may launch any agent; a hook warns, not refuses.** An
+  orchestrator needs the operator's own servers (a tracker, time reporting), and a `tools:`
+  allowlist cannot say "every MCP server"; a project's own agent can be the right tool for a step.
+  The cost: an agent off bash-safety's no-git roster runs git unguarded, and the roster cannot
+  grow to cover it, because a hook payload does not say who launched an agent and the plugin's
+  hooks also run in the operator's other sessions. So `dispatch-scope.sh` adds a note to `lead`'s
+  context for any agent but `crew:*` and the Bash-free built-ins (`Explore`, `Plan`,
+  `claude-code-guide`, `web-fetch`, `statusline-setup`): prefer a crew worker, else brief it to
+  run no git and check HEAD and the diff before the commit. That is a prompt rule, not a
+  mechanism, and the match is by name: a project agent that shadows a built-in name is not warned.
+  `NotebookEdit` stays disallowed: no `Edit|Write` hook sees it.
 - **Stay responsive.** Foreground calls freeze the orchestrator for minutes, so background is the
   default; the status pulse is emitted after the result is reconciled, or it reports stale state.
 - **Fresh spawns; steering is the narrow exception.** `Agent` never continues a worker, so

@@ -78,8 +78,7 @@ front end.
 ## Quick start
 
 **A dedicated orchestration session** is the recommended path. The session *is* `lead`:
-describe the feature, paste a ticket, ask for a review. It's scoped to crew work, so run
-general/config tasks (statusline and the like) in a normal session.
+describe the feature, paste a ticket, ask for a review.
 
 ```bash
 claude --agent crew:lead
@@ -146,7 +145,8 @@ approval replaces `lead`'s own plan checkpoint, so you get one gate, not two. Wh
 underneath:
 
 - **In a `claude --agent crew:lead` session**, `lead` explores (itself, or through the
-  built-in `Explore`/`Plan` research agents, which `dispatch-scope` lets through), presents the
+  read-only `Explore`, `Plan`, `claude-code-guide` and `web-fetch` agents, which `dispatch-scope`
+  lets through), presents the
   plan through plan mode's approval prompt, and only then writes `<plan-dir>/plan-<feature>.md`,
   branches, and delegates.
 - **From `/crew:feature` in a normal session**, `lead` runs as a subagent, and a subagent
@@ -206,9 +206,11 @@ raw reads, the `.git/` guard blocks agent writes into `.git/`, and both fail ope
 block a dispatch, but only one plan mode would have refused anyway, and on any path it can't read
 it allows. `dispatch-scope` also fails open.
 
-- **`lead` dispatches only the crew.** It may launch `crew:*` workers and the built-in
-  `Explore`/`Plan` agents, nothing else: a `general-purpose` agent would run git outside the
-  roster.
+- **`lead` is warned off agents outside the crew.** It may launch any agent. For one that is not
+  a `crew:*` worker or a built-in with no Bash (`Explore`, `Plan`, `claude-code-guide`,
+  `web-fetch`, `statusline-setup`), `dispatch-scope` tells `lead` to prefer a crew worker, else to
+  brief the agent to run no git and to check HEAD and the diff after. The warning is advice: such
+  an agent can run git outside the roster.
 
 - **Workers can't touch git.** Blocked for `backend`/`frontend`/`unit-tests`/`e2e`/`generalist`, except a
   plain `git mv` to rename a file, which lands in `lead`'s next commit. `lead` is the sole
@@ -270,9 +272,11 @@ intercepted**.
   to do first. No roster, so nothing to keep in lockstep. Fails open: no `jq`, an unreadable
   payload, an agent file it can't find, all allow — plan mode itself still blocks the edits.
 - **dispatch-scope** runs on `PreToolUse` for `Agent`/`Task` calls and acts only when the
-  payload's `agent_type` is `crew:lead`. It refuses any target but `crew:<worker>`, `Explore`
-  and `Plan`; a call with no type (which launches `general-purpose`) is refused too. Your own
-  session and every other agent pass. Fails open: no `jq` or an unreadable payload allows.
+  payload's `agent_type` is `crew:lead`. It never refuses. Any target but `crew:<worker>`,
+  `Explore`, `Plan`, `claude-code-guide`, `web-fetch` and `statusline-setup`, a call with no type
+  (which launches `general-purpose`) included, launches with a warning in `lead`'s context. Your
+  own session and every other agent get no warning. Fails open: no `jq` or an unreadable payload
+  stays silent.
 
 Hooks are registered in `hooks/hooks.json`.
 

@@ -12,7 +12,8 @@ implementer edits them (`visual-review`, `incident-triage`, `debt-scout`, `analy
 `security-review` and `web-review` carry no edit tool), and each returns
 a summary. It is not remote execution, and it sends nothing outside the repository.
 
-The crew's guard hooks bound what a worker can do: only `lead` touches git, no agent commits on
+The crew's guard hooks bound what a worker can do: only `lead` touches git in the crew (an agent
+outside it that `lead` launches is told to run none), no agent commits on
 the base branch, no agent writes inside `.git/`, `lead` checks each worker's changed files
 against its plan step, file-mutating Bash is refused so a write cannot skip the Edit/Write hooks,
 and destructive shell commands are refused. Nothing is pushed and no pull request is opened on its own — `/crew:pr` is the only
