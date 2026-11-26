@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `lead` may dispatch the built-in `claude-code-guide`, `web-fetch` and `statusline-setup` agents, next to `Explore` and `Plan` (#348).
 
+### Changed
+
+- `dispatch-scope` no longer refuses an agent outside the crew: `lead` launches it with a note to prefer a crew worker, else to keep it off git (#348).
+
 ## [12.4.0] - 2026-11-23
 
 ### Added

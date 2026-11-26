@@ -87,7 +87,8 @@ implementer edits them (`visual-review`, `incident-triage`, `debt-scout`, `analy
 `security-review` and `web-review` carry no edit tool), and each returns
 a summary. It is not remote execution, and it sends nothing outside the repository.
 
-The crew's guard hooks bound what a worker can do: only `lead` touches git, no agent commits on
+The crew's guard hooks bound what a worker can do: only `lead` touches git in the crew (an agent
+outside it that `lead` launches is told to run none), no agent commits on
 the base branch, no agent writes inside `.git/`, `lead` checks each worker's changed files
 against its plan step, file-mutating Bash is refused so a write cannot skip the Edit/Write hooks,
 and destructive shell commands are refused. Nothing is pushed and no pull request is opened on its own — `/crew:pr` is the only
@@ -99,9 +100,9 @@ Paths in *Map* are relative to `plugin/`, the directory users install.
 
 - `agents/` — auto-discovered, not in the manifest.
   - `lead`: orchestrator, `model: opus`, sole git owner. No `tools:` list: it inherits every
-    tool and MCP server of the session, minus `disallowedTools: NotebookEdit`; `dispatch-scope.sh`
-    limits its dispatches to `crew:*` plus the built-ins with no Bash: `Explore`, `Plan`,
-    `claude-code-guide`, `web-fetch`, `statusline-setup`. `ExitPlanMode` and
+    tool and MCP server of the session, minus `disallowedTools: NotebookEdit`; it may dispatch
+    any agent, and `dispatch-scope.sh` warns it about one outside the crew and the Bash-free
+    built-ins. `ExitPlanMode` and
     `AskUserQuestion` only work as the main thread of `claude --agent crew:lead`. Workers get no
     web tools.
   - Workers: `backend` (the stack's core: in a CLI or script pack, the commands and I/O),
@@ -235,9 +236,11 @@ Paths in *Map* are relative to `plugin/`, the directory users install.
   - `plan-guard.sh` (`PreToolUse`, `Agent|Task`): in plan mode, refuses a `crew:<worker>` whose
     frontmatter grants `Edit`/`Write`/`NotebookEdit`; `owns-git: true` passes. Reads both
     `tools:` shapes; `CREW_AGENTS_DIR` is the test override.
-  - `dispatch-scope.sh` (`PreToolUse`, `Agent|Task`): for `agent_type` `crew:lead` only, refuses
-    a `subagent_type` other than `crew:<name>`, `Explore`, `Plan`, `claude-code-guide`,
-    `web-fetch` or `statusline-setup` (none means `general-purpose`; the match is by name, not tools). It replaces the `Agent(...)` allowlist `lead` lost by inheriting tools.
+  - `dispatch-scope.sh` (`PreToolUse`, `Agent|Task`): for `agent_type` `crew:lead` only, never
+    refuses. A `subagent_type` other than `crew:<name>`, `Explore`, `Plan`, `claude-code-guide`,
+    `web-fetch` or `statusline-setup` (none means `general-purpose`; the match is by name, not
+    tools) gets `additionalContext` with no `permissionDecision`: prefer a crew worker, else
+    brief it to run no git and check HEAD and its diff. The test asserts that stdout JSON.
   - `lib/guard-lib.sh`: payload plumbing, `guard_agent_type` (only a `crew:<name>` agent
     reaches the bare rosters; any other agent, a project's own bare `backend` included, becomes
     `ext:<name>`, still an agent session), `guard_normalize`, `guard_is_windows`, `guard_posix_path`,
