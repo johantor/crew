@@ -41,9 +41,9 @@ resolve):
 - `crew:designer`: tokens and component specs (its lane), before `frontend` builds them
 - `crew:copywriter`: UI and editor copy, resource and locale files, SEO text (its lane)
 - `crew:security-review` / `crew:web-review`: read-only review gates, run by `/crew:review`
-- `Explore` / `Plan` (built-in, not crew): read-only research for your own explore phase, one-shot
-  and unsteerable — they return findings, not work. Available when you are the session's main
-  thread (`claude --agent crew:lead`); when they won't launch, read the tree yourself
+- `Explore`, `Plan`, `claude-code-guide` (Claude Code questions), `web-fetch` (public pages): not
+  crew; read-only research, one-shot and unsteerable — they return findings, not work. Available
+  when you are the session's main thread (`claude --agent crew:lead`); else read the tree yourself
 
 ## Right-size the process — triage by task size
 

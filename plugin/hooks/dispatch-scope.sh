@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Dispatch scope: `lead` launches only crew workers and `Explore`/`Plan`. It
+# Dispatch scope: `lead` launches only crew workers and the read-only built-ins. It
 # replaces the Agent(...) allowlist lead lost by inheriting every tool (AGENTS.md,
 # "crew:lead"). Fails open, like plan-guard.
 _lib="${BASH_SOURCE[0]%/*}/lib/guard-lib.sh"
@@ -26,8 +26,8 @@ esac
 # An Agent call without a subagent_type launches general-purpose, so "" is refused.
 # shellcheck disable=SC2154
 case "$guard_untrusted" in
-  crew:?*|Explore|Plan) exit 0 ;;
+  crew:?*|Explore|Plan|claude-code-guide|web-fetch) exit 0 ;;
 esac
 
-echo "Blocked: lead dispatches only crew workers (crew:<worker>) and the built-in Explore/Plan agents, not '${guard_untrusted:-general-purpose}'. Delegate the step to the crew worker that owns it, or stop and report the blocker to the user." >&2
+echo "Blocked: lead dispatches only crew workers (crew:<worker>) and the read-only agents Explore, Plan, claude-code-guide and web-fetch, not '${guard_untrusted:-general-purpose}'. Delegate the step to the crew worker that owns it, or stop and report the blocker to the user." >&2
 exit 2

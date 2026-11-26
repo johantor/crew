@@ -122,10 +122,12 @@ rule costs more than a sentence of prose, and motivation measurably helps compli
 - **`lead` inherits every tool; a hook scopes its dispatches.** An orchestrator needs the
   operator's own servers (a tracker, time reporting), and a `tools:` allowlist cannot say "every
   MCP server". Inheriting costs the `Agent(...)` spawn allowlist, which only ever held in
-  `claude --agent`. `dispatch-scope.sh` replaces it on both paths: `lead` launches `crew:*`,
-  `Explore` and `Plan` (plan mode's own workflow reaches for those two), never `general-purpose`,
-  which is off bash-safety's no-git roster and so runs git unguarded. `NotebookEdit` stays
-  disallowed: no `Edit|Write` hook sees it.
+  `claude --agent`. `dispatch-scope.sh` replaces it on both paths: `lead` launches `crew:*` and
+  the read-only agents `Explore`, `Plan` (plan mode's own workflow reaches for those two),
+  `claude-code-guide` and `web-fetch`, never `general-purpose`, which is off bash-safety's no-git
+  roster and so runs git unguarded. The hook matches the name, not the agent's tools: a project
+  agent that shadows one of those names with Bash gets through. `NotebookEdit` stays disallowed:
+  no `Edit|Write` hook sees it.
 - **Stay responsive.** Foreground calls freeze the orchestrator for minutes, so background is the
   default; the status pulse is emitted after the result is reconciled, or it reports stale state.
 - **Fresh spawns; steering is the narrow exception.** `Agent` never continues a worker, so

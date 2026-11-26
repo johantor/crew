@@ -146,7 +146,8 @@ approval replaces `lead`'s own plan checkpoint, so you get one gate, not two. Wh
 underneath:
 
 - **In a `claude --agent crew:lead` session**, `lead` explores (itself, or through the
-  built-in `Explore`/`Plan` research agents, which `dispatch-scope` lets through), presents the
+  read-only `Explore`, `Plan`, `claude-code-guide` and `web-fetch` agents, which `dispatch-scope`
+  lets through), presents the
   plan through plan mode's approval prompt, and only then writes `<plan-dir>/plan-<feature>.md`,
   branches, and delegates.
 - **From `/crew:feature` in a normal session**, `lead` runs as a subagent, and a subagent
@@ -206,9 +207,9 @@ raw reads, the `.git/` guard blocks agent writes into `.git/`, and both fail ope
 block a dispatch, but only one plan mode would have refused anyway, and on any path it can't read
 it allows. `dispatch-scope` also fails open.
 
-- **`lead` dispatches only the crew.** It may launch `crew:*` workers and the built-in
-  `Explore`/`Plan` agents, nothing else: a `general-purpose` agent would run git outside the
-  roster.
+- **`lead` dispatches only the crew.** It may launch `crew:*` workers and the read-only
+  `Explore`, `Plan`, `claude-code-guide` and `web-fetch` agents, nothing else: a
+  `general-purpose` agent would run git outside the roster.
 
 - **Workers can't touch git.** Blocked for `backend`/`frontend`/`unit-tests`/`e2e`/`generalist`, except a
   plain `git mv` to rename a file, which lands in `lead`'s next commit. `lead` is the sole
@@ -270,8 +271,8 @@ intercepted**.
   to do first. No roster, so nothing to keep in lockstep. Fails open: no `jq`, an unreadable
   payload, an agent file it can't find, all allow — plan mode itself still blocks the edits.
 - **dispatch-scope** runs on `PreToolUse` for `Agent`/`Task` calls and acts only when the
-  payload's `agent_type` is `crew:lead`. It refuses any target but `crew:<worker>`, `Explore`
-  and `Plan`; a call with no type (which launches `general-purpose`) is refused too. Your own
+  payload's `agent_type` is `crew:lead`. It refuses any target but `crew:<worker>`, `Explore`,
+  `Plan`, `claude-code-guide` and `web-fetch`; a call with no type (which launches `general-purpose`) is refused too. Your own
   session and every other agent pass. Fails open: no `jq` or an unreadable payload allows.
 
 Hooks are registered in `hooks/hooks.json`.

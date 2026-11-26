@@ -100,7 +100,8 @@ Paths in *Map* are relative to `plugin/`, the directory users install.
 - `agents/` — auto-discovered, not in the manifest.
   - `lead`: orchestrator, `model: opus`, sole git owner. No `tools:` list: it inherits every
     tool and MCP server of the session, minus `disallowedTools: NotebookEdit`; `dispatch-scope.sh`
-    limits its dispatches to `crew:*` plus `Explore`/`Plan`. `ExitPlanMode` and
+    limits its dispatches to `crew:*` plus the read-only `Explore`, `Plan`, `claude-code-guide`
+    and `web-fetch`. `ExitPlanMode` and
     `AskUserQuestion` only work as the main thread of `claude --agent crew:lead`. Workers get no
     web tools.
   - Workers: `backend` (the stack's core: in a CLI or script pack, the commands and I/O),
@@ -235,8 +236,8 @@ Paths in *Map* are relative to `plugin/`, the directory users install.
     frontmatter grants `Edit`/`Write`/`NotebookEdit`; `owns-git: true` passes. Reads both
     `tools:` shapes; `CREW_AGENTS_DIR` is the test override.
   - `dispatch-scope.sh` (`PreToolUse`, `Agent|Task`): for `agent_type` `crew:lead` only, refuses
-    a `subagent_type` other than `crew:<name>`, `Explore` or `Plan` (none means
-    `general-purpose`). It replaces the `Agent(...)` allowlist `lead` lost by inheriting tools.
+    a `subagent_type` other than `crew:<name>`, `Explore`, `Plan`, `claude-code-guide` or
+    `web-fetch` (none means `general-purpose`; the match is by name, not tools). It replaces the `Agent(...)` allowlist `lead` lost by inheriting tools.
   - `lib/guard-lib.sh`: payload plumbing, `guard_agent_type` (only a `crew:<name>` agent
     reaches the bare rosters; any other agent, a project's own bare `backend` included, becomes
     `ext:<name>`, still an agent session), `guard_normalize`, `guard_is_windows`, `guard_posix_path`,
