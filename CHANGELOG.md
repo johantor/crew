@@ -5,6 +5,12 @@ All notable changes to the `crew` plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [12.6.0] - 2026-11-26
+
+### Added
+
+- `/crew:triage` offers to post its finding as a comment on the work item it fetched, after a confirmation that shows the full text; a re-run updates that comment (#186).
+
 ## [12.5.0] - 2026-11-26
 
 ### Added
