@@ -78,8 +78,7 @@ front end.
 ## Quick start
 
 **A dedicated orchestration session** is the recommended path. The session *is* `lead`:
-describe the feature, paste a ticket, ask for a review. It's scoped to crew work, so run
-general/config tasks (statusline and the like) in a normal session.
+describe the feature, paste a ticket, ask for a review.
 
 ```bash
 claude --agent crew:lead
@@ -207,9 +206,9 @@ raw reads, the `.git/` guard blocks agent writes into `.git/`, and both fail ope
 block a dispatch, but only one plan mode would have refused anyway, and on any path it can't read
 it allows. `dispatch-scope` also fails open.
 
-- **`lead` dispatches only the crew.** It may launch `crew:*` workers and the read-only
-  `Explore`, `Plan`, `claude-code-guide` and `web-fetch` agents, nothing else: a
-  `general-purpose` agent would run git outside the roster.
+- **`lead` dispatches only the crew.** It may launch `crew:*` workers and the built-in
+  `Explore`, `Plan`, `claude-code-guide`, `web-fetch` and `statusline-setup` agents, which have no
+  Bash, nothing else: a `general-purpose` agent would run git outside the roster.
 
 - **Workers can't touch git.** Blocked for `backend`/`frontend`/`unit-tests`/`e2e`/`generalist`, except a
   plain `git mv` to rename a file, which lands in `lead`'s next commit. `lead` is the sole
@@ -272,7 +271,7 @@ intercepted**.
   payload, an agent file it can't find, all allow — plan mode itself still blocks the edits.
 - **dispatch-scope** runs on `PreToolUse` for `Agent`/`Task` calls and acts only when the
   payload's `agent_type` is `crew:lead`. It refuses any target but `crew:<worker>`, `Explore`,
-  `Plan`, `claude-code-guide` and `web-fetch`; a call with no type (which launches `general-purpose`) is refused too. Your own
+  `Plan`, `claude-code-guide`, `web-fetch` and `statusline-setup`; a call with no type (which launches `general-purpose`) is refused too. Your own
   session and every other agent pass. Fails open: no `jq` or an unreadable payload allows.
 
 Hooks are registered in `hooks/hooks.json`.

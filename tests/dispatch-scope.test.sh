@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# dispatch-scope.sh: lead launches crew workers and the read-only built-ins only; any other
+# dispatch-scope.sh: lead launches crew workers and the built-ins with no Bash only; any other
 # caller, and any payload it can't read, passes.
 # shellcheck source=tests/lib.sh
 # shellcheck disable=SC1090,SC1091
@@ -19,12 +19,12 @@ hook=dispatch-scope.sh
 msg="lead dispatches only crew workers"
 
 # --- lead: crew workers and the research agents pass -----------------------------
-for t in crew:backend crew:incident-triage crew:web-review Explore Plan claude-code-guide web-fetch; do
+for t in crew:backend crew:incident-triage crew:web-review Explore Plan claude-code-guide web-fetch statusline-setup; do
   assert_allow "lead may dispatch $t" "$hook" "$(payload_dispatch "$t" crew:lead)"
 done
 
 # --- lead: anything else is refused, and the refusal names it ---------------------
-for t in general-purpose claude statusline-setup backend crew: fork explore; do
+for t in general-purpose claude backend crew: fork explore; do
   assert_block "lead may not dispatch '$t'" "$hook" "$(payload_dispatch "$t" crew:lead)" "$msg"
 done
 assert_block "no subagent_type launches general-purpose -> refused" "$hook" \

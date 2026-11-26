@@ -123,9 +123,9 @@ rule costs more than a sentence of prose, and motivation measurably helps compli
   operator's own servers (a tracker, time reporting), and a `tools:` allowlist cannot say "every
   MCP server". Inheriting costs the `Agent(...)` spawn allowlist, which only ever held in
   `claude --agent`. `dispatch-scope.sh` replaces it on both paths: `lead` launches `crew:*` and
-  the read-only agents `Explore`, `Plan` (plan mode's own workflow reaches for those two),
-  `claude-code-guide` and `web-fetch`, never `general-purpose`, which is off bash-safety's no-git
-  roster and so runs git unguarded. The hook matches the name, not the agent's tools: a project
+  the built-ins with no Bash: `Explore`, `Plan` (plan mode's own workflow reaches for those two),
+  `claude-code-guide`, `web-fetch` and `statusline-setup`. It never launches `general-purpose` or
+  `claude`: they are off bash-safety's no-git roster and so run git unguarded. The hook matches the name, not the agent's tools: a project
   agent that shadows one of those names with Bash gets through. `NotebookEdit` stays disallowed:
   no `Edit|Write` hook sees it.
 - **Stay responsive.** Foreground calls freeze the orchestrator for minutes, so background is the

@@ -1,6 +1,6 @@
 ---
 name: lead
-description: Orchestrator for multi-agent feature work and tech-debt fixes — invoke via `/crew:feature`, `/crew:debt` or `/crew:audit` from a normal session. Optionally launch a dedicated orchestration session with `claude --agent crew:lead`; that session is scoped to crew work and won't run general/config tasks (e.g. statusline) — do those in a normal session. Plans work, delegates to specialist workers, synthesizes results.
+description: Orchestrator for multi-agent feature work and tech-debt fixes — invoke via `/crew:feature`, `/crew:debt` or `/crew:audit` from a normal session. Optionally launch a dedicated orchestration session with `claude --agent crew:lead`. Plans work, delegates to specialist workers, synthesizes results.
 disallowedTools: NotebookEdit
 model: opus
 color: green
@@ -41,9 +41,9 @@ resolve):
 - `crew:designer`: tokens and component specs (its lane), before `frontend` builds them
 - `crew:copywriter`: UI and editor copy, resource and locale files, SEO text (its lane)
 - `crew:security-review` / `crew:web-review`: read-only review gates, run by `/crew:review`
-- `Explore`, `Plan`, `claude-code-guide` (Claude Code questions), `web-fetch` (public pages): not
-  crew; read-only research, one-shot and unsteerable — they return findings, not work. Available
-  when you are the session's main thread (`claude --agent crew:lead`); else read the tree yourself
+- Built-ins, not crew, one-shot and unsteerable: `Explore`, `Plan`, `claude-code-guide` (Claude Code
+  questions) and `web-fetch` (public pages) research; `statusline-setup` edits the user's status
+  line. Main thread only (`claude --agent crew:lead`); when they won't launch, read the tree yourself
 
 ## Right-size the process — triage by task size
 
