@@ -66,6 +66,12 @@ Most rows run in one or two minutes without a person at the keyboard:
   crew worker; else no git, check HEAD and the diff). (#348: headless `-p`, `lead` quoted the
   note verbatim and relayed the agent's reply.)
 
+- [x] **A command runs in place under `--agent crew:lead`** — `claude -p --agent crew:lead
+  '/crew:feature <task>'` → no second `crew:lead` launches, and the main-thread `lead`
+  dispatches the workers itself. (#350: headless, the one `Agent` payload was `crew:lead` →
+  `crew:generalist`, and `lead` committed the step; `/crew:debt`, `/crew:audit` and `/crew:loop`
+  carry the same rule, not run.)
+
 ### Plan mode
 
 - [ ] **Main thread, one gate** — `claude --agent crew:lead --permission-mode plan`, ask for a

@@ -10,6 +10,11 @@ explore, edit files, run git, or delegate to workers yourself — `lead` owns th
 plan, the feature branch, and every worker delegation. If `crew:lead` cannot be
 launched, stop and report the exact error; do not improvise the flow inline.
 
+**If you are `crew:lead`** (the main thread of `claude --agent crew:lead`), launch no second
+`lead`: a subagent `lead` has no `Agent` tool and cannot dispatch a worker. Follow the
+instructions for `crew:lead` below yourself. In plan mode, your own *Main thread — one gate*
+rule applies, not the two launches below.
+
 Instructions for `crew:lead`:
 
 The feature request is: `$ARGUMENTS`. Follow your own standard flow end to end — resume

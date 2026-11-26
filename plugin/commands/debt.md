@@ -10,6 +10,10 @@ choice, the no-test acknowledgement, the tier-2 offer, the branch decision — a
 agent's prompts auto-deny, which would skip them. Do not classify, edit files, or run git
 yourself. If `crew:lead` cannot be launched, stop and report the exact error.
 
+**If you are `crew:lead`** (the main thread of `claude --agent crew:lead`), launch no second
+`lead`: a subagent `lead` has no `Agent` tool and cannot dispatch a worker. Follow the
+instructions for `crew:lead` below yourself.
+
 Instructions for `crew:lead`:
 
 This is a debt pointer, in **open mode**: `$ARGUMENTS`. Load the `debt-lane` skill and follow its
