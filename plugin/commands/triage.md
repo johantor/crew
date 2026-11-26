@@ -151,7 +151,8 @@ When `crew:incident-triage` returns:
      located files, each candidate as SHA, subject and one reason, the regression test and the
      handoff lines. Leave out the signal's own text — traces, log lines, payloads — and diff
      lines and the surfaced instructions: what lands on a tracker cannot be pulled back. On
-     Azure DevOps, wrap each line in `<div>`, since its discussion field is HTML. `Write` the
+     Azure DevOps, whose discussion field is HTML, escape `&`, `<` and `>` in each line, then
+     wrap it in `<div>`, so a `List<T>` or a tag in the signal posts as text. `Write` the
      body to a scratch file outside the checkout.
    - **Prior comment.** One in the fetched comments that starts with the marker and was posted
      by the signed-in account is the one a re-run updates, so the item does not collect copies.
@@ -161,9 +162,10 @@ When `crew:incident-triage` returns:
      Jira or an MCP tool: what it reports. Public, or nothing reported, counts as public.
    - **Ask** with `AskUserQuestion`, showing the target, its visibility, the full body and any
      prior comment's body. Options: `Post nothing` first, `Post a new comment`, and `Update the
-     prior comment` when there is one and the tool can edit it. A public target → ask once
-     more, saying anyone can read it and the post cannot be taken back. Anything but a post
-     choice → post nothing.
+     prior comment` when there is one and the tool can edit it, saying it replaces the text shown,
+     edits included: that look is the guard against clobbering a person's change. A public
+     target → ask once more, saying anyone can read it and the post cannot be taken back.
+     Anything but a post choice → post nothing.
    - **Post** through the tool that fetched the item: its MCP comment tool, else `gh issue
      comment <n> --body-file <file>` (update: `gh api -X PATCH
      'repos/{owner}/{repo}/issues/comments/<id>' -F body=@<file>`, the braces filled by `gh`
