@@ -140,8 +140,10 @@ Paths in *Map* are relative to `plugin/`, the directory users install.
     the tracker's CLI), and on an Azure DevOps remote a `deploy-pipeline=`'s runs, environment
     records and the commits between them (`az`, `git log`); hands them to `incident-triage` as
     data, as `audit` does for the scout; returns `git show` output when the agent ends with
-    `diffs-wanted:` (by `SendMessage` with the steer token); then relays the report; writes
-    nothing (#175 phase 2).
+    `diffs-wanted:` (by `SendMessage` with the steer token); then relays the report. Its one
+    write: when it resolved a `work-item:`, it offers to post the finding as a comment there,
+    behind `AskUserQuestion` (headless posts nothing), and a re-run updates its own
+    `crew:triage finding` comment (#186).
     `lead` follows the same section by `${CLAUDE_PLUGIN_ROOT}`.
   - `notify`: peer-session messaging (#177). A command, since `lead` has no `ListAgents`, so
     a `--agent crew:lead` session needs an explicit `to=`.
