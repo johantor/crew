@@ -75,3 +75,8 @@ When `crew:debt-scout` returns:
    `/crew:audit` and re-pick: a finished pointer exits as a no-op, and a half-done one resumes
    from its ledger.
 4. If the pick can't be shown (headless), the report is the result.
+
+**If you are `crew:lead`** (the main thread of `claude --agent crew:lead`), launch `debt-scout`
+as above but no second `lead` in step 3: a subagent `lead` has no `Agent` tool and cannot
+dispatch a worker. Run each pick's open-mode flow yourself, with the same `loop-intent:` rule
+and its workers in the foreground, one pointer at a time.

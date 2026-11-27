@@ -182,6 +182,8 @@ rule costs more than a sentence of prose, and motivation measurably helps compli
   An e2e suite keeps owning its own server (Playwright `webServer`).
 - **Isolation or a path, decided at dispatch.** An isolated worktree auto-cleans a gitignored
   deliverable (#241), and a relocation steer is refused inconsistently (#242).
+- **A command that launches `lead` runs in place when `lead` is the main thread** (#350). A
+  subagent has no `Agent` tool, so a second `lead` cannot dispatch a worker and stops BLOCKED.
 - **Address review feedback** with the same lane routing, git ownership and gate that built the
   feature, not a second looser flow.
 - **The plan file is durable state.** It survives a crash or context reset. `/crew:loop` keeps

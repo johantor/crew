@@ -125,6 +125,8 @@ Paths in *Map* are relative to `plugin/`, the directory users install.
     reads only that file); §5 writes and reconciles; §6 reports MCP namespaces.
   - `feature`, `review` (GO/NO-GO gate; dispatches `security-review`, `web-review` and
     `visual-review`), `pr` (the only push/PR path), `address`.
+  - `feature`, `debt`, `audit` and `loop` launch `lead`, except from a `--agent crew:lead`
+    session: there `lead` runs the flow in place, since a subagent `lead` has no `Agent` (#350).
   - `debt`: routes into `lead`'s debt lane (the `debt-lane` skill), in the foreground so its
     gates can prompt. The skill must not share a command's name: a command is also listed as a
     skill, so `lead` would load the command and relaunch itself.
