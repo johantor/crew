@@ -19,7 +19,7 @@ PR are **outward actions** — confirm with the user before pushing.
    - GitHub MCP, or
    - Azure DevOps MCP.
    Build the title and body from `<plan-dir>/plan-<feature>.md` (the resolved plan directory —
-   the `Plan directory` crew-config slot, or `.claude/` when unset) and the review-gate summary: what
+   the `Plan directory` crew-config slot, or `.crew/plans/` when unset) and the review-gate summary: what
    changed, which acceptance criteria are met, and the `## Blocking` / `## Warnings` review
    notes. When the PR is on GitHub and the plan header's `work-item:` is a GitHub issue, end the
    body with `Closes #<n>` (`Closes <owner>/<repo>#<n>` for another repository's issue). Any

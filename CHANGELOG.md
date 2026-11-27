@@ -5,6 +5,12 @@ All notable changes to the `crew` plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [12.7.0] - 2026-11-27
+
+### Changed
+
+- An unset `planDirectory` now means `.crew/plans/`, not `.claude/`, so a headless `lead` writes its plan without a permission prompt. Move an in-flight `.claude/plan-*.md` there to resume it (#351).
+
 ## [12.6.1] - 2026-11-26
 
 ### Fixed
