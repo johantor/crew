@@ -8,12 +8,14 @@ Delegate the entire feature to the orchestrator: launch the `crew:lead` agent
 (via the Agent tool) with `$ARGUMENTS` and the instructions below. Do **not** plan,
 explore, edit files, run git, or delegate to workers yourself — `lead` owns the
 plan, the feature branch, and every worker delegation. If `crew:lead` cannot be
-launched, stop and report the exact error; do not improvise the flow inline.
+launched, stop and report the exact error; do not improvise the flow inline outside the
+in-place case below.
 
-**If you are `crew:lead`** (the main thread of `claude --agent crew:lead`), launch no second
-`lead`: a subagent `lead` has no `Agent` tool and cannot dispatch a worker. Follow the
-instructions for `crew:lead` below yourself. In plan mode, your own *Main thread — one gate*
-rule applies, not the two launches below.
+**In place.** If you are `crew:lead` (the main thread of `claude --agent crew:lead`), launch no
+second `lead`. If `lead` returns only `no-agent-tool` (this host's subagents cannot launch
+agents), read `${CLAUDE_PLUGIN_ROOT}/agents/lead.md`, load each skill its `skills:` lists, and
+act as `lead` from here on. Either way, follow the instructions for `crew:lead` below yourself.
+In plan mode, `lead`'s *Main thread — one gate* rule applies, not the two launches below.
 
 Instructions for `crew:lead`:
 

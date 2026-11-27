@@ -8,11 +8,13 @@ Launch the `crew:lead` agent (via the Agent tool, **`run_in_background: false`**
 `$ARGUMENTS` and the instructions below. The debt lane prompts for its own gates — the slice
 choice, the no-test acknowledgement, the tier-2 offer, the branch decision — and a backgrounded
 agent's prompts auto-deny, which would skip them. Do not classify, edit files, or run git
-yourself. If `crew:lead` cannot be launched, stop and report the exact error.
+yourself outside the in-place case below. If `crew:lead` cannot be launched, stop and report
+the exact error.
 
-**If you are `crew:lead`** (the main thread of `claude --agent crew:lead`), launch no second
-`lead`: a subagent `lead` has no `Agent` tool and cannot dispatch a worker. Follow the
-instructions for `crew:lead` below yourself.
+**In place.** If you are `crew:lead` (the main thread of `claude --agent crew:lead`), launch no
+second `lead`. If `lead` returns only `no-agent-tool` (this host's subagents cannot launch
+agents), read `${CLAUDE_PLUGIN_ROOT}/agents/lead.md`, load each skill its `skills:` lists, and
+act as `lead` from here on. Either way, follow the instructions for `crew:lead` below yourself.
 
 Instructions for `crew:lead`:
 

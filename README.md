@@ -15,7 +15,9 @@ claude plugin install crew@johantor
 ```
 
 …or in the UI, from `/plugin > Discover` in Claude Code. crew is part of the
-[`johantor`](https://github.com/johantor/plugins) marketplace.
+[`johantor`](https://github.com/johantor/plugins) marketplace. A cloud session (Claude Code on
+the web, or a cloud session from the desktop app) ignores marketplaces a repo declares: add
+crew to your account at [claude.ai/customize/plugins](https://claude.ai/customize/plugins).
 
 Installed from `johantor/crew` before? That source is gone: run `claude plugin marketplace remove
 johantor`, then the two commands above.

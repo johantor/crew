@@ -70,6 +70,11 @@ Most rows run in one or two minutes without a person at the keyboard:
   crew:lead --permission-mode acceptEdits '<task>'` → `lead` writes `.crew/plans/plan-<feature>.md`
   and dispatches its first step. (#351: observed the plan file, a `backend` step committed; a
   plain `Write` to `.claude/` in the same mode was refused.)
+- [x] **A command runs in place when subagents cannot nest** — in a host whose subagents have no
+  `Agent` tool (a cloud session), `/crew:feature <task>` → the launched `lead` returns only
+  `no-agent-tool`, and the main session reads `lead.md` and dispatches the workers itself.
+  (#349: headless in a cloud container, the `Agent` payloads were main → `crew:lead`, then
+  main → `crew:generalist`, and the main session committed the step.)
 - [x] **A command runs in place under `--agent crew:lead`** — `claude -p --agent crew:lead
   '/crew:feature <task>'` → no second `crew:lead` launches, and the main-thread `lead`
   dispatches the workers itself. (#350: headless, the one `Agent` payload was `crew:lead` →
