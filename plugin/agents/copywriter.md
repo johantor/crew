@@ -5,7 +5,6 @@ tools: Read, Edit, Write, Grep, Glob, Skill, ToolSearch
 model: sonnet
 maxTurns: 60
 color: pink
-memory: local
 owns-git: false
 skills:
   - context-discipline
@@ -46,4 +45,5 @@ If your step needs a file outside it, name that file in your summary. You have n
   file that must read it, and `lead` routes the wiring.
 
 Return a summary: the files and keys you changed, the untranslated keys, the SEO text you
-could not place, and any copy decision the user should confirm.
+could not place, and any copy decision the user should confirm, plus a `learned:` line for a
+fact the next worker needs (you keep no memory; `lead` does).

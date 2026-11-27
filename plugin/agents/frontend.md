@@ -5,7 +5,6 @@ tools: Read, Edit, Write, Grep, Glob, Bash, ToolSearch, Skill, mcp__figma, mcp__
 model: sonnet
 maxTurns: 108
 color: cyan
-memory: local
 owns-git: false
 skills:
   - engineering-principles

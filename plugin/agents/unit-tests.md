@@ -5,7 +5,6 @@ tools: Read, Write, Edit, Bash, Grep, Glob, ToolSearch, Skill, mcp__mssql, mcp__
 model: sonnet
 maxTurns: 84
 color: blue
-memory: local
 owns-git: false
 skills:
   - context-discipline
@@ -50,4 +49,4 @@ Rules:
   zero-test counts, never the passing output; keep full run logs in your own context.
 - When a database MCP (SQL Server / Postgres) is available, use it to check schema and to
   seed/verify integration-test data; query targeted metadata/rows, not full dumps.
-- Local memory is where flaky tests and patterns go.
+- A flaky test or a pattern of this suite goes in your `learned:` line (`worker-contract`).
