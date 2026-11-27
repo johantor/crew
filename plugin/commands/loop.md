@@ -26,9 +26,11 @@ harness loop is what re-fires each tick and lets the work span `lead` runs. With
 run a single tick and exit, defeating the command. The per-tick logic decides, each firing,
 whether to schedule the next wakeup or end.
 
-**If you are `crew:lead`** (the main thread of `claude --agent crew:lead`), launch no second
-`lead`: a subagent `lead` has no `Agent` tool and cannot dispatch a worker. Run each tick's flow
-yourself, under the outer-loop note, where a tick below launches `crew:lead`. You also keep this
+**In place.** If you are `crew:lead` (the main thread of `claude --agent crew:lead`), launch no
+second `lead`. If `lead` returns only `no-agent-tool` (this host's subagents cannot launch
+agents), read `${CLAUDE_PLUGIN_ROOT}/agents/lead.md`, load each skill its `skills:` lists, and
+act as `lead` from here on; no tick ran, so leave `iterations:` alone. Either way, run each
+tick's flow yourself, under the outer-loop note, where a tick below launches `crew:lead`. You also keep this
 wrapper's duties — the native `/loop`, `iterations:` and the exit checks. The user's
 `/crew:loop` is the schedule, so this is not self-scheduling.
 

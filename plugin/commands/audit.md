@@ -76,7 +76,9 @@ When `crew:debt-scout` returns:
    from its ledger.
 4. If the pick can't be shown (headless), the report is the result.
 
-**If you are `crew:lead`** (the main thread of `claude --agent crew:lead`), launch `debt-scout`
-as above but no second `lead` in step 3: a subagent `lead` has no `Agent` tool and cannot
-dispatch a worker. Run each pick's open-mode flow yourself, with the same `loop-intent:` rule
-and its workers in the foreground, one pointer at a time.
+**In place.** If you are `crew:lead` (the main thread of `claude --agent crew:lead`), launch
+`debt-scout` as above but no second `lead` in step 3. If a launched `lead` returns only
+`no-agent-tool` (this host's subagents cannot launch agents), read
+`${CLAUDE_PLUGIN_ROOT}/agents/lead.md`, load each skill its `skills:` lists, and act as `lead`
+from here on. Either way, run each pick's open-mode flow yourself, with the same
+`loop-intent:` rule and its workers in the foreground, one pointer at a time.

@@ -182,8 +182,12 @@ rule costs more than a sentence of prose, and motivation measurably helps compli
   An e2e suite keeps owning its own server (Playwright `webServer`).
 - **Isolation or a path, decided at dispatch.** An isolated worktree auto-cleans a gitignored
   deliverable (#241), and a relocation steer is refused inconsistently (#242).
-- **A command that launches `lead` runs in place when `lead` is the main thread** (#350). A
-  subagent has no `Agent` tool, so a second `lead` cannot dispatch a worker and stops BLOCKED.
+- **A command that launches `lead` runs in place when `lead` is the main thread** (#350), and
+  when a launched `lead` has no `Agent` tool (#349: a cloud session's subagents cannot launch
+  agents). `lead` returns `no-agent-tool` at once, so the probe costs one short launch, and the
+  main session then reads `lead.md` and acts as `lead`. Gap: the hooks see that session as the
+  main session, not `crew:lead`, so `dispatch-scope` adds no note and `gitdir-guard` does not
+  apply; `lead`'s prompt holds those rules there.
 - **Address review feedback** with the same lane routing, git ownership and gate that built the
   feature, not a second looser flow.
 - **The plan fallback is `.crew/plans/`, never `.claude/`** (#351). Claude Code asks before
