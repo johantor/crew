@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Only `lead` keeps agent memory: a worker hands back a `learned:` line, and `lead` saves it and passes the notes that apply in each handoff. Notes in a worker's old `.claude/agent-memory-local/<worker>/` are no longer read (#PR).
+- Only `lead` keeps agent memory: a worker hands back a `learned:` line, and `lead` saves it and passes the notes that apply in each handoff. Notes in a worker's old `.claude/agent-memory-local/<worker>/` are no longer read (#356).
 
 ## [12.7.0] - 2026-11-27
 
