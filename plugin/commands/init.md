@@ -83,9 +83,10 @@ run until this command fills it (`branchNaming` is asked once per run instead, a
   one; no hot-reload or watch form, which rebuilds while a gate runs. `none` when the project
   serves nothing or the user starts the site: the crew then uses a site that already answers.
 - **Plan directory** (`planDirectory`) — where `lead` writes `plan-<feature>.md`; `unset` uses
-  the `.claude/` fallback. Set it (e.g. `docs/plans/`) for a committed location. Set it too when
-  `lead` runs headless (`claude -p`): such a session may not edit under `.claude/`, so `lead`
-  stops before its first step. A git-ignored folder keeps plans out of commits.
+  the `.crew/plans/` fallback. Set it (e.g. `docs/plans/`) for a committed location. Never a
+  path under `.claude/`: Claude Code asks before every write there, and a headless run
+  (`claude -p`) cannot answer, so `lead` stops before its first step. A git-ignored folder keeps
+  plans out of commits.
 - **Spec directory** (`specDirectory`) — where the project keeps its own specs (spec-kit, Kiro,
   or plain markdown), e.g. `specs/`. `analyst` reads the spec that matches the task as data and
   turns its criteria into the plan's `acceptance:`; the crew never writes a spec unless a plan
@@ -148,7 +149,7 @@ trust or correct it; never invent a command you can't see configured.
 | Base branch | `git symbolic-ref refs/remotes/origin/HEAD`, else an existing `main`/`develop`. Ambiguous → ask; `origin/HEAD` is often unset or stale, and a wrong base is expensive. |
 | Run/dev URL, run command | The `backend-<stack>` skill's **Crew config** section when it names them; else the `package.json` dev or start script and the port it prints or configures. Several candidates (launch profiles, apps) → ask which one the crew runs. |
 | Branch naming | Existing branch names; else `unset`. |
-| Plan directory | Only an obvious existing convention (`docs/plans/`, tracked `plan-*.md` outside `.claude/`); else `unset`. |
+| Plan directory | Only an obvious existing convention (`docs/plans/`, tracked `plan-*.md` outside `.claude/`); never under `.claude/`; else `unset`. |
 | Spec directory | A tracked `specs/`, `.kiro/specs/` or `docs/specs/` that holds Markdown files (`spec.md`, `ABC-42.md`, any `*.md`). Several → ask which one. None → `none`. |
 
 When detection comes up empty, pick the placeholder by slot type — never a value that makes the

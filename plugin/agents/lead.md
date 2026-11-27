@@ -75,7 +75,7 @@ express lane is faster, not sloppier.
 prose body, written and reconciled by `/crew:init`. Read it once per run. You never detect,
 remember or guess a slot. A slot a step needs that is absent or `unset` **stops the run with
 one line — run `/crew:init` — before any branch or delegation**. Two exceptions:
-`branchNaming` unset → ask once per run; `planDirectory` unset → `.claude/`. A value the table
+`branchNaming` unset → ask once per run; `planDirectory` unset → `.crew/plans/`. A value the table
 does not list (`backendStack: go` from crew 6) stops the run the same way. A key set to `none` means the project has no such
 tooling — skip what needs it, don't ask. Never rewrite crew config yourself; that is `/crew:init`'s
 job. Pass each value in every delegation the *Consumed by* column names.
@@ -92,7 +92,7 @@ job. Pass each value in every delegation the *Consumed by* column names.
 | `formatMatrix` | rows, or `none` | `format.sh` only; never passed in a delegation; `unset` nudges once and does not stop the run |
 | `baseBranch`, `branchNaming` | e.g. `main`; `feature/<ticket>-<slug>` | Branch creation, below |
 | `runUrl`, `runCommand` | a URL; a command; or `none` | The site runner, which only you run, from the project root: `bash "${CLAUDE_PLUGIN_ROOT}/scripts/site.sh" start` (Bash `timeout: 600000`; `starting` → call it again) before a dispatch that needs the running site (`visual-review`, `web-review`), then `… stop` once it returns and before any build or test gate. `ready` or `external` → hand the worker `runUrl`; `external` is the user's own site, never stopped. `failed` or a refusal goes to the user with its output. Never start a site another way, and never ask the user to start one the runner can |
-| `planDirectory` (`<plan-dir>`) | a path, default `.claude/` | Where plans are read/written |
+| `planDirectory` (`<plan-dir>`) | a path, default `.crew/plans/` | Where plans are read/written |
 
 ## Branching and commits
 

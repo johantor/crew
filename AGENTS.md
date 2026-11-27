@@ -50,7 +50,7 @@ reaches users. The `johantor` marketplace is its own repository,
 - `lead` plans and delegates. It writes no production code and is the **sole owner of git**: it
   branches off the resolved base and commits each verified step. Workers run no git but a plain
   `git mv`. The crew stops at the local review gate; `/crew:pr` pushes.
-- The plan at `<plan-dir>/plan-<feature>.md` (the `planDirectory` slot, else `.claude/`) carries
+- The plan at `<plan-dir>/plan-<feature>.md` (the `planDirectory` slot, else `.crew/plans/`) carries
   per-step acceptance criteria. It is presented once for the user's go-ahead before the branch
   or any delegation (the plan checkpoint); a standing "just build it" counts as the go-ahead.
 - Each worker has a lane, its role (the plugin map lists them). No hook enforces it: each plan
@@ -186,6 +186,9 @@ rule costs more than a sentence of prose, and motivation measurably helps compli
   subagent has no `Agent` tool, so a second `lead` cannot dispatch a worker and stops BLOCKED.
 - **Address review feedback** with the same lane routing, git ownership and gate that built the
   feature, not a second looser flow.
+- **The plan fallback is `.crew/plans/`, never `.claude/`** (#351). Claude Code asks before
+  every write under `.claude/`, even with `acceptEdits` and an `Edit(.claude/**)` rule, and a
+  headless run cannot answer.
 - **The plan file is durable state.** It survives a crash or context reset. `/crew:loop` keeps
   no crash marker: ticks run their workers in the foreground and return only when nothing runs,
   so the next tick's resume reconciles whatever a crashed one left (#249).

@@ -30,5 +30,5 @@ the hook tests, and shellcheck.
 `backendStack` is `shell` and `frontendStack` is `none`: the hooks and scripts are the
 deliverable, and there is no view. The mode slot stays `unset` because nothing needs it. `baseBranch` is `main`; `branchNaming` is the convention in AGENTS.md.
 
-`planDirectory` is `unset`, so plans land in the `.claude/` fallback, which this repo does not
-track.
+`planDirectory` is `unset`, so plans land in the `.crew/plans/` fallback, which `.gitignore`
+keeps out of this repo.

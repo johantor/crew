@@ -369,12 +369,12 @@ Local agent memory is git-ignored (`.claude/agent-memory-local/`).
 
 **In a git worktree, only committed files outlive the worktree.** Local memory and plans both
 resolve relative to the project directory — memory at `.claude/agent-memory-local/`, plans at the
-**Plan directory** slot or `.claude/` when it is unset — so they sit inside the worktree, and
+**Plan directory** slot or `.crew/plans/` when it is unset — so they sit inside the worktree, and
 `git worktree remove` deletes those copies. Configuration is never in memory: it lives in
 `.claude/crew.md`, which travels with the branch when committed. A local, git-excluded
 `.claude/crew.md` is not in a new worktree, so `lead` stops there. Point **Plan directory** at a
 tracked path (e.g. `docs/plans/`) so a plan you commit lands on the branch instead of in the
-untracked `.claude/` fallback.
+untracked `.crew/plans/` fallback.
 
 **Your own specs.** If the project keeps specs in the repository (spec-kit, Kiro, or plain
 markdown under `specs/`), `/crew:init` records the folder in the **Spec directory** slot. Before

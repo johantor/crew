@@ -11,8 +11,8 @@ run's `maxTurns` finishes without you re-asking each time. Each tick you launch 
 This wrapper is the **outer loop**; it lives at the **main-session** level and owns all
 scheduling. `lead` never self-schedules — you re-invoke it, one tick at a time, on the
 harness's native `/loop` in **dynamic (self-paced) mode**. The durable
-`<plan-dir>/plan-<feature>.md` (the `Plan directory` crew-config slot, or `.claude/` when
-unset) is the only cross-tick state — no new files, no background daemon.
+`<plan-dir>/plan-<feature>.md` (the `Plan directory` crew-config slot, or `.crew/plans/`
+when unset) is the only cross-tick state — no new files, no background daemon.
 
 Run this **foreground** so tick 1's plan checkpoint can prompt.
 

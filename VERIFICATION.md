@@ -66,6 +66,10 @@ Most rows run in one or two minutes without a person at the keyboard:
   crew worker; else no git, check HEAD and the diff). (#348: headless `-p`, `lead` quoted the
   note verbatim and relayed the agent's reply.)
 
+- [x] **A headless plan writes with no prompt** — `planDirectory: unset`, `claude -p --agent
+  crew:lead --permission-mode acceptEdits '<task>'` → `lead` writes `.crew/plans/plan-<feature>.md`
+  and dispatches its first step. (#351: observed the plan file, a `backend` step committed; a
+  plain `Write` to `.claude/` in the same mode was refused.)
 - [x] **A command runs in place under `--agent crew:lead`** — `claude -p --agent crew:lead
   '/crew:feature <task>'` → no second `crew:lead` launches, and the main-thread `lead`
   dispatches the workers itself. (#350: headless, the one `Agent` payload was `crew:lead` →
