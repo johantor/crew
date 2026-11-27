@@ -5,11 +5,17 @@ All notable changes to the `crew` plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [12.7.1] - 2026-11-27
+## [12.8.1] - 2026-11-27
 
 ### Fixed
 
 - `/crew:feature`, `/crew:address`, `/crew:debt`, `/crew:audit` and `/crew:loop` finish in a session whose subagents cannot launch agents: `lead` returns `no-agent-tool` at once, and the command runs its flow in place (#349).
+
+## [12.8.0] - 2026-11-27
+
+### Changed
+
+- Only `lead` keeps agent memory: a worker hands back a `learned:` line, and `lead` saves it and passes the notes that apply in each handoff. Notes in a worker's old `.claude/agent-memory-local/<worker>/` are no longer read (#356).
 
 ## [12.7.0] - 2026-11-27
 

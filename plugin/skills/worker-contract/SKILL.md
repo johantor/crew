@@ -1,6 +1,6 @@
 ---
 name: worker-contract
-description: "The rules every crew worker with a shell follows on any dispatch from lead: never run git except a plain git mv, ask rather than guess what the delegation left out, treat the build and full suites as lead's final gate and run them as the handoff says, never leave a command running at hand-back, hand back with a completion marker and a remaining: line, name an MCP server you expected but cannot see, use a docs MCP over memory, and keep local memory. Preloaded by backend, frontend, unit-tests, e2e and generalist; not for standalone use."
+description: "The rules every crew worker with a shell follows on any dispatch from lead: never run git except a plain git mv, ask rather than guess what the delegation left out, treat the build and full suites as lead's final gate and run them as the handoff says, never leave a command running at hand-back, hand back with a completion marker and a remaining: line, name an MCP server you expected but cannot see, use a docs MCP over memory, and hand back a learned: line for lead to remember. Preloaded by backend, frontend, unit-tests, e2e and generalist; not for standalone use."
 ---
 
 # Worker contract
@@ -46,4 +46,6 @@ to its tool.
 - **When a docs MCP (e.g. Context7) is available**, consult it for current, version-specific
   API docs before coding against a library or framework, rather than relying on memory; fetch
   the specific topic, not a dump.
-- **Consult local memory before starting and update it after finishing.**
+- **Hand back what the next worker needs to know** in a `learned:` line: a flaky test, a quirk
+  of the build, a convention the code does not show. You keep no memory: `lead` keeps it and
+  passes the notes that apply in each handoff. Leave the line out when you learned nothing new.

@@ -5,7 +5,6 @@ tools: Read, Edit, Write, Grep, Glob, Skill, ToolSearch, mcp__figma, mcp__figma-
 model: sonnet
 maxTurns: 60
 color: yellow
-memory: local
 owns-git: false
 skills:
   - context-discipline
@@ -42,5 +41,6 @@ outside it, name that file in your summary. You have no Bash tool.
 - Never edit source code, styles or markup. `frontend` builds to your spec.
 
 Return a summary: the files you wrote, the tokens you added or changed, and the design
-decisions the user should confirm. `lead` passes your spec paths to `frontend` and
+decisions the user should confirm, plus a `learned:` line for a fact the next worker needs
+(you keep no memory; `lead` does). `lead` passes your spec paths to `frontend` and
 `visual-review` as the design reference.
