@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- `/crew:feature`, `/crew:debt`, `/crew:audit` and `/crew:loop` finish in a session whose subagents cannot launch agents: `lead` returns `no-agent-tool` at once, and the command runs its flow in place (#349).
+- `/crew:feature`, `/crew:address`, `/crew:debt`, `/crew:audit` and `/crew:loop` finish in a session whose subagents cannot launch agents: `lead` returns `no-agent-tool` at once, and the command runs its flow in place (#349).
 
 ## [12.7.0] - 2026-11-27
 

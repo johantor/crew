@@ -8,7 +8,12 @@ Delegate the whole review-feedback loop to the orchestrator: launch the `crew:le
 (via the Agent tool) with `$ARGUMENTS` and the instructions below. Do **not** pull comments, edit
 files, run git, or delegate to workers yourself — `lead` owns the PR loop, the feature branch,
 and every worker delegation. If `crew:lead` cannot be launched, stop and report the exact
-error; do not improvise the flow inline.
+error; do not improvise the flow inline outside the in-place case below.
+
+**In place.** If you are `crew:lead` (the main thread of `claude --agent crew:lead`), launch no
+second `lead`. If `lead` returns only `no-agent-tool` (this host's subagents cannot launch
+agents), read `${CLAUDE_PLUGIN_ROOT}/agents/lead.md`, load each skill its `skills:` lists, and
+act as `lead` from here on. Either way, follow the instructions for `crew:lead` below yourself.
 
 Instructions for `crew:lead`:
 
