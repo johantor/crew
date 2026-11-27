@@ -286,6 +286,8 @@ Paths in *Map* are relative to `plugin/`, the directory users install.
   success, second-NO-GO cap, `/crew:pr`, generalist no-op) in `agents/lead.md` §"Loop-mode
   bindings". The outer loop is `commands/loop.md`.
 - Every crew agent carries `owns-git` before `skills:` (§9); exactly one (`lead`) owns git.
+- `memory: local` only on `lead`: a worker hands back a `learned:` line (`worker-contract`,
+  and the `designer`/`copywriter` summaries), and `lead` saves it and passes what applies.
 - `omitClaudeMd: true` only on `incident-triage` and `visual-review` (read-only, fully briefed). Never on an
   implementer: the project's `CLAUDE.md` holds its conventions. Not on `debt-scout` either: the
   project's `CLAUDE.md` may carry the debt policy section it has to honor.

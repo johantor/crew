@@ -111,6 +111,8 @@ same build location, so they run as `review-gate` rule 1 says: one at a time, or
 under the stack skill's **Parallel gates** recipe with its conditions checked and recorded. Two
 lanes writing different outputs still run concurrently.
 
+A worker's `learned:` line goes into the report as is: a review keeps no memory, only `lead` does.
+
 1. **Backend tests** — *only if the backend lane changed*: delegate to `crew:unit-tests`; run the suite, surface failures with file:line.
 2. **Build** — delegate each changed lane's build to its owner, both isolated from any running app/dev process and in the session's dedicated build location, surfacing errors with file:line (not the raw log):
    - *backend lane changed* → `crew:backend` runs the **backend build command** from crew config.

@@ -5,7 +5,6 @@ tools: Read, Edit, Write, Grep, Glob, Bash, ToolSearch, mcp__context7, mcp__plug
 model: sonnet
 maxTurns: 72
 color: blue
-memory: local
 owns-git: false
 skills:
   - engineering-principles

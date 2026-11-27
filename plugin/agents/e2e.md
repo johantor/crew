@@ -5,7 +5,6 @@ tools: Read, Edit, Write, Bash, Grep, Glob, Skill, ToolSearch, mcp__playwright, 
 model: sonnet
 maxTurns: 120
 color: magenta
-memory: local
 owns-git: false
 skills:
   - context-discipline
